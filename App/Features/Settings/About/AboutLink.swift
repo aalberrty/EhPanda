@@ -46,14 +46,15 @@ extension AboutLink {
         AboutLink(App.TranslationContributor.Link.neKoOuO, App.TranslationContributor.Text.neKoOuO)
     ]
 
-    /// The libraries v2 actually uses that have strings in `Constant.strings`. Legacy-only
-    /// libraries (TCA, SwiftyBeaver, AlertKit, …) are gone; GRDB and swift-dependencies have
-    /// no strings yet.
+    /// The libraries v2 uses. Legacy-only libraries (TCA, SwiftyBeaver, AlertKit, …) are gone,
+    /// though their strings stay in `Constant.strings`.
     static let acknowledgements: [AboutLink] = [
+        AboutLink(App.Acknowledgement.Link.grdb, App.Acknowledgement.Text.grdb),
         AboutLink(App.Acknowledgement.Link.kanna, App.Acknowledgement.Text.kanna),
         AboutLink(App.Acknowledgement.Link.kingfisher, App.Acknowledgement.Text.kingfisher),
         AboutLink(App.Acknowledgement.Link.swiftGen, App.Acknowledgement.Text.swiftGen),
         AboutLink(App.Acknowledgement.Link.sfSafeSymbols, App.Acknowledgement.Text.sfSafeSymbols),
+        AboutLink(App.Acknowledgement.Link.swiftDependencies, App.Acknowledgement.Text.swiftDependencies),
         AboutLink(App.Acknowledgement.Link.swiftyOpenCC, App.Acknowledgement.Text.swiftyOpenCC),
         AboutLink(
             App.Acknowledgement.Link.ehTagTranslationDatabase, App.Acknowledgement.Text.ehTagTranslationDatabase
