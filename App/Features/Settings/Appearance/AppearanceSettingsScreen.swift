@@ -1,4 +1,5 @@
 import EhCore
+import EhFeatures
 import EhModels
 import SwiftUI
 
@@ -6,7 +7,7 @@ import SwiftUI
 /// and accent colour app-wide; this screen only edits them.
 struct AppearanceSettingsScreen: View {
     @Environment(SettingsStore.self) private var settings
-    @State private var showsAppIcons = false
+    @Environment(StackRouter.self) private var stack
 
     var body: some View {
         @Bindable var settings = settings
@@ -24,7 +25,7 @@ struct AppearanceSettingsScreen: View {
                     supportsOpacity: false
                 )
                 Button {
-                    showsAppIcons = true
+                    stack.push(.settings(.appIcon))
                 } label: {
                     LabeledContent {
                         Text(settings.appIconType.localizedName)
@@ -43,9 +44,6 @@ struct AppearanceSettingsScreen: View {
             }
         }
         .navigationTitle(L10n.Localizable.AppearanceSettingView.Title.appearance)
-        .navigationDestination(isPresented: $showsAppIcons) {
-            AppIconScreen()
-        }
     }
 
     /// The colour picker works on `Color`; the setting stores sRGB components.

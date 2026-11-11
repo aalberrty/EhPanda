@@ -35,18 +35,22 @@ import Testing
         let env = try ListTestEnvironment()
         env.transport.on(.any, reply: .fixture(ListFixture.favorites))
         let model = env.make { FavoritesModel() }
-        await model.list.loadIfNeeded()
+        var screen = ListScreenTask()
+        await screen.render(model.list)
         let all = model.list
 
+        // Selecting a folder that has not loaded loads it, through the view's task alone.
         model.select(category: 3)
         #expect(model.category == 3)
-        await model.list.loadIfNeeded()
+        await screen.render(model.list)
         #expect(env.query("favcat", ofRequest: 1) == "3")
+        #expect(model.list.phase == .content)
 
         model.select(category: -1)
         #expect(model.list === all)
-        await model.list.loadIfNeeded()
+        await screen.render(model.list)
         #expect(env.transport.requests.count == 2)
+        #expect(model.list.phase == .content)
     }
 
     @Test func sortOrderChangeReloadsWithInlineSetAndDropsOtherFolders() async throws {
@@ -69,9 +73,11 @@ import Testing
         #expect(env.query("inline_set", ofRequest: 2) != nil)
 
         let previousCount = env.transport.requests.count
+        var screen = ListScreenTask()
+        await screen.render(model.list)
         model.select(category: 2)
         #expect(model.list.galleries.isEmpty)
-        await model.list.loadIfNeeded()
+        await screen.render(model.list)
         #expect(env.transport.requests.count == previousCount + 1)
         #expect(env.query("inline_set", ofRequest: previousCount) == nil)
     }
@@ -88,8 +94,10 @@ import Testing
         #expect(env.query("f_search", ofRequest: 1) == "tag")
         #expect(env.query("sn", ofRequest: 1) == "on")
 
+        var screen = ListScreenTask()
+        await screen.render(model.list)
         model.select(category: 4)
-        await model.list.loadIfNeeded()
+        await screen.render(model.list)
         #expect(env.query("f_search", ofRequest: 2) == "tag")
 
         model.isQuickSearchPresented = true

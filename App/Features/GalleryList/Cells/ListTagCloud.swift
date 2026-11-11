@@ -1,4 +1,5 @@
 import EhCore
+import EhFeatures
 import EhModels
 import SwiftUI
 
@@ -18,7 +19,7 @@ struct ListTagCloud: View {
             ForEach(tags) { content in
                 let display = translations?.display(forKey: content.rawNamespace + content.text)
                 TagChip(
-                    display.map(\.displayValue).flatMap { $0.isEmpty ? nil : $0 } ?? content.text,
+                    content.chipText(translation: display, showsImages: showsImages),
                     imageURL: showsImages ? display?.valueImageURL : nil,
                     font: .caption2,
                     padding: EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4),

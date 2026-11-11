@@ -1,6 +1,7 @@
 import Dependencies
 import EhCore
 import EhDatabase
+import EhFeatures
 import EhModels
 import EhNetworking
 import EhTestSupport
@@ -97,5 +98,22 @@ func waitUntil(_ condition: () -> Bool) async {
     for _ in 0..<1000 where !condition() {
         await Task.yield()
         try? await Task.sleep(for: .milliseconds(1))
+    }
+}
+
+/// Stands in for `PagedGalleryList`'s `.task(id: model.loadTrigger) { await model.loadIfNeeded() }`:
+/// like SwiftUI, it runs the load when first rendered and again only when the id changed. Tests
+/// that switch lists render through it instead of calling `loadIfNeeded()`, so a switch the view
+/// would not notice leaves the new list unloaded here too.
+@MainActor
+struct ListScreenTask {
+    private var lastTrigger: GalleryListModel.LoadTrigger?
+
+    /// Renders `list` and awaits the load its task would start, if any.
+    mutating func render(_ list: GalleryListModel) async {
+        let trigger = list.loadTrigger
+        guard trigger != lastTrigger else { return }
+        lastTrigger = trigger
+        await list.loadIfNeeded()
     }
 }

@@ -16,10 +16,10 @@ struct HomeScreen: View {
             .navigationTitle(L10n.Localizable.HomeView.Title.home)
             .toolbar { reloadItem }
             .task { await model.run() }
+            // `AppModel.selectTab` plays the re-selection haptic.
             .onChange(of: router.rootReselectionCount(for: .home)) {
                 model.reloadAll()
             }
-            .sensoryFeedback(.impact(flexibility: .soft), trigger: router.rootReselectionCount(for: .home))
     }
 
     /// The whole page waits for Popular, as in legacy; the other sections fill in on their own.

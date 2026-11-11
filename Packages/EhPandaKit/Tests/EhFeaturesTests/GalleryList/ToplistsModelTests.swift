@@ -51,21 +51,31 @@ import Testing
         let env = try ListTestEnvironment()
         env.transport.on(.any, reply: .fixture(ListFixture.toplists))
         let model = env.make { ToplistsModel() }
-        await model.list.loadIfNeeded()
+        var screen = ListScreenTask()
+        await screen.render(model.list)
         let yesterday = model.list
         model.titleFilter = "a"
 
+        // Selecting a period that has not loaded loads it, through the view's task alone.
         model.select(.allTime)
         #expect(model.list !== yesterday)
         #expect(model.list.source == .toplists(.allTime))
         #expect(model.list.titleFilter == "a")
-        await model.list.loadIfNeeded()
+        await screen.render(model.list)
         #expect(env.query("tl", ofRequest: 1) == "11")
+        #expect(model.list.phase == .content)
 
+        model.select(.pastMonth)
+        await screen.render(model.list)
+        #expect(env.transport.requests.count == 3)
+        #expect(model.list.phase == .content)
+
+        // Switching back shows the loaded list without another request.
         model.select(.yesterday)
         #expect(model.list === yesterday)
-        await model.list.loadIfNeeded()
-        #expect(env.transport.requests.count == 2)
+        await screen.render(model.list)
+        #expect(env.transport.requests.count == 3)
+        #expect(model.list.phase == .content)
     }
 
     @Test func singlePageCannotJump() {

@@ -241,8 +241,8 @@ import Testing
         let chip = try #require(model.tagRows.first?.chips.first)
         await pollUntil { model.translation(for: chip) != nil }
         let translation = model.translation(for: chip)
-        #expect(chip.text(translation: translation, showsImages: true) == "非H图集 🐱")
-        #expect(chip.text(translation: translation, showsImages: false) == "非H图集 ")
-        #expect(chip.text(translation: nil, showsImages: true) == "non-h imageset")
+        #expect(chip.content.chipText(translation: translation, showsImages: true) == "非H图集 🐱")
+        #expect(chip.content.chipText(translation: translation, showsImages: false) == "非H图集 ")
+        #expect(chip.content.chipText(translation: nil, showsImages: true) == "non-h imageset")
     }
 }

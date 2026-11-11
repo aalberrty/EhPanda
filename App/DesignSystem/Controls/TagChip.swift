@@ -4,8 +4,9 @@ import SwiftUI
 /// A one-line tag with an optional trailing image (replaces legacy `TagCloudCell`).
 ///
 /// Legacy took a `showsImages` flag and stripped emoji from the text when images were hidden;
-/// callers now pass `imageURL: nil` and the text they want shown. The image is sized to the
-/// font's cap height by an invisible SF Symbol, so it scales with Dynamic Type.
+/// callers now pass `imageURL: nil` and the text they want shown (`GalleryTag.Content.chipText`
+/// for a tag). The image is sized to the font's cap height by an invisible SF Symbol, so it
+/// scales with Dynamic Type.
 struct TagChip: View {
     private let text: String
     private let imageURL: URL?

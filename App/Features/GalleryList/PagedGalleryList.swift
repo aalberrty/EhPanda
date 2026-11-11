@@ -36,7 +36,7 @@ struct PagedGalleryList: View {
         }
         .animation(.default, value: model.phase)
         // Kept outside the switch so changing phase does not cancel the load it started.
-        .task(id: model.loadRequest) { await model.loadIfNeeded() }
+        .task(id: model.loadTrigger) { await model.loadIfNeeded() }
     }
 }
 

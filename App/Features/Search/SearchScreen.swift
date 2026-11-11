@@ -41,7 +41,7 @@ struct SearchScreen: View {
             }
         }
         .sensoryFeedback(.impact(weight: .light), trigger: model.sheet) { _, new in new != nil }
-        .sensoryFeedback(.impact(flexibility: .soft), trigger: reselections)
+        // `AppModel.selectTab` plays the re-selection haptic.
         .onChange(of: reselections) { model.rootReselected() }
         .task(id: model.reloadID) { await model.observe() }
     }

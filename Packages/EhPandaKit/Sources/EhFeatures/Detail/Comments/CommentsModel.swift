@@ -34,6 +34,7 @@ public final class CommentsModel {
     @ObservationIgnored @Dependency(\.ehClient) private var client
     @ObservationIgnored @Dependency(\.database) private var database
     @ObservationIgnored @Dependency(\.applicationClient) private var application
+    @ObservationIgnored @Dependency(\.settings) private var settings
     @ObservationIgnored @Dependency(\.continuousClock) private var clock
 
     /// - Parameter commentID: A comment to scroll to and highlight once it is in the list.
@@ -109,18 +110,22 @@ public final class CommentsModel {
     /// pushed onto `stack` as `Route.detail`, whose intent opens the reader at the linked page
     /// or the comments at the linked comment. Anything else opens outside the app.
     ///
-    /// A gallery the app has not stored is first resolved from the site behind a HUD.
-    public func openLink(_ url: URL, on stack: StackRouter) {
-        guard EhURL.isHandleable(url), let gid = EhURL.galleryID(of: url) else {
+    /// A gallery the app has not stored is first resolved from the site behind a HUD. Like
+    /// links from outside the app, the link moves to the selected host when "Redirects links
+    /// to the selected host" is on.
+    public func openLink(_ link: URL, on stack: StackRouter) {
+        guard EhURL.isHandleable(link), let gid = EhURL.galleryID(of: link) else {
             let application = application
-            Task { _ = await application.openURL(url) }
+            Task { _ = await application.openURL(link) }
             return
         }
+        let redirection = LinkRedirection(settings: settings)
+        let url = redirection.redirect(link)
         let analysis = EhURL.analyze(url)
         tasks.run("link") { [weak self, database, client] in
             if let stored = try? await database.gallery(gid: gid) {
                 guard !Task.isCancelled else { return }
-                self?.open(stored, analysis: analysis, on: stack)
+                self?.open(redirection.redirect(stored), analysis: analysis, on: stack)
                 return
             }
             self?.linkState = .resolving
