@@ -21,6 +21,7 @@ struct GalleryRecord: Codable, FetchableRecord, PersistableRecord {
 
     enum Columns {
         static let gid = Column(CodingKeys.gid)
+        static let title = Column(CodingKeys.title)
         static let lastOpenDate = Column(CodingKeys.lastOpenDate)
     }
 

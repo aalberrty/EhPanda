@@ -33,6 +33,34 @@ extension AppDatabase {
         return observation.values(in: writer, scheduling: .task)
     }
 
+    /// The most recently opened galleries whose title contains `titleFilter` (ignoring case;
+    /// every gallery when it is empty), at most `limit` of them. Emits at once and again after
+    /// every committed change to `gallery`.
+    ///
+    /// The filter is part of the query, so it searches the whole history while only `limit`
+    /// rows are read and decoded.
+    public func observeHistory(
+        limit: Int, titleFilter: String
+    ) -> some AsyncSequence<HistoryPage, any Error> & Sendable {
+        let keyword = titleFilter.lowercased()
+        let observation = ValueObservation.tracking { db in
+            var request = GalleryRecord.order(GalleryRecord.Columns.lastOpenDate.desc)
+            if !keyword.isEmpty {
+                // `swiftLowercaseString` is GRDB's built-in Unicode-aware lowercasing.
+                request = request.filter(literal: "instr(\(GalleryRecord.Columns.title.lowercased), \(keyword)) > 0")
+            }
+            // One row more than asked tells whether there are more.
+            let records = try request.limit(limit + 1).fetchAll(db)
+            let isHistoryEmpty = keyword.isEmpty ? records.isEmpty : try GalleryRecord.limit(1).fetchCount(db) == 0
+            return HistoryPage(
+                galleries: records.prefix(limit).map(\.gallery),
+                hasMore: records.count > limit,
+                isHistoryEmpty: isHistoryEmpty
+            )
+        }
+        return observation.values(in: writer, scheduling: .task)
+    }
+
     /// Deletes every gallery, detail, state and page row.
     ///
     /// This is a privacy feature, so the content must not stay recoverable on disk:
@@ -50,5 +78,20 @@ extension AppDatabase {
         try await writer.writeWithoutTransaction { db in
             try db.execute(sql: "PRAGMA wal_checkpoint(TRUNCATE)")
         }
+    }
+}
+
+/// One read of the history: the galleries asked for and what the screen needs around them.
+public struct HistoryPage: Sendable, Equatable {
+    public let galleries: [Gallery]
+    /// Whether more galleries match than were read.
+    public let hasMore: Bool
+    /// Whether the history holds no gallery at all, whatever the filter.
+    public let isHistoryEmpty: Bool
+
+    public init(galleries: [Gallery], hasMore: Bool, isHistoryEmpty: Bool) {
+        self.galleries = galleries
+        self.hasMore = hasMore
+        self.isHistoryEmpty = isHistoryEmpty
     }
 }
