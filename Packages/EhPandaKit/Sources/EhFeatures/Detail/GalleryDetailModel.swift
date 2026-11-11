@@ -57,6 +57,10 @@ public final class GalleryDetailModel {
     /// What the opener asked for; run once, after the first load.
     @ObservationIgnored private var pendingIntent: DetailIntent?
     @ObservationIgnored private var initialLoad: Task<Void, Never>?
+    /// Counts the fetched pages that were applied. What is prepared off the main actor for a
+    /// page (or for what is stored, which is older than any page) is dropped when a newer
+    /// page has been applied meanwhile.
+    @ObservationIgnored private var appliedFetches = 0
 
     @ObservationIgnored @Dependency(\.ehClient) var client
     @ObservationIgnored @Dependency(\.database) var database
@@ -111,7 +115,9 @@ public final class GalleryDetailModel {
 
     // MARK: Loading
 
-    /// Shows what is stored, records the visit in the history, then fetches the page.
+    /// Fetches the page, and meanwhile shows what is stored and records the visit in the
+    /// history. The request goes out first: preparing stored comments and tags takes tens of
+    /// milliseconds that the network round trip does not have to wait for.
     ///
     /// Call from the view's `.task`. The work runs once per screen and outlives the call, so
     /// pushing a child (which ends the view's task) does not abandon a fetch halfway; later
@@ -126,10 +132,10 @@ public final class GalleryDetailModel {
             }
             initialLoad = tasks.run("load") { [weak self, database, gallery] in
                 async let recorded: Void = GalleryDetailModel.recordOpened(gallery, in: database)
+                let fetch = self?.fetch()
                 let stored = await StoredDetail.read(gid: gallery.gid, from: database)
                 await self?.applyStored(stored)
                 self?.scheduleIntent()
-                let fetch = self?.fetch()
                 await fetch?.value
                 await recorded
             }
@@ -166,6 +172,8 @@ public final class GalleryDetailModel {
         case .failure(let error):
             loadingState = .failed(error)
         case .success(let response):
+            appliedFetches += 1
+            let fetch = appliedFetches
             apiKey = response.apiKey
             userStore.updateAPIKey(response.apiKey)
             setDetail(response.detail)
@@ -174,7 +182,12 @@ public final class GalleryDetailModel {
             loadingState = .idle
             let saved = persist(response)
             handleGreeting(response.greeting)
-            setComments(await CommentItem.make(from: response.state.comments))
+            let comments = await CommentItem.make(from: response.state.comments)
+            // The page was fetched again meanwhile (after a vote, say) and that page's
+            // comments may already be in place.
+            if fetch == appliedFetches {
+                setComments(comments)
+            }
             await setTags(response.state.tags)
             // The reader and the previews grid start from what is stored, so a load that has
             // returned has stored it.
@@ -182,14 +195,19 @@ public final class GalleryDetailModel {
         }
     }
 
+    /// Shows what the database holds until the page arrives. If the page got here first, what
+    /// is stored is older and is not applied.
     private func applyStored(_ stored: StoredDetail) async {
+        guard appliedFetches == 0 else { return }
         if let detail = stored.detail {
             setDetail(detail)
         }
         setPreviewURLs(stored.previewURLs)
         guard let state = stored.state else { return }
         previewConfig = state.previewConfig
-        setComments(await CommentItem.make(from: state.comments))
+        let comments = await CommentItem.make(from: state.comments)
+        guard appliedFetches == 0 else { return }
+        setComments(comments)
         await setTags(state.tags)
     }
 
@@ -235,8 +253,8 @@ public final class GalleryDetailModel {
 
     // MARK: Side effects
 
-    /// Stores the fresh page through the database's focused updates. Not tied to the screen:
-    /// what was fetched is kept even if the screen closes meanwhile.
+    /// Stores the fresh page in one transaction. Not tied to the screen: what was fetched is
+    /// kept even if the screen closes meanwhile.
     ///
     /// The detail page is the gallery's first preview page, so its pages are stored with their
     /// viewer links as well as their thumbnails: the reader then starts at the viewer page
@@ -244,18 +262,9 @@ public final class GalleryDetailModel {
     private func persist(_ response: GalleryDetailResponse) -> Task<Void, Never> {
         let database = database
         let logger = logger
-        let gid = gallery.gid
-        let state = response.state
-        let pages = GalleryPage.pages(gid: gid, listedOn: response.previewPage)
         return Task {
             do {
-                try await database.saveDetail(response.detail)
-                try await database.updateTags(gid: gid, tags: state.tags)
-                try await database.updateComments(gid: gid, comments: state.comments)
-                try await database.upsertPages(pages)
-                if let config = state.previewConfig {
-                    try await database.updatePreviewConfig(gid: gid, config: config)
-                }
+                try await database.saveDetail(response.detail, state: response.state)
             } catch {
                 logger.error("Could not store the detail of a gallery: \(error)", category: "Detail")
             }

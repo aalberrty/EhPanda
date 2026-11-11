@@ -24,12 +24,11 @@ import Testing
             postedDate: .now, coverURL: nil, favoritedCount: 1, pageCount: 156, sizeCount: 1, sizeType: "MiB",
             torrentCount: 0
         )
-        try await env.database.saveDetail(stored)
-        try await env.database.updateTags(gid: DetailEnvironment.gid, tags: [
+        try await env.database.saveDetail(stored, state: GalleryState(gid: DetailEnvironment.gid, tags: [
             GalleryTag(rawNamespace: "female", contents: [
                 .init(rawNamespace: "female", text: "stored", isVotedUp: false, isVotedDown: false, backgroundColor: nil)
             ])
-        ])
+        ]))
         try await env.database.upsertPages([
             GalleryPage(gid: DetailEnvironment.gid, index: 1, previewURL: URL(string: "https://ehgt.org/stored.jpg"))
         ])
@@ -42,7 +41,10 @@ import Testing
         let model = env.makeDetailModel()
         let loading = Task { await model.load() }
 
-        await pollUntil { model.detail?.title == "Stored title" && model.loadingState == .loading }
+        // The request is already out while the stored content is prepared.
+        await pollUntil {
+            model.detail?.title == "Stored title" && model.loadingState == .loading && !model.tagRows.isEmpty
+        }
         #expect(model.userRating == 5)
         #expect(model.tagRows.map(\.tag.rawNamespace) == ["female"])
         #expect(model.previews.map(\.index) == [1])
@@ -74,10 +76,10 @@ import Testing
         let database = env.database
         let gid = DetailEnvironment.gid
 
-        // Storing happens after the screen has what it needs, so wait for the last write.
-        await pollUntil { (try? await database.state(gid: gid))?.previewConfig != nil }
+        // Stored by the time the load returns.
         let pages = try await database.pages(gid: gid)
         #expect(pages.compactMap(\.previewURL).count == 40)
+        #expect(pages.compactMap(\.pageURL).count == 40)
         let detail = try await database.detail(gid: gid)
         #expect(detail?.title == "[Artist] mks")
         let state = try #require(try await database.state(gid: gid))

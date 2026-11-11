@@ -115,6 +115,17 @@ final class ReaderModelHarness {
         return Dictionary(uniqueKeysWithValues: pages.map { ($0.index, $0) })
     }
 
+    /// Stores a detail page of the gallery that showed this preview layout.
+    func storeDetail(previewConfig: PreviewConfig) async throws {
+        let detail = GalleryDetail(
+            gid: gid, title: "Title", isFavorited: false, visibility: .yes, rating: 4, userRating: 0,
+            ratingCount: 1, category: .doujinshi, language: .japanese, uploader: "Uploader",
+            postedDate: Date(timeIntervalSince1970: 0), coverURL: nil, favoritedCount: 0,
+            pageCount: site.pageCount, sizeCount: 1, sizeType: "MiB", torrentCount: 0
+        )
+        try await database.saveDetail(detail, state: GalleryState(gid: gid, previewConfig: previewConfig))
+    }
+
     func storedProgress() async throws -> Int? {
         try await database.state(gid: gid)?.readingProgress
     }

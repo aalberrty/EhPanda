@@ -5,15 +5,49 @@ import GRDB
 // MARK: - Detail
 
 extension AppDatabase {
-    public func saveDetail(_ detail: GalleryDetail) async throws {
+    /// Stores a freshly fetched detail page in one transaction: the detail, the tags and
+    /// comments, the preview layout when the page showed one, and the URLs `state` carries for
+    /// its pages (the first preview page's thumbnails and viewer links), merged like
+    /// `upsertPages`. The stored reading progress is left as it is.
+    public func saveDetail(_ detail: GalleryDetail, state: GalleryState) async throws {
         try await writer.write { db in
             try GalleryDetailRecord(detail: detail).upsert(db)
+            try db.execute(
+                sql: """
+                INSERT INTO \(Schema.galleryState) (gid, tags, comments, previewConfig) VALUES (?, ?, ?, ?)
+                ON CONFLICT (gid) DO UPDATE SET
+                    tags = excluded.tags,
+                    comments = excluded.comments,
+                    previewConfig = coalesce(excluded.previewConfig, previewConfig)
+                """,
+                arguments: [
+                    detail.gid,
+                    try JSONColumn.encode(state.tags),
+                    try JSONColumn.encode(state.comments),
+                    try state.previewConfig.map { try JSONColumn.encode($0) }
+                ]
+            )
+            try Self.upsert(Self.pages(of: state, gid: detail.gid), in: db)
         }
     }
 
     public func detail(gid: String) async throws -> GalleryDetail? {
         try await writer.read { db in
             try GalleryDetailRecord.fetchOne(db, key: gid)?.detail
+        }
+    }
+
+    private static func pages(of state: GalleryState, gid: String) -> [GalleryPage] {
+        let indices = Set(state.previewURLs.keys)
+            .union(state.thumbnailURLs.keys)
+            .union(state.imageURLs.keys)
+            .union(state.originalImageURLs.keys)
+        return indices.sorted().map { index in
+            GalleryPage(
+                gid: gid, index: index,
+                pageURL: state.thumbnailURLs[index], imageURL: state.imageURLs[index],
+                originalImageURL: state.originalImageURLs[index], previewURL: state.previewURLs[index]
+            )
         }
     }
 }
@@ -46,37 +80,15 @@ extension AppDatabase {
         }
     }
 
+    /// Writes the reading progress, creating the row if needed, without touching the rest.
     public func updateReadingProgress(gid: String, progress: Int) async throws {
-        try await updateStateColumn("readingProgress", gid: gid) { progress }
-    }
-
-    public func updateTags(gid: String, tags: [GalleryTag]) async throws {
-        try await updateStateColumn("tags", gid: gid) { try JSONColumn.encode(tags) }
-    }
-
-    public func updateComments(gid: String, comments: [GalleryComment]) async throws {
-        try await updateStateColumn("comments", gid: gid) { try JSONColumn.encode(comments) }
-    }
-
-    public func updatePreviewConfig(gid: String, config: PreviewConfig) async throws {
-        try await updateStateColumn("previewConfig", gid: gid) { try JSONColumn.encode(config) }
-    }
-
-    /// Writes one column of `galleryState`, creating the row if needed, without touching the
-    /// others. `column` is always a literal from this file, never user input. `value` runs
-    /// inside the write so JSON encoding happens on GRDB's queue, not the caller's actor.
-    private func updateStateColumn(
-        _ column: String, gid: String,
-        value: @escaping @Sendable () throws -> any DatabaseValueConvertible
-    ) async throws {
         try await writer.write { db in
-            let value = try value()
             try db.execute(
                 sql: """
-                INSERT INTO \(Schema.galleryState) (gid, \(column)) VALUES (?, ?)
-                ON CONFLICT (gid) DO UPDATE SET \(column) = excluded.\(column)
+                INSERT INTO \(Schema.galleryState) (gid, readingProgress) VALUES (?, ?)
+                ON CONFLICT (gid) DO UPDATE SET readingProgress = excluded.readingProgress
                 """,
-                arguments: [gid, value]
+                arguments: [gid, progress]
             )
         }
     }

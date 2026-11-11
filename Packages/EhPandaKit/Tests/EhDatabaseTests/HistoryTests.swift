@@ -69,11 +69,11 @@ import Testing
     @Test func clearHistoryDeletesAllGalleryData() async throws {
         let database = try await TestDatabase.inMemory()
         try await database.recordOpened(SampleData.gallery("1"))
-        try await database.saveDetail(SampleData.detail("1"))
+        try await database.saveDetail(SampleData.detail("1"), state: GalleryState(gid: "1"))
         try await database.updateReadingProgress(gid: "1", progress: 5)
         try await database.upsertPages([GalleryPage(gid: "1", index: 1, imageURL: SampleData.url("1.jpg"))])
         // Rows for a gallery without a `gallery` row are cleared too.
-        try await database.saveDetail(SampleData.detail("2"))
+        try await database.saveDetail(SampleData.detail("2"), state: GalleryState(gid: "2"))
         try await database.recordSearchKeyword("kept")
 
         try await database.clearHistory()

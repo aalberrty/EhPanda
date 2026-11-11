@@ -95,7 +95,7 @@ import Testing
 
     @Test func theStoredPreviewLayoutDecidesThePreviewPage() async throws {
         let harness = try ReaderModelHarness(site: ReaderTestSite(batchSize: 20))
-        try await harness.database.updatePreviewConfig(gid: harness.gid, config: .large(rows: 4))
+        try await harness.storeDetail(previewConfig: .large(rows: 4))
         let model = await harness.startedModel(initialPage: 25)
 
         model.pagesNeeded([25])
