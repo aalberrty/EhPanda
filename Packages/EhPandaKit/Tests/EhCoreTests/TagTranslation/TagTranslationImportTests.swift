@@ -29,7 +29,7 @@ import Testing
     @Test func validBlobIsStoredWithMetadata() async throws {
         let harness = try await ServiceHarness.make()
 
-        await harness.service.importLegacyTranslator(Self.legacyBlob)
+        try await harness.service.importLegacyTranslator(Self.legacyBlob)
 
         let service = harness.service
         #expect(service.metadata == TagTranslationMetadata(
@@ -53,14 +53,14 @@ import Testing
         let blob = Data(#"""
             {"hasCustomTranslations":true,"translations":{"femalea":{"namespace":"female","key":"a","value":"甲"}}}
             """#.utf8)
-        await harness.service.importLegacyTranslator(blob)
+        try await harness.service.importLegacyTranslator(blob)
         #expect(harness.service.metadata == TagTranslationMetadata(hasCustomTranslations: true))
         #expect(harness.service.lookup(word: "female:a", returnOriginal: false).text == "female:甲")
     }
 
     @Test func nilBlobDoesNothing() async throws {
         let harness = try await ServiceHarness.make()
-        await harness.service.importLegacyTranslator(nil)
+        try await harness.service.importLegacyTranslator(nil)
         #expect(harness.service.metadata == TagTranslationMetadata())
         #expect(try await harness.database.tagTranslationCount() == 0)
     }
@@ -70,7 +70,7 @@ import Testing
         harness.remote.publish(.simplifiedChinese, date: Samples.releaseDate, translations: Samples.chinese)
         await harness.service.fetchUpdates()
 
-        await harness.service.importLegacyTranslator(Data("{\"translations\": 42".utf8))
+        try await harness.service.importLegacyTranslator(Data("{\"translations\": 42".utf8))
 
         #expect(harness.service.translations.count == 3)
         #expect(harness.service.language == .simplifiedChinese)

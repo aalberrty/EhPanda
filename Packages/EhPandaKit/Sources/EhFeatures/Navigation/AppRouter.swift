@@ -55,13 +55,40 @@ public final class AppRouter {
         rootReselections[tab, default: 0]
     }
 
-    public func present(_ gallery: Gallery) {
+    /// Presents `gallery` in the gallery sheet. `target` is what the link pointed at inside the
+    /// gallery; the detail screen takes it once with `takePresentedGalleryTarget(for:)`.
+    public func present(_ gallery: Gallery, target: GalleryLinkTarget? = nil) {
         presented.popToRoot()
+        presentedGalleryTarget = target
         presentedGallery = gallery
     }
 
     public func dismissPresentedGallery() {
         presentedGallery = nil
+        presentedGalleryTarget = nil
         presented.popToRoot()
     }
+
+    /// What the link that opened the presented gallery pointed at, if anything.
+    ///
+    /// Not observed: the sheet takes it while building its root screen, and taking it must not
+    /// invalidate the view being built.
+    @ObservationIgnored public private(set) var presentedGalleryTarget: GalleryLinkTarget?
+
+    /// Returns the presented gallery's link target and forgets it, so it is honoured once.
+    /// `nil` when `gid` is not the presented gallery or there is no target.
+    public func takePresentedGalleryTarget(for gid: String) -> GalleryLinkTarget? {
+        guard presentedGallery?.gid == gid, let target = presentedGalleryTarget else { return nil }
+        presentedGalleryTarget = nil
+        return target
+    }
+}
+
+/// The part of a gallery a link points at, beyond the gallery itself.
+nonisolated public enum GalleryLinkTarget: Hashable, Sendable {
+    /// An image page (`/s/<key>/<gid>-<page>`): open the reader at this 1-based page. The page
+    /// is already stored as the gallery's reading progress when the gallery is presented.
+    case page(Int)
+    /// A comment anchor (`/g/<gid>/<token>/#c<id>`): open the comments scrolled to this comment.
+    case comment(String)
 }

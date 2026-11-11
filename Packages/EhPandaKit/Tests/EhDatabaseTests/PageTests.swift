@@ -97,4 +97,18 @@ import Testing
         // Only the cached URLs expire; the history entry stays.
         #expect(try await database.gallery(gid: "old") != nil)
     }
+
+    @Test func deleteAllPagesKeepsHistory() async throws {
+        let database = try await TestDatabase.inMemory()
+        try await database.recordOpened(SampleData.gallery("1"), at: SampleData.date(1_000_000))
+        try await database.upsertPages(["1", "2"].map {
+            GalleryPage(gid: $0, index: 1, imageURL: SampleData.url($0))
+        })
+
+        try await database.deleteAllPages()
+
+        #expect(try await database.pages(gid: "1").isEmpty)
+        #expect(try await database.pages(gid: "2").isEmpty)
+        #expect(try await database.gallery(gid: "1") != nil)
+    }
 }

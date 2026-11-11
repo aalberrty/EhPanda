@@ -142,7 +142,7 @@ private extension AccountSession {
         do {
             // A cutoff in the distant future treats every gallery as not opened recently,
             // so every stored page goes.
-            try await database.deleteExpiredPages(notOpenedWithin: 0, now: .distantFuture)
+            try await database.deleteAllPages()
         } catch {
             report(error, "Removing stored image URLs")
         }

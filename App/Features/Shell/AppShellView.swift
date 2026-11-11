@@ -4,69 +4,74 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The tab bar and the navigation stack of each tab.
+/// The root of the app: the launch screens until the database is ready, then the tabs.
 ///
-/// Feature screens never reference each other. A feature shows another feature's screen by
-/// pushing a `Route` onto the `StackRouter` in its environment; `RouteDestination` maps the
-/// route to the owning feature's entry view.
+/// It also owns everything around the features: the shared services in the environment, the
+/// accent colour and colour scheme, links opened from outside, the scene lifecycle and the
+/// privacy blur and lock, which live in a window above this one (see `SceneWindowBridge`).
 struct AppShellView: View {
-    @State private var router = AppRouter()
+    @State private var model: AppModel = {
+        let model = AppModel()
+        model.lock.localizedReason = L10n.Localizable.LocalAuthorization.reason
+        return model
+    }()
 
-    // Shared stores. They are injected into the environment so views read the individual
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    // Shared services. They are injected into the environment so views read the individual
     // properties they render; models reach the same instances through `@Dependency`.
     @Dependency(\.settings) private var settings
     @Dependency(\.filterStore) private var filterStore
     @Dependency(\.userStore) private var userStore
+    @Dependency(\.tagTranslationService) private var tagTranslationService
+    @Dependency(\.accountSession) private var accountSession
 
     var body: some View {
-        TabView(selection: selectedTab) {
-            Tab(L10n.Localizable.TabItem.Title.home, systemImage: "house", value: AppTab.home) {
-                RoutedStack(router: router.home) { HomeScreen() }
-            }
-            Tab(L10n.Localizable.TabItem.Title.favorites, systemImage: "heart", value: AppTab.favorites) {
-                RoutedStack(router: router.favorites) { FavoritesScreen() }
-            }
-            Tab(value: AppTab.search, role: .search) {
-                RoutedStack(router: router.search) { SearchScreen() }
-            }
-            Tab(L10n.Localizable.TabItem.Title.setting, systemImage: "gearshape", value: AppTab.settings) {
-                RoutedStack(router: router.settings) { SettingsScreen() }
+        ZStack {
+            if model.launchState == .ready {
+                MainTabView(model: model)
+                    .transition(.opacity)
+            } else {
+                LaunchStatusView(model: model)
+                    .transition(.opacity)
             }
         }
-        .environment(router)
+        .animation(.easeOut(duration: 0.25), value: model.launchState == .ready)
+        .tint(settings.accentColor.color)
+        .environment(model.router)
         .environment(settings)
         .environment(filterStore)
         .environment(userStore)
-        .sheet(item: presentedGallery) { gallery in
-            RoutedStack(router: router.presented) { GalleryDetailDestination(gallery: gallery) }
+        .environment(tagTranslationService)
+        .environment(accountSession)
+        .background {
+            SceneWindowBridge(
+                colorScheme: settings.preferredColorScheme,
+                accentColor: settings.accentColor,
+                lock: model.lock,
+                isPrivacyOverlayVisible: model.lock.blurRadius > 0 || model.lock.isLocked,
+                unlock: model.unlock
+            )
         }
-    }
-
-    /// Routed through `select` so that tapping the current tab pops to its root or reloads it.
-    private var selectedTab: Binding<AppTab> {
-        Binding(get: { router.selectedTab }, set: { router.select($0) })
-    }
-
-    private var presentedGallery: Binding<Gallery?> {
-        Binding(
-            get: { router.presentedGallery },
-            set: { if $0 == nil { router.dismissPresentedGallery() } }
-        )
+        .onOpenURL { model.links.open($0) }
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            model.scenePhaseChanged(to: AppModel.ScenePhase(phase))
+        }
+        .task(id: model.launchAttempt) {
+            await model.launch(isRegularWidth: horizontalSizeClass == .regular)
+        }
+        .task { await model.followDomainFrontingSetting() }
     }
 }
 
-/// A `NavigationStack` bound to a `StackRouter`, which it also exposes to its content.
-struct RoutedStack<Root: View>: View {
-    @Bindable var router: StackRouter
-    @ViewBuilder var root: Root
-
-    var body: some View {
-        NavigationStack(path: $router.path) {
-            root.navigationDestination(for: Route.self) { route in
-                RouteDestination(route: route)
-            }
+private extension AppModel.ScenePhase {
+    init(_ phase: SwiftUI.ScenePhase) {
+        switch phase {
+        case .active: self = .active
+        case .background: self = .background
+        default: self = .inactive
         }
-        .environment(router)
     }
 }
 

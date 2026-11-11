@@ -13,13 +13,15 @@ struct SearchScreen: View {
         ScrollView {
             SearchRootSections(
                 model: model, isRegularWidth: horizontalSizeClass == .regular,
+                search: { model.search($0, on: stack) },
                 openGallery: { stack.push(.detail($0)) }
             )
         }
         .scrollIndicators(.hidden)
         .navigationTitle(L10n.Localizable.SearchView.Title.search)
         .tagSearchable(
-            text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search, onSubmit: model.submit
+            text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search,
+            onSubmit: { model.submit(on: stack) }
         )
         .toolbar {
             ToolbarItem {
@@ -30,10 +32,7 @@ struct SearchScreen: View {
                 .symbolRenderingMode(.hierarchical)
             }
         }
-        .navigationDestination(item: $model.destination) { request in
-            SearchResultsView(keyword: request.keyword, recordsHistory: true)
-        }
-        .sheet(item: $model.sheet, onDismiss: model.sheetDismissed) { sheet in
+        .sheet(item: $model.sheet, onDismiss: { model.sheetDismissed(on: stack) }) { sheet in
             switch sheet {
             case .filters:
                 FiltersSheet(range: .search)
@@ -56,6 +55,7 @@ struct SearchScreen: View {
 private struct SearchRootSections: View {
     let model: SearchRootModel
     let isRegularWidth: Bool
+    let search: (String) -> Void
     let openGallery: (Gallery) -> Void
 
     var body: some View {
@@ -67,7 +67,7 @@ private struct SearchRootSections: View {
                     tint: .primary, showAll: model.showQuickSearch
                 ) {
                     KeywordColumns(
-                        keywords: quickSearch, isRegularWidth: isRegularWidth, search: model.search, remove: nil
+                        keywords: quickSearch, isRegularWidth: isRegularWidth, search: search, remove: nil
                     )
                 }
             }
@@ -75,7 +75,7 @@ private struct SearchRootSections: View {
             if !history.isEmpty {
                 SubSection(title: L10n.Localizable.SearchView.Section.Title.recentlySearched, showsAll: false) {
                     KeywordColumns(
-                        keywords: history, isRegularWidth: isRegularWidth, search: model.search,
+                        keywords: history, isRegularWidth: isRegularWidth, search: search,
                         remove: { keyword in Task { await model.removeHistoryKeyword(keyword) } }
                     )
                 }

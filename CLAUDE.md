@@ -86,9 +86,12 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
   - Cross-feature: push a `Route` (`EhFeatures/Navigation/Route.swift`) onto the `StackRouter` in the
     environment, e.g. `stack.push(.detail(gallery))`. `App/Features/Shell/RouteDestination.swift` maps
     each route to the owning feature's entry view. Features never reference each other's views.
-  - Inside a feature: child screens that need the parent's model (comments, previews, archives, …)
-    are presented by the parent with `navigationDestination(item:)` or a sheet, driven by a
-    `destination` property on the parent's model.
+  - Every **pushed** screen is a `Route` in the stack's path, including a feature's own child
+    screens (e.g. `.detailChild(...)` for comments, previews and gallery infos, which carries the
+    parent model). `navigationDestination(item:)` is not used with these stacks: SwiftUI keeps
+    path entries below item-pushed screens, so pushing a route drops them from the stack.
+  - Sheets and full-screen covers stay local, presented by the parent and driven by a
+    `destination` property on its model.
   - `AppRouter` owns the selected tab, one `StackRouter` per tab, and the gallery sheet used for
     deep links. Re-selecting a tab pops it to its root, or bumps `rootReselections` when already there.
 - **Entry points.** Each feature owns the entry views the shell references (`HomeScreen`,
