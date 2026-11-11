@@ -73,7 +73,9 @@ public final class URLSessionTransport: HTTPTransport {
         configuration.httpCookieStorage = cookieStorage
         configuration.httpCookieAcceptPolicy = .always
         configuration.httpShouldSetCookies = true
-        configuration.timeoutIntervalForRequest = 30
+        // The idle timeout: the longest wait for the next bytes, not for the whole response. A
+        // server that does not answer costs this twice (see `RetryPolicy.maxTimeoutAttempts`).
+        configuration.timeoutIntervalForRequest = 15
         configuration.timeoutIntervalForResource = 120
         // Gallery pages fan out to many image and preview requests on the same few hosts.
         configuration.httpMaximumConnectionsPerHost = 8

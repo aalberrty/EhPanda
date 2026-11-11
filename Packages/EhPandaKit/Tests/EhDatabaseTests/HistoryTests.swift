@@ -66,6 +66,50 @@ import Testing
         #expect(values.map { $0.map(\.gid) } == [[], ["1"], ["2", "1"], []])
     }
 
+    @Test func historyPagesAreLimitedAndSayWhetherMoreFollow() async throws {
+        let database = try await TestDatabase.inMemory()
+        for index in 1...5 {
+            try await database.recordOpened(SampleData.gallery("\(index)"), at: SampleData.date(Double(index)))
+        }
+
+        let first = try await observe(database.observeHistory(limit: 2, titleFilter: ""), changes: [])
+        #expect(first.first?.hasMore == true)
+        #expect(first.first?.isHistoryEmpty == false)
+        #expect(first.first?.galleries.map(\.gid) == ["5", "4"])
+        let all = try await observe(database.observeHistory(limit: 5, titleFilter: ""), changes: [])
+        #expect(all.first?.galleries.map(\.gid) == ["5", "4", "3", "2", "1"])
+        #expect(all.first?.hasMore == false)
+    }
+
+    /// The filter searches the whole history, not only the rows of the first page.
+    @Test func historyTitleFilterSearchesEveryRowIgnoringCase() async throws {
+        let database = try await TestDatabase.inMemory()
+        try await database.recordOpened(SampleData.gallery("1", title: "Old Ünïcode Title"), at: SampleData.date(1))
+        for index in 2...10 {
+            try await database.recordOpened(SampleData.gallery("\(index)", title: "Other"), at: SampleData.date(Double(index)))
+        }
+
+        let values = try await observe(database.observeHistory(limit: 2, titleFilter: "ünÏCODE"), changes: [])
+        #expect(values.first?.galleries.map(\.gid) == ["1"])
+        #expect(values.first?.hasMore == false)
+        #expect(values.first?.isHistoryEmpty == false)
+        let none = try await observe(database.observeHistory(limit: 2, titleFilter: "missing"), changes: [])
+        #expect(none.first?.galleries.isEmpty == true)
+        #expect(none.first?.isHistoryEmpty == false)
+    }
+
+    @Test func historyPageObservationEmitsOnChange() async throws {
+        let database = try await TestDatabase.inMemory()
+        let values = try await observe(database.observeHistory(limit: 1, titleFilter: ""), changes: [
+            { try await database.recordOpened(SampleData.gallery("1"), at: SampleData.date(1)) },
+            { try await database.recordOpened(SampleData.gallery("2"), at: SampleData.date(2)) },
+            { try await database.clearHistory() }
+        ])
+        #expect(values.map { $0.galleries.map(\.gid) } == [[], ["1"], ["2"], []])
+        #expect(values.map(\.hasMore) == [false, false, true, false])
+        #expect(values.map(\.isHistoryEmpty) == [true, false, false, true])
+    }
+
     @Test func clearHistoryDeletesAllGalleryData() async throws {
         let database = try await TestDatabase.inMemory()
         try await database.recordOpened(SampleData.gallery("1"))

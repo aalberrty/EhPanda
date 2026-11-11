@@ -68,7 +68,7 @@ import Testing
     @Test func fastPathAgreesWithParser() {
         for value in ["巨乳", "  巨乳  ", "Big Breasts", "1号", "#tag", "- x", "Ｆｕｌｌ　ｃｏｌｏｒ"] {
             let parsed = TagMarkdown.texts(value).first ?? value
-            #expect(TagMarkdown.display(of: value, validator: URLValidator()).text == parsed, "\(value)")
+            #expect(TagMarkdown.display(of: value).text == parsed, "\(value)")
         }
         #expect(TagMarkdown.plainParagraphText("  巨乳 ") == "巨乳")
         #expect(TagMarkdown.plainParagraphText("1号") == nil)

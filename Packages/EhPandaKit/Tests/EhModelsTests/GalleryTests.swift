@@ -43,11 +43,18 @@ import Testing
         #expect(gallery.notFilledCount == empty)
     }
 
-    @Test func equalityIsByGID() {
+    /// A refreshed gallery with the same id but new content must not compare equal, or
+    /// Observation and SwiftUI keep showing the old values.
+    @Test func equalityCoversEveryField() {
         var other = Self.gallery(title: "a")
-        other.title = "b"
         #expect(other == Self.gallery(title: "a"))
-        #expect(Set([other, Self.gallery()]).count == 1)
+        other.title = "b"
+        #expect(other != Self.gallery(title: "a"))
+        #expect(other.id == Self.gallery(title: "a").id)
+        var rated = Self.gallery()
+        rated.rating += 1
+        #expect(rated != Self.gallery())
+        #expect(Set([other, Self.gallery(title: "a")]).count == 2)
         #expect(Self.gallery().description == "Gallery(1)")
     }
 

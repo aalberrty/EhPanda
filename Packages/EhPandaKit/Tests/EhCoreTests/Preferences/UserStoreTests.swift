@@ -29,18 +29,6 @@ import Testing
         #expect(storage.contains("user"))
     }
 
-    @Test func updateUserInfoMergesOnlyPresentFields() {
-        let store = UserStore(storage: .ephemeral())
-        store.apply(User(displayName: "old", credits: "1", galleryPoints: "2"))
-        store.updateUserInfo(User(avatarURL: URL(string: "https://x.org/a.png"), credits: "9"))
-        #expect(store.displayName == "old")
-        #expect(store.avatarURL == URL(string: "https://x.org/a.png"))
-        // Funds change only as a pair.
-        #expect(store.credits == "1" && store.galleryPoints == "2")
-        store.updateUserInfo(User(displayName: "new", credits: "9", galleryPoints: "8"))
-        #expect(store.displayName == "new" && store.credits == "9" && store.galleryPoints == "8")
-    }
-
     @Test func updateGreetingKeepsTheNewestOne() {
         let storage = PreferenceStorage.ephemeral()
         let store = UserStore(storage: storage)

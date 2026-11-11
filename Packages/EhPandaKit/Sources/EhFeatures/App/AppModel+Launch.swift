@@ -30,6 +30,10 @@ extension AppModel {
         applyDomainFronting(settings.bypassesSNIFiltering)
         application.setOrientationLock(application.isPad() ? .unlocked : .portrait)
 
+        // Both run off the main actor while the database opens; neither delays the launch screen.
+        async let sharedStoresCreated: Void = createSharedStores()
+        async let passcodeChecked: Void = lock.checkPasscode()
+
         let database: AppDatabase
         do {
             database = try await openDatabase()
@@ -48,6 +52,8 @@ extension AppModel {
         }
         guard !Task.isCancelled else { return }
 
+        await sharedStoresCreated
+        await passcodeChecked
         lock.lockAtLaunch()
         links.isAcceptingLinks = true
         launchState = .ready
@@ -85,6 +91,24 @@ extension AppModel {
             launchState = .failed(.databaseCorrupted(String(describing: error)))
             return false
         }
+    }
+
+    /// Creates the stores the tabs read, so that decoding the filters and the user and the first
+    /// read of the cookie jar happen here, off the main actor, and not in the first `body` that
+    /// reads them.
+    private func createSharedStores() async {
+        await withDependencies(from: self) {
+            await Self.resolveSharedStores()
+        }
+    }
+
+    @concurrent
+    nonisolated private static func resolveSharedStores() async {
+        @Dependency(\.filterStore) var filterStore
+        @Dependency(\.userStore) var userStore
+        @Dependency(\.tagTranslationService) var tagTranslationService
+        @Dependency(\.accountSession) var accountSession
+        _ = (filterStore, userStore, tagTranslationService, accountSession)
     }
 
     /// Opens the database while the cookie housekeeping runs, as legacy did both at once.

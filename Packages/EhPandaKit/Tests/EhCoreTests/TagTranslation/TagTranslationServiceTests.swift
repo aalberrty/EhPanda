@@ -226,22 +226,6 @@ import Testing
 
     // MARK: Lookup and details
 
-    @Test func lookupMatchesLegacy() async throws {
-        let harness = try await ServiceHarness.make()
-        harness.remote.publish(.simplifiedChinese, date: Samples.releaseDate, translations: Samples.chinese)
-        await harness.service.fetchUpdates()
-        let service = harness.service
-
-        #expect(service.lookup(word: "femalebig breasts", returnOriginal: false).text == "巨乳")
-        #expect(service.lookup(word: "female:big breasts", returnOriginal: false).text == "female:巨乳")
-        #expect(service.lookup(word: "female:big breasts", returnOriginal: false).key == "femalebig breasts")
-        #expect(service.lookup(word: "female:big breasts", returnOriginal: true).text == "female:big breasts")
-        #expect(service.lookup(word: "female:unknown", returnOriginal: false).display == nil)
-        #expect(service.lookup(word: "female:unknown", returnOriginal: false).text == "female:unknown")
-        #expect(TagTranslationService.splitAtColon(":big") == (nil, ":big"))
-        #expect(TagTranslationService.splitAtColon("a::b") == ("a", "b"))
-    }
-
     @Test func entryWithoutANameKeepsTheOriginalTag() async throws {
         let harness = try await ServiceHarness.make()
         var translations = Samples.chinese
@@ -252,10 +236,6 @@ import Testing
         await harness.service.fetchUpdates()
         let service = harness.service
 
-        let lookup = service.lookup(word: "female:nameless", returnOriginal: false)
-        #expect(lookup.text == "female:nameless")
-        #expect(lookup.key == "femalenameless")
-        #expect(lookup.display == nil)
         #expect(service.display(forKey: "femalenameless") == nil)
         #expect(service.display(forKey: "femalebig breasts")?.displayValue == "巨乳")
     }

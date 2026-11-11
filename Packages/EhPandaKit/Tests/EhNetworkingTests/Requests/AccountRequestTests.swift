@@ -31,11 +31,6 @@ private typealias T = RequestTesting
     }
 
     @Test(arguments: GalleryHost.allCases)
-    func userInfoAlwaysUsesTheForum(host: GalleryHost) {
-        T.expectGET(T.builder(host).userInfo(uid: "1234567"), "https://forums.e-hentai.org/index.php?showuser=1234567")
-    }
-
-    @Test(arguments: GalleryHost.allCases)
     func settingsPageReads(host: GalleryHost) {
         let builder = T.builder(host)
         let expected = T.origin(host) + "/uconfig.php"

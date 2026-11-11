@@ -22,13 +22,6 @@ extension EhRequestBuilder {
         RequestEncoding.get(EhEndpoints.exhentai)
     }
 
-    /// Always the forum on forums.e-hentai.org.
-    public func userInfo(uid: String) -> URLRequest {
-        RequestEncoding.get(RequestEncoding.appending(
-            [RequestEncoding.item(.showUser, uid)], to: EhEndpoints.forum
-        ))
-    }
-
     /// The settings page, parsed for the favorites category names.
     public func favoriteCategories() -> URLRequest {
         RequestEncoding.get(uConfigURL)

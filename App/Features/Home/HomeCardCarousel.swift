@@ -6,11 +6,22 @@ import SwiftUI
 /// in at both edges (legacy `CardSlideSection` on SwiftUIPager).
 struct HomeCardCarousel: View {
     let cards: [Gallery]
+    /// Whether the page around the carousel is scrolling.
+    var pageScrolling = PageScrollState()
     let open: (Gallery) -> Void
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var palettes = CardPaletteStore()
     @State private var currentID: String?
+    /// Whether any of the carousel is inside the page's visible area, and the screen is not
+    /// covered by a pushed one. The current card's backdrop only drifts while it can be seen.
+    @State private var isOnScreen = false
+    @State private var isOnPage = true
+    @State private var areCardsScrolling = false
+
+    private var animatesCurrentCard: Bool {
+        isOnScreen && isOnPage && !pageScrolling.isScrolling && !areCardsScrolling
+    }
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -21,7 +32,7 @@ struct HomeCardCarousel: View {
                             gallery: gallery,
                             title: HomeSections.cardTitle(of: gallery, isCompact: sizeClass != .regular),
                             palette: palettes.palettes[gallery.id],
-                            isCurrent: gallery.id == currentID
+                            isAnimated: animatesCurrentCard && gallery.id == currentID
                         )
                     }
                     .buttonStyle(.plain)
@@ -37,8 +48,15 @@ struct HomeCardCarousel: View {
         .scrollPosition(id: $currentID, anchor: .center)
         .contentMargins(.horizontal, sideMargin, for: .scrollContent)
         .frame(height: Tokens.ImageSize.cardHeight)
-        .onChange(of: cards, initial: true) { _, cards in
-            currentID = HomeSections.initialCardIndex(count: cards.count).map { cards[$0].id }
+        .onScrollPhaseChange { _, phase in areCardsScrolling = phase.isScrolling }
+        // Reported against the page's vertical scroll view.
+        .onScrollVisibilityChange(threshold: 0.01) { isOnPage = $0 }
+        .onAppear { isOnScreen = true }
+        .onDisappear { isOnScreen = false }
+        // Only a new set of cards moves back to the first one; refreshed fields of the same
+        // galleries keep the card the user scrolled to.
+        .onChange(of: cards.map(\.id), initial: true) { _, ids in
+            currentID = HomeSections.initialCardIndex(count: ids.count).map { ids[$0] }
         }
     }
 
@@ -48,12 +66,18 @@ struct HomeCardCarousel: View {
     }
 }
 
+/// Whether a scroll view is scrolling, for a child that pauses work meanwhile.
+@Observable
+final class PageScrollState {
+    var isScrolling = false
+}
+
 /// One Popular card: cover, title and rating over a gradient of the cover's colours.
 private struct HomeCard: View {
     let gallery: Gallery
     let title: String
     let palette: CardPalette?
-    let isCurrent: Bool
+    let isAnimated: Bool
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -77,7 +101,7 @@ private struct HomeCard: View {
         .padding(Tokens.Spacing.xLarge)
         .frame(height: Tokens.ImageSize.cardHeight)
         // Legacy animated only the current card, and only in dark mode.
-        .background { CardBackground(palette: palette, isAnimated: isCurrent && colorScheme == .dark) }
+        .background { CardBackground(palette: palette, isAnimated: isAnimated && colorScheme == .dark) }
         .clipShape(shape)
         .contentShape(shape)
         .accessibilityElement(children: .combine)

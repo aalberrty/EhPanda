@@ -27,6 +27,11 @@ public final class AppLockModel {
     /// The authentication prompt itself makes the scene inactive and then active again; that
     /// activation must not lock the app again (which would prompt again after a cancel).
     @ObservationIgnored private var ignoresNextActivation = false
+    /// Whether the device can authenticate its owner, as last checked by `checkPasscode()`.
+    /// `LAContext` may block, so it is checked off the main actor ahead of time (at launch and
+    /// whenever the app goes to the background, which is the only way a passcode can be
+    /// removed) rather than when the scene becomes active.
+    @ObservationIgnored private(set) var isPasscodeSet = false
 
     @ObservationIgnored @Dependency(\.settings) private var settings
     @ObservationIgnored @Dependency(\.date) private var date
@@ -43,8 +48,14 @@ public final class AppLockModel {
 
     nonisolated public init() {}
 
+    /// Checks off the main actor whether the device can authenticate its owner.
+    func checkPasscode() async {
+        isPasscodeSet = await Self.canAuthenticate(biometrics)
+    }
+
     /// Locks right away if auto-lock is on, as legacy did after loading the settings (it treated
-    /// the app as inactive since the distant past). Returns whether it locked.
+    /// the app as inactive since the distant past). Returns whether it locked. Call after
+    /// `checkPasscode()`.
     @discardableResult
     func lockAtLaunch() -> Bool {
         inactiveSince = .distantPast
@@ -104,7 +115,12 @@ public final class AppLockModel {
         else { return false }
         // Without a passcode the device cannot authenticate its owner, and legacy then kept the
         // app locked for good. Blurring without locking avoids locking the user out.
-        return biometrics.isAvailable()
+        return isPasscodeSet
+    }
+
+    @concurrent
+    nonisolated private static func canAuthenticate(_ biometrics: BiometricsClient) async -> Bool {
+        biometrics.isAvailable()
     }
 
     private func lock() {

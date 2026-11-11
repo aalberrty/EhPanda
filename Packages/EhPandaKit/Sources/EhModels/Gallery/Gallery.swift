@@ -1,6 +1,10 @@
 import Foundation
 
 /// A gallery as it appears in a list.
+///
+/// Equality and hashing cover every field, so a refreshed gallery with a new title, rating or
+/// tags is a change that Observation and SwiftUI act on. "The same gallery" is `gid` (its `id`);
+/// compare that explicitly where a different version of the gallery must still match.
 public struct Gallery: Identifiable, Codable, Sendable, Hashable, CustomStringConvertible {
     public var id: String { gid }
     public let gid: String
@@ -43,15 +47,6 @@ public struct Gallery: Identifiable, Codable, Sendable, Hashable, CustomStringCo
         self.coverURL = coverURL
         self.galleryURL = galleryURL
         self.lastOpenDate = lastOpenDate
-    }
-
-    // Two galleries are the same gallery when their IDs match, whatever else changed.
-    public static func == (lhs: Gallery, rhs: Gallery) -> Bool {
-        lhs.gid == rhs.gid
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(gid)
     }
 
     public var description: String {

@@ -6,6 +6,7 @@ import EhModels
 import EhNetworking
 import EhTestSupport
 import Foundation
+import Synchronization
 
 /// Dependencies for list tests: a client on a `StubTransport`, its own cookies (logged in unless
 /// asked otherwise), its own filter store and an in-memory database.
@@ -47,7 +48,7 @@ final class ListTestEnvironment {
     }
 }
 
-enum ListFixture {
+nonisolated enum ListFixture {
     static let frontpage = "Parser/List/FrontPageCompactList.html"
     static let watched = "Parser/List/WatchedCompactList.html"
     static let favorites = "Parser/List/FavoritesCompactList.html"
@@ -115,5 +116,28 @@ struct ListScreenTask {
         guard trigger != lastTrigger else { return }
         lastTrigger = trigger
         await list.loadIfNeeded()
+    }
+}
+
+/// A flag a stubbed reply can wait on, so a test decides when a response arrives.
+nonisolated final class Gate: Sendable {
+    private let state = Mutex(false)
+
+    var isOpen: Bool { state.withLock { $0 } }
+
+    func open() { state.withLock { $0 = true } }
+
+    func wait() async {
+        while !isOpen, !Task.isCancelled { try? await Task.sleep(for: .milliseconds(2)) }
+    }
+}
+
+extension Fixture {
+    /// A 200 response to `request` whose body is the fixture at `path`.
+    nonisolated static func response(_ path: String, for request: URLRequest) throws -> HTTPResponse {
+        guard let url = request.url,
+              let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)
+        else { throw URLError(.badURL) }
+        return HTTPResponse(data: try Fixture.data(path), response: response)
     }
 }

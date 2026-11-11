@@ -63,21 +63,6 @@ struct BanIntervalParserTests {
 }
 
 struct AccountParserTests {
-    @Test func userInfo() throws {
-        let doc = try html(
-            #"<table class="ipbtable"><tr><td><div id="profilename">Tester</div>"#
-            + #"<img src="https://forums.e-hentai.org/style_images/ambience/x.gif">"#
-            + #"<img src="https://forums.e-hentai.org/uploads/av-1.png"></td></tr></table>"#
-        )
-        let user = try Parser.parseUserInfo(doc: doc)
-        #expect(user.displayName == "Tester")
-        #expect(user.avatarURL?.absoluteString == "https://forums.e-hentai.org/uploads/av-1.png")
-    }
-
-    @Test func userInfoWithoutProfile() throws {
-        #expect(throws: AppError.parseFailed) { try Parser.parseUserInfo(doc: html("<p>Login</p>")) }
-    }
-
     @Test func favoriteCategories() throws {
         let categories = try Parser.parseFavoriteCategories(doc: parserFixture("Other/EhSetting.html"))
         #expect(categories == Dictionary(uniqueKeysWithValues: (0...9).map { ($0, "Favorites \($0)") }))

@@ -55,7 +55,7 @@ import Testing
             """#.utf8)
         try await harness.service.importLegacyTranslator(blob)
         #expect(harness.service.metadata == TagTranslationMetadata(hasCustomTranslations: true))
-        #expect(harness.service.lookup(word: "female:a", returnOriginal: false).text == "female:甲")
+        #expect(harness.service.display(forKey: "femalea")?.displayValue == "甲")
     }
 
     @Test func nilBlobDoesNothing() async throws {

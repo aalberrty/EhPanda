@@ -35,25 +35,18 @@ public enum TagTranslationPreparation {
     private static func prepareChunk(
         _ entries: ArraySlice<(key: String, value: TagTranslation)>, converter: ChineseConverter?
     ) -> [StoredTagTranslation] {
-        let validator = URLValidator()
-        return entries.map { key, translation in
+        entries.map { key, translation in
             let translation = converter.map { traditionalChineseConverted(translation, with: $0) } ?? translation
-            let (displayValue, imageURL) = TagMarkdown.display(of: translation.value, validator: validator)
+            let (displayValue, imageURL) = TagMarkdown.display(of: translation.value)
             return StoredTagTranslation(
                 key: key, translation: translation, displayValue: displayValue, valueImageURL: imageURL
             )
         }
     }
 
-    /// Rows for `translations` (keyed as legacy's dictionary, namespace + tag) with the display
-    /// text and image legacy derived from the Markdown value on every access.
-    public static func storedTranslations(_ translations: [String: TagTranslation]) -> [StoredTagTranslation] {
-        prepareChunk(Array(translations)[...], converter: nil)
-    }
-
     /// Legacy `displayValue` and `valueImageURL` of one translation.
     public static func display(of translation: TagTranslation) -> TagTranslationDisplay {
-        let (text, imageURL) = TagMarkdown.display(of: translation.value, validator: URLValidator())
+        let (text, imageURL) = TagMarkdown.display(of: translation.value)
         return TagTranslationDisplay(displayValue: text, valueImageURL: imageURL)
     }
 
@@ -63,11 +56,10 @@ public enum TagTranslationPreparation {
         guard let description = descriptionPlainText(of: stored.translation), !description.isEmpty else {
             return nil
         }
-        let validator = URLValidator()
         return TagDetail(
             title: stored.displayValue,
             description: description,
-            imageURLs: stored.translation.description.map { TagMarkdown.images($0, validator: validator) } ?? [],
+            imageURLs: stored.translation.description.map { TagMarkdown.images($0) } ?? [],
             links: stored.translation.linksString.map(TagMarkdown.links) ?? []
         )
     }
@@ -80,7 +72,7 @@ public enum TagTranslationPreparation {
 
     /// Legacy `descriptionImageURLs`.
     public static func descriptionImageURLs(of translation: TagTranslation) -> [URL] {
-        translation.description.map { TagMarkdown.images($0, validator: URLValidator()) } ?? []
+        translation.description.map { TagMarkdown.images($0) } ?? []
     }
 
     /// Legacy `links`.

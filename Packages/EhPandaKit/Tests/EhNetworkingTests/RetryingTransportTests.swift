@@ -28,7 +28,7 @@ struct RetryingTransportTests {
     }
 
     @Test func backoffIncludesJitter() async throws {
-        stub.on(.any, replies: .error(URLError(.timedOut)), .error(URLError(.timedOut)), .status(200))
+        stub.on(.any, replies: .error(URLError(.networkConnectionLost)), .error(URLError(.networkConnectionLost)), .status(200))
 
         _ = try await transport(random: 0.5).send(makeRequest())
 
@@ -37,6 +37,20 @@ struct RetryingTransportTests {
 
     @Test(arguments: ["GET", "HEAD"])
     func idempotentRequestsStopAfterThreeAttempts(method: String) async {
+        stub.on(.any, reply: .error(URLError(.networkConnectionLost)))
+
+        let error = await #expect(throws: URLError.self) {
+            try await transport().send(makeRequest(method: method))
+        }
+
+        #expect(error?.code == .networkConnectionLost)
+        #expect(stub.requests.count == 3)
+        #expect(recorder.delays.count == 2)
+    }
+
+    /// Each timeout costs a full request timeout, so a server that never answers is given two.
+    @Test(arguments: ["GET", "HEAD"])
+    func aTimeoutIsRetriedOnlyOnce(method: String) async {
         stub.on(.any, reply: .error(URLError(.timedOut)))
 
         let error = await #expect(throws: URLError.self) {
@@ -44,8 +58,17 @@ struct RetryingTransportTests {
         }
 
         #expect(error?.code == .timedOut)
+        #expect(stub.requests.count == 2)
+        #expect(recorder.delays.count == 1)
+    }
+
+    @Test func timeoutsCountAcrossOtherFailures() async {
+        stub.on(.any, replies: .error(URLError(.timedOut)), .error(URLError(.networkConnectionLost)), .status(200))
+
+        let response = try? await transport().send(makeRequest())
+
+        #expect(response?.statusCode == 200)
         #expect(stub.requests.count == 3)
-        #expect(recorder.delays.count == 2)
     }
 
     @Test(arguments: [URLError.Code.timedOut, .networkConnectionLost, .badServerResponse, .unknown])

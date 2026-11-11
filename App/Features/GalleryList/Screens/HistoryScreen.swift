@@ -2,7 +2,8 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// Every opened gallery, newest first, from the database. Updates live; "Clear" empties it.
+/// Every opened gallery, newest first, from the database a page at a time. Updates live;
+/// "Clear" empties it.
 struct HistoryScreen: View {
     @State private var model = HistoryModel()
 
@@ -26,7 +27,8 @@ struct HistoryScreen: View {
                     }
                 }
             }
-            .task { await model.observe() }
+            // A new filter or another page restarts the observation for those rows.
+            .task(id: model.query) { await model.observe() }
     }
 
     @ViewBuilder
@@ -37,17 +39,30 @@ struct HistoryScreen: View {
                 LoadingStateView()
             case .failed(let error):
                 ErrorStateView(message: error.alertText, systemImage: error.symbol.rawValue)
-            case .idle where model.galleries.isEmpty:
+            case .idle where model.isHistoryEmpty:
                 EmptyStateView()
             case .idle:
-                GalleryCollection(galleries: model.visibleGalleries)
-                    .refreshable { await model.refresh() }
-                    .overlay {
-                        if model.visibleGalleries.isEmpty {
-                            ContentUnavailableView.search(text: model.titleFilter)
-                        }
+                GalleryCollection(galleries: model.galleries) {
+                    HistoryFooter(model: model)
+                }
+                .refreshable { await model.refresh() }
+                .overlay {
+                    if model.galleries.isEmpty {
+                        ContentUnavailableView.search(text: model.titleFilter)
                     }
+                }
             }
         }
+    }
+}
+
+/// The end of the history: asks for the next page when it scrolls into view, and again when a
+/// page lands while it is still visible.
+private struct HistoryFooter: View {
+    let model: HistoryModel
+
+    var body: some View {
+        PaginationFooter(phase: model.hasMore ? .loading : .end) {}
+            .task(id: model.galleries.count) { model.loadMore() }
     }
 }
