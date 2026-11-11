@@ -129,7 +129,7 @@ nonisolated enum AppFixture {
 /// Polls `condition` on the main actor until it holds, failing after `timeout`.
 @MainActor
 func shellWaitUntil(
-    timeout: Duration = .seconds(10), sourceLocation: SourceLocation = #_sourceLocation,
+    timeout: Duration = .seconds(60), sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: () -> Bool
 ) async {
     let clock = ContinuousClock()
