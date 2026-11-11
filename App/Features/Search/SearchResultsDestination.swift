@@ -9,14 +9,8 @@ struct SearchResultsDestination: View {
     let keyword: String
     var recordsHistory = false
 
-    @State private var hasAppeared = false
-
+    // The detail screen's buttons that push a detail search play its soft haptic.
     var body: some View {
         SearchResultsView(keyword: keyword, recordsHistory: recordsHistory)
-            // Legacy played a soft haptic when a detail search was pushed.
-            .sensoryFeedback(.impact(flexibility: .soft), trigger: hasAppeared) { _, appeared in
-                appeared && !recordsHistory
-            }
-            .onAppear { hasAppeared = true }
     }
 }
