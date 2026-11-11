@@ -60,6 +60,7 @@ struct LoginScreen: View {
                 }
             }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: model.webLoginURL) { _, new in new != nil }
         .navigationTitle(L10n.Localizable.LoginView.Title.login)
     }
 

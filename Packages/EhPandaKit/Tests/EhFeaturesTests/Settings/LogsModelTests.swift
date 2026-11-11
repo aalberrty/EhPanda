@@ -61,12 +61,10 @@ import Testing
         let model = withDependencies { $0.appLogger = logger } operation: { LogsModel() }
         await model.load()
         let log = try #require(model.logs.first)
-        model.selectedLog = log.file
 
         await model.delete(log)
 
         #expect(model.logs.isEmpty)
-        #expect(model.selectedLog == nil)
         #expect(!FileManager.default.fileExists(atPath: log.file.url.path()))
         await model.load()
         #expect(model.logs.isEmpty)

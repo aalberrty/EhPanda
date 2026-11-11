@@ -20,6 +20,7 @@ struct EhSettingScreen: View {
                 }
             }
             .hud($hud)
+            .sensoryFeedback(.impact(weight: .light), trigger: model.destination) { _, new in new != nil }
             .onChange(of: model.submittingState) { _, state in
                 hud = switch state {
                 case .idle: nil

@@ -1,3 +1,4 @@
+import EhCore
 import EhModels
 
 /// The four tabs of the app.
@@ -24,9 +25,13 @@ nonisolated public enum SettingsRoute: Hashable, Sendable {
     case ehSetting
     case general
     case appearance
+    /// Appearance › App icon.
+    case appIcon
     case reading
     case laboratory
     case logs
+    /// One log file in the log viewer.
+    case log(LogFile)
     case about
 }
 

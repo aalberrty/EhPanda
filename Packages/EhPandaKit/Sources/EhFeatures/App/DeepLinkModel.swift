@@ -79,11 +79,9 @@ public final class DeepLinkModel {
     }
 
     func handle(_ link: URL) async {
-        var url = EhURL.resolvingAppScheme(link)
-        guard EhURL.isHandleable(url), let gid = EhURL.galleryID(of: url) else { return }
-        if settings.redirectsLinksToSelectedHost {
-            url = Self.redirecting(url, to: settings.galleryHost)
-        }
+        let link = EhURL.resolvingAppScheme(link)
+        guard EhURL.isHandleable(link), let gid = EhURL.galleryID(of: link) else { return }
+        let url = LinkRedirection(settings: settings).redirect(link)
         if router.presentedGallery != nil {
             // Let the current sheet finish dismissing before presenting the next one.
             router.dismissPresentedGallery()
@@ -117,7 +115,7 @@ public final class DeepLinkModel {
     /// The gallery from the history, or else from the site with the loading HUD.
     private func resolve(_ url: URL, gid: String) async -> Gallery? {
         if let stored = try? await database.gallery(gid: gid) {
-            return settings.redirectsLinksToSelectedHost ? Self.redirecting(stored, to: settings.galleryHost) : stored
+            return LinkRedirection(settings: settings).redirect(stored)
         }
         guard !Task.isCancelled else { return nil }
         progress = .loading
@@ -134,24 +132,6 @@ public final class DeepLinkModel {
             progress = .failed
         }
         return nil
-    }
-
-    /// The same link on `host` when it names the other site ("Redirects links to the selected host").
-    nonisolated static func redirecting(_ url: URL, to host: GalleryHost) -> URL {
-        guard let linkHost = EhURL.galleryHost(of: url), linkHost != host else { return url }
-        return EhURL.replacingHost(of: url, with: host) ?? url
-    }
-
-    nonisolated static func redirecting(_ gallery: Gallery, to host: GalleryHost) -> Gallery {
-        guard let galleryURL = gallery.galleryURL else { return gallery }
-        let redirected = redirecting(galleryURL, to: host)
-        guard redirected != galleryURL else { return gallery }
-        return Gallery(
-            gid: gallery.gid, token: gallery.token, title: gallery.title, rating: gallery.rating,
-            tags: gallery.tags, category: gallery.category, uploader: gallery.uploader,
-            pageCount: gallery.pageCount, postedDate: gallery.postedDate, coverURL: gallery.coverURL,
-            galleryURL: redirected, lastOpenDate: gallery.lastOpenDate
-        )
     }
 
     nonisolated static let logCategory = "DeepLink"

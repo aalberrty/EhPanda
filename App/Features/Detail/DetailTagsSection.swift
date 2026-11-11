@@ -94,7 +94,7 @@ private struct TagRowView: View, Equatable {
             actions.search(chip.searchKeyword)
         } label: {
             TagChip(
-                chip.text(translation: translation, showsImages: showsImages),
+                chip.content.chipText(translation: translation, showsImages: showsImages),
                 imageURL: showsImages ? translation?.valueImageURL : nil
             )
         }

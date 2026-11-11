@@ -64,7 +64,7 @@ private extension SettingsRoute {
         case .reading: L10n.Localizable.Enum.SettingStateRoute.Value.reading
         case .laboratory: L10n.Localizable.Enum.SettingStateRoute.Value.laboratory
         case .about: L10n.Localizable.Enum.SettingStateRoute.Value.about
-        case .login, .ehSetting, .logs: ""
+        case .login, .ehSetting, .appIcon, .logs, .log: ""
         }
     }
 
@@ -77,7 +77,7 @@ private extension SettingsRoute {
         case .reading: "newspaper.fill"
         case .laboratory: "testtube.2"
         case .about: "p.circle.fill"
-        case .login, .ehSetting, .logs: "gearshape"
+        case .login, .ehSetting, .appIcon, .logs, .log: "gearshape"
         }
     }
 
@@ -89,7 +89,7 @@ private extension SettingsRoute {
         case .reading: .orange
         case .laboratory: .purple
         case .about: .teal
-        case .login, .ehSetting, .logs: .gray
+        case .login, .ehSetting, .appIcon, .logs, .log: .gray
         }
     }
 }

@@ -97,6 +97,20 @@ import Observation
         reloadField(field, host: host)
     }
 
+    /// Writes every field whose text differs from its stored value. The screen calls it when it
+    /// goes away or the app leaves the foreground, where a focused field may never report losing
+    /// focus, so a pasted cookie is not dropped.
+    public func commitPendingEdits() {
+        for host in GalleryHost.allCases {
+            for field in CookieField.allCases {
+                let state = cookiesState(for: host)[keyPath: field.keyPath]
+                if state.editingText != state.value.rawValue {
+                    commit(field, host: host)
+                }
+            }
+        }
+    }
+
     public func copyCookies(host: GalleryHost) {
         clipboard.copyText(cookies.cookiesDescription(host: host))
         copyCount += 1

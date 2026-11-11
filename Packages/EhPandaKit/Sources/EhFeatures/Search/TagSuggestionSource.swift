@@ -22,10 +22,7 @@ nonisolated public struct SearchTagSuggestion: Hashable, Identifiable, Sendable 
 
     /// For "Shows images in tags" off: no image, and emoji removed from the text as in legacy.
     public func withoutImages() -> SearchTagSuggestion {
-        let text = String(String.UnicodeScalarView(displayValue.unicodeScalars.filter {
-            !$0.properties.isEmojiPresentation
-        }))
-        return SearchTagSuggestion(suggestion: suggestion, displayValue: text, imageURL: nil)
+        SearchTagSuggestion(suggestion: suggestion, displayValue: displayValue.removingEmojiPresentation, imageURL: nil)
     }
 }
 

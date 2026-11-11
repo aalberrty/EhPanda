@@ -30,13 +30,6 @@ public nonisolated struct DetailTagChip: Identifiable, Equatable, Sendable {
     /// The vote that withdraws the current one.
     public var withdrawVote: Int { content.isVotedUp ? -1 : 1 }
 
-    /// The chip's text: the translation when there is one, without emoji when images in tags
-    /// are off (legacy `TagCloudCell`), otherwise the tag itself.
-    public func text(translation: TagTranslationDisplay?, showsImages: Bool) -> String {
-        guard let translation, !translation.displayValue.isEmpty else { return content.text }
-        return showsImages ? translation.displayValue : translation.displayValue.removingEmojiPresentation
-    }
-
     static func key(for content: GalleryTag.Content) -> String {
         content.rawNamespace + content.text
     }
@@ -61,14 +54,5 @@ extension DetailTagRow {
     /// Every translation key of `tags`.
     nonisolated static func translationKeys(of tags: [GalleryTag]) -> [String] {
         tags.flatMap(\.contents).map(DetailTagChip.key(for:))
-    }
-}
-
-extension String {
-    /// Drops characters that render as emoji by default, like legacy `emojisRipped`.
-    public nonisolated var removingEmojiPresentation: String {
-        var scalars = String.UnicodeScalarView()
-        scalars.append(contentsOf: unicodeScalars.filter { !$0.properties.isEmojiPresentation })
-        return String(scalars)
     }
 }

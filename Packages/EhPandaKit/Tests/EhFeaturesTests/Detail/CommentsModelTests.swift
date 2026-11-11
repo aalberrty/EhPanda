@@ -188,6 +188,55 @@ import Testing
         #expect(env.requests("GET", path: "/g/31338/cafe/").count == 1)
     }
 
+    @Test func redirectMovesAnUnknownGalleryLinkToTheSelectedHost() async throws {
+        let env = try await DetailEnvironment()
+        env.settings.galleryHost = .exhentai
+        env.settings.redirectsLinksToSelectedHost = true
+        let (_, model) = await makeModel(env)
+        env.transport.on(.path("/g/31338/cafe/"), reply: .fixture("Parser/Gallery/GalleryDetail.html"))
+        let requestsBefore = env.transport.requests.count
+
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/")!, on: stack)
+        await pollUntil { !stack.isAtRoot }
+
+        let resolved = env.transport.requests.dropFirst(requestsBefore).compactMap(\.url)
+        #expect(resolved.map { $0.host() } == ["exhentai.org"])
+    }
+
+    @Test func redirectMovesAStoredGalleryToTheSelectedHost() async throws {
+        let env = try await DetailEnvironment()
+        env.settings.galleryHost = .exhentai
+        env.settings.redirectsLinksToSelectedHost = true
+        let (_, model) = await makeModel(env)
+        try await env.database.recordOpened(otherGallery())
+
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://e-hentai.org/g/999/tok/")!, on: stack)
+        await pollUntil { !stack.isAtRoot }
+
+        guard case .detail(let gallery, _) = try #require(stack.path.first) else {
+            Issue.record("Expected a detail route, got \(stack.path)")
+            return
+        }
+        #expect(gallery.galleryURL?.absoluteString == "https://exhentai.org/g/999/tok/")
+    }
+
+    @Test func redirectOffKeepsTheLinkedHost() async throws {
+        let env = try await DetailEnvironment()
+        env.settings.galleryHost = .exhentai
+        let (_, model) = await makeModel(env)
+        env.transport.on(.path("/g/31338/cafe/"), reply: .fixture("Parser/Gallery/GalleryDetail.html"))
+        let requestsBefore = env.transport.requests.count
+
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/")!, on: stack)
+        await pollUntil { !stack.isAtRoot }
+
+        let resolved = env.transport.requests.dropFirst(requestsBefore).compactMap(\.url)
+        #expect(resolved.map { $0.host() } == ["e-hentai.org"])
+    }
+
     @Test func resolutionFailureShowsTheError() async throws {
         let env = try await DetailEnvironment()
         let (_, model) = await makeModel(env)

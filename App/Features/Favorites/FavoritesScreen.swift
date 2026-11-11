@@ -6,7 +6,6 @@ import SwiftUI
 /// The Favorites tab root: one favourites folder at a time, searched on the server. Needs login.
 struct FavoritesScreen: View {
     @State private var model = FavoritesModel()
-    @State private var reloads = 0
 
     @Environment(AppRouter.self) private var appRouter
     @Environment(UserStore.self) private var userStore
@@ -40,12 +39,10 @@ struct FavoritesScreen: View {
                 QuickSearchSheet { model.quickSearch($0) }
             }
             .sensoryFeedback(.impact(weight: .light), trigger: model.isQuickSearchPresented) { _, isShown in isShown }
+            // `AppModel.selectTab` plays the re-selection haptic.
             .onChange(of: appRouter.rootReselectionCount(for: .favorites)) {
-                guard !model.list.needsLogin else { return }
-                reloads += 1
                 model.reloadForTabReselection()
             }
-            .sensoryFeedback(.impact(flexibility: .soft), trigger: reloads)
     }
 
     /// "All", the user's own folder name, or "Favorites N".

@@ -72,6 +72,8 @@
 "app.acknowledgement.link.swiftCommonMark" = "https://github.com/gonzalezreal/SwiftCommonMark";
 "app.acknowledgement.link.ehTagTranslationDatabase" = "https://github.com/EhTagTranslation/Database";
 "app.acknowledgement.link.tca" = "https://github.com/pointfreeco/swift-composable-architecture";
+"app.acknowledgement.link.grdb" = "https://github.com/groue/GRDB.swift";
+"app.acknowledgement.link.swiftDependencies" = "https://github.com/pointfreeco/swift-dependencies";
 
 // Acknowledgement text
 "app.acknowledgement.text.kanna" = "Kanna";
@@ -91,3 +93,5 @@
 "app.acknowledgement.text.swiftCommonMark" = "SwiftCommonMark";
 "app.acknowledgement.text.ehTagTranslationDatabase" = "EhTagTranslation/Database";
 "app.acknowledgement.text.tca" = "The Composable Architecture";
+"app.acknowledgement.text.grdb" = "GRDB.swift";
+"app.acknowledgement.text.swiftDependencies" = "swift-dependencies";

@@ -9,16 +9,20 @@ import WebKit
 /// The page loads with the app's cookies for its host, so pages that need an account see the
 /// session the app is using. With `onLoginFinished`, reaching the forum's post-login page
 /// hands the web view's site cookies back.
+///
+/// Each web view has its own non-persistent data store, seeded from the app's cookies when it
+/// opens. The app's cookie store stays the only record of the session, so after a logout no web
+/// view can show the old account.
 struct AccountWebView: View {
     let url: URL
     var onLoginFinished: (([WebCookie]) -> Void)?
 
-    @State private var page = WebPage()
+    @State private var session = WebSession()
     @State private var didFinishLogin = false
     @Environment(\.dismiss) private var dismiss
 
-    // `WebPage()` uses the default data store, which keeps the web login across launches.
-    private var cookieStore: WKHTTPCookieStore { WKWebsiteDataStore.default().httpCookieStore }
+    private var page: WebPage { session.page }
+    private var cookieStore: WKHTTPCookieStore { session.dataStore.httpCookieStore }
 
     var body: some View {
         NavigationStack {
@@ -56,5 +60,18 @@ struct AccountWebView: View {
         didFinishLogin = true
         let cookies = await cookieStore.allCookies()
         onLoginFinished(cookies.map { WebCookie(name: $0.name, value: $0.value, domain: $0.domain) })
+    }
+}
+
+/// A page over a data store of its own that is never written to disk.
+@MainActor
+private final class WebSession {
+    let dataStore = WKWebsiteDataStore.nonPersistent()
+    let page: WebPage
+
+    init() {
+        var configuration = WebPage.Configuration()
+        configuration.websiteDataStore = dataStore
+        page = WebPage(configuration: configuration)
     }
 }
