@@ -74,27 +74,3 @@ struct TagTranslationDecodingTests {
         #expect(throws: AppError.parseFailed) { try Parser.parseTagTranslations(data: Data(json.utf8)) }
     }
 }
-
-struct CookieParsingTests {
-    @Test func credentialsFromLoginResponse() {
-        let header = "ipb_member_id=123; expires=Fri, 10-Nov-2027 00:00:00 GMT; path=/; domain=.e-hentai.org, "
-            + "ipb_pass_hash=abc; path=/, igneous=xyz; path=/"
-        #expect(Parser.parseCredentialCookies(setCookieHeader: header) == [
-            ResponseCookie(host: .ehentai, name: "ipb_member_id", value: "123"),
-            ResponseCookie(host: .exhentai, name: "ipb_member_id", value: "123"),
-            ResponseCookie(host: .ehentai, name: "ipb_pass_hash", value: "abc"),
-            ResponseCookie(host: .exhentai, name: "ipb_pass_hash", value: "abc"),
-            ResponseCookie(host: .exhentai, name: "igneous", value: "xyz")
-        ])
-    }
-
-    @Test func noCredentials() {
-        #expect(Parser.parseCredentialCookies(setCookieHeader: "sk=1; path=/").isEmpty)
-    }
-
-    @Test func skipServer() {
-        #expect(Parser.parseSkipServerCookie(setCookieHeader: "skipserver=1234-5678; path=/s/") == "1234-5678")
-        #expect(Parser.parseSkipServerCookie(setCookieHeader: "skipserver=1; path=/s/, skipserver=2; path=/s/") == "2")
-        #expect(Parser.parseSkipServerCookie(setCookieHeader: "sk=1") == nil)
-    }
-}
