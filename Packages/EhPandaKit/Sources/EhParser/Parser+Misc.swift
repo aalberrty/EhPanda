@@ -7,9 +7,13 @@ import Kanna
 extension Parser {
     /// The ban length from an "IP banned" page, or `nil` when the page is not one.
     public static func parseBanInterval(doc: HTMLDocument) -> BanInterval? {
-        guard let text = doc.body?.text, let range = text.range(of: "The ban expires in ")
-        else { return nil }
+        doc.body?.text.flatMap(parseBanInterval(text:))
+    }
 
+    /// The ban length from the text of an "IP banned" page, or `nil` when the text is not one.
+    /// The ban page is plain text, so the client also reads it without building a document.
+    public static func parseBanInterval(text: String) -> BanInterval? {
+        guard let range = text.range(of: "The ban expires in ") else { return nil }
         return parseBanInterval(expireDescription: String(text[range.upperBound...]))
     }
 

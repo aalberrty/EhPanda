@@ -66,13 +66,20 @@
 "error_view.button.drop_database" = "Drop the database";
 "error_view.title.try_later" = "Please try again later.";
 "error_view.title.network" = "A network error occurred.";
-"error_view.title.parsing" = "A parsing error occurred.";
+"error_view.title.parsing" = "Die Seite hat eine Antwort geliefert, die EhPanda nicht lesen konnte. Die Seite hat sich möglicherweise geändert oder ist vorübergehend nicht erreichbar.";
 "error_view.title.unknown" = "An unknown error occurred.";
 "error_view.title.not_found" = "There seems to be nothing here.";
 "error_view.title.database_corrupted" = "The database is corrupted.\nPlease submit an issue on GitHub.";
 "error_view.title.ip_banned" = "Your IP address has been temporarily banned for excessive pageloads which indicates that you are using automated mirroring / harvesting software. The ban expires in %@.";
 "error_view.title.copyright_claim" = "This gallery is unavailable due to a copyright claim by %@. Sorry about that.";
 "error_view.title.gallery_unavailable" = "This gallery has been removed or is unavailable.";
+"error_view.title.exhentai_access_denied" = "ExHentai hat deinen Login nicht akzeptiert. Der Login ist vielleicht abgelaufen, oder dieses Konto hat keinen Zugriff auf ExHentai. Logge dich unter Einstellungen › Konto erneut ein oder wechsle dort den Galerie-Host zu E-Hentai.";
+"error_view.title.login_required" = "Diese Seite erfordert einen Login, und deiner fehlt oder ist abgelaufen. Logge dich unter Einstellungen › Konto erneut ein.";
+"error_view.title.server_error" = "Der Server hat mit Fehler %@ statt mit einer Seite geantwortet. Er ist möglicherweise vorübergehend nicht erreichbar.";
+"error_view.headline.parse_failed" = "Unlesbare Seite";
+"error_view.headline.exhentai_access_denied" = "ExHentai hat den Login abgelehnt";
+"error_view.headline.login_required" = "Login erforderlich";
+"error_view.headline.server_error" = "Serverfehler";
 
 // MARK: ConfirmationDialog
 "confirmation_dialog.title.drop_database" = "You will lose all your data in this app.\nAre you sure to drop the database?";

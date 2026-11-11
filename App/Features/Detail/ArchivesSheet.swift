@@ -43,7 +43,7 @@ struct ArchivesSheet: View {
                 .padding([.horizontal, .bottom])
             }
         } else if let error = model.loadingState.failed {
-            ErrorStateView(message: error.alertText, systemImage: error.symbol.rawValue, retry: model.retry)
+            ErrorStateView(error: error, retry: model.retry)
         } else {
             LoadingStateView()
         }

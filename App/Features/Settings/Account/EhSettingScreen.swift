@@ -43,7 +43,7 @@ struct EhSettingScreen: View {
         if model.setting != nil {
             EhSettingForm(model: model, perform: perform)
         } else if let error = model.loadingState.failed {
-            ErrorStateView(message: error.alertText, systemImage: error.symbol.rawValue) {
+            ErrorStateView(error: error) {
                 perform { await model.load() }
             }
         } else {

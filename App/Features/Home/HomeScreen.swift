@@ -29,7 +29,7 @@ struct HomeScreen: View {
         if !model.cards.isEmpty {
             HomeSectionsView(model: model, open: open, openList: openList)
         } else if let error = model.popularState.failed {
-            ErrorStateView(message: error.alertText, systemImage: error.symbol.rawValue, retry: model.reloadAll)
+            ErrorStateView(error: error, retry: model.reloadAll)
         } else {
             LoadingStateView()
         }

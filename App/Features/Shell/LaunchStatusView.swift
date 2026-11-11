@@ -41,10 +41,7 @@ struct LaunchStatusView: View {
     }
 
     private func failure(_ error: AppError) -> some View {
-        ErrorStateView(
-            message: error.alertText, systemImage: error.symbol.rawValue,
-            retryTitle: L10n.Localizable.ErrorView.Button.dropDatabase
-        ) {
+        ErrorStateView(error: error, retryTitle: L10n.Localizable.ErrorView.Button.dropDatabase) {
             model.isConfirmingDatabaseDrop = true
         }
         .confirmationDialog(

@@ -38,7 +38,7 @@ struct HistoryScreen: View {
             case .loading:
                 LoadingStateView()
             case .failed(let error):
-                ErrorStateView(message: error.alertText, systemImage: error.symbol.rawValue)
+                ErrorStateView(error: error)
             case .idle where model.isHistoryEmpty:
                 EmptyStateView()
             case .idle:

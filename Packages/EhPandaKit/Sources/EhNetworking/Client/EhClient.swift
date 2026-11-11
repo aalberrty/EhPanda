@@ -8,7 +8,8 @@ import Foundation
 /// and parses the response (`EhParser`), all off the caller's actor.
 ///
 /// **Errors.** Every method throws `AppError`, or `CancellationError` when the calling task
-/// was cancelled. No other error type escapes.
+/// was cancelled. No other error type escapes. A response that is not the expected page is
+/// reported as what it is when recognised (`ResponseClassifier`), otherwise as `parseFailed`.
 ///
 /// **Host.** The target site is read from `host` for each call, so switching between
 /// E-Hentai and ExHentai needs no new client.
@@ -18,15 +19,21 @@ public struct EhClient: Sendable {
     /// store them here.
     public let cookies: CookieStore
     let host: @Sendable () -> GalleryHost
+    /// Called once for each operation that failed because of what the server sent (a page
+    /// that did not parse, a refused session, a login prompt, a ban, a server error), with a
+    /// description fit for a log file.
+    let onFailure: @Sendable (EhClientFailure) -> Void
 
     public init(
         transport: any HTTPTransport,
         cookies: CookieStore,
-        host: @escaping @Sendable () -> GalleryHost
+        host: @escaping @Sendable () -> GalleryHost,
+        onFailure: @escaping @Sendable (EhClientFailure) -> Void = { _ in }
     ) {
         self.transport = transport
         self.cookies = cookies
         self.host = host
+        self.onFailure = onFailure
     }
 }
 

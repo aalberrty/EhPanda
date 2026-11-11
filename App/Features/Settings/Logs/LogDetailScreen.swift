@@ -25,7 +25,7 @@ struct LogDetailScreen: View {
 
     @ViewBuilder private var content: some View {
         if let error = model.loadingState.failed {
-            ErrorStateView(message: error.alertText, systemImage: error.symbol.rawValue) {
+            ErrorStateView(error: error) {
                 Task { await model.load() }
             }
         } else if model.lines.isEmpty {

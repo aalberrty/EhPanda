@@ -66,13 +66,20 @@
 "error_view.button.drop_database" = "Drop the database";
 "error_view.title.try_later" = "Please try again later.";
 "error_view.title.network" = "A network error occurred.";
-"error_view.title.parsing" = "A parsing error occurred.";
+"error_view.title.parsing" = "The site returned a page that EhPanda could not read. The site may have changed, or it may be temporarily unavailable.";
 "error_view.title.unknown" = "An unknown error occurred.";
 "error_view.title.not_found" = "There seems to be nothing here.";
 "error_view.title.database_corrupted" = "The database is corrupted.\nPlease submit an issue on GitHub.";
 "error_view.title.ip_banned" = "Your IP address has been temporarily banned for excessive pageloads which indicates that you are using automated mirroring / harvesting software. The ban expires in %@.";
 "error_view.title.copyright_claim" = "This gallery is unavailable due to a copyright claim by %@. Sorry about that.";
 "error_view.title.gallery_unavailable" = "This gallery has been removed or is unavailable.";
+"error_view.title.exhentai_access_denied" = "ExHentai did not accept your login. The login may have expired, or this account may not have access to ExHentai. Log in again in Settings › Account, or switch the gallery host to E-Hentai there.";
+"error_view.title.login_required" = "This page requires a login, and yours is missing or has expired. Log in again in Settings › Account.";
+"error_view.title.server_error" = "The server answered with error %@ instead of a page. It may be temporarily unavailable.";
+"error_view.headline.parse_failed" = "Unreadable Page";
+"error_view.headline.exhentai_access_denied" = "ExHentai Refused the Login";
+"error_view.headline.login_required" = "Login Required";
+"error_view.headline.server_error" = "Server Error";
 
 // MARK: ConfirmationDialog
 "confirmation_dialog.title.drop_database" = "You will lose all your data in this app.\nAre you sure to drop the database?";
