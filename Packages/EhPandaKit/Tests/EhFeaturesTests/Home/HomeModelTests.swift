@@ -208,7 +208,7 @@ import Testing
         )
         return withDependencies {
             $0.ehClient = client
-            $0.withRandomNumberGenerator = WithRandomNumberGenerator(SeededGenerator(seed: 3))
+            $0.withRandomNumberGenerator = WithRandomNumberGenerator(SplitMix64(seed: 3))
         } operation: {
             HomeModel()
         }
@@ -220,10 +220,10 @@ private func allSettled(_ model: HomeModel) -> Bool {
         && model.toplistsStates.count == ToplistsType.allCases.count && !model.isLoadingToplists
 }
 
-struct TimedOut: Error {}
+private struct TimedOut: Error {}
 
 /// Polls `condition` on the main actor until it holds, yielding between checks.
-func eventually(
+private func eventually(
     timeout: Duration = .seconds(10), _ condition: @MainActor () -> Bool
 ) async throws {
     let deadline = ContinuousClock.now + timeout

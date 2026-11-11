@@ -11,7 +11,7 @@ import Testing
         var galleries = (1...12).map { makeGallery(gid: "\($0)", title: String(repeating: "a", count: $0)) }
         galleries.append(makeGallery(gid: "dup12", title: String(repeating: "a", count: 12)))
         galleries.append(makeGallery(gid: "dup11", title: "[Group] " + String(repeating: "a", count: 11)))
-        var generator = SeededGenerator(seed: 1)
+        var generator = SplitMix64(seed: 1)
 
         let cards = HomeSections.cards(from: galleries, using: &generator)
 
@@ -27,7 +27,7 @@ import Testing
             makeGallery(gid: "2", title: "Alpha"),
             makeGallery(gid: "3", title: "Beta")
         ]
-        var generator = SeededGenerator(seed: 7)
+        var generator = SplitMix64(seed: 7)
 
         let cards = HomeSections.cards(from: galleries, using: &generator)
 
@@ -36,13 +36,13 @@ import Testing
 
     @Test func cardShuffleIsDrivenByTheGenerator() {
         let galleries = (1...6).map { makeGallery(gid: "\($0)", title: String(repeating: "a", count: $0)) }
-        var first = SeededGenerator(seed: 42)
-        var second = SeededGenerator(seed: 42)
+        var first = SplitMix64(seed: 42)
+        var second = SplitMix64(seed: 42)
 
         let once = HomeSections.cards(from: galleries, using: &first)
         let again = HomeSections.cards(from: galleries, using: &second)
         let orders = Set((0..<20).map { seed -> [String] in
-            var generator = SeededGenerator(seed: UInt64(seed))
+            var generator = SplitMix64(seed: UInt64(seed))
             return HomeSections.cards(from: galleries, using: &generator).map(\.gid)
         })
 
@@ -117,7 +117,7 @@ import Testing
     }
 }
 
-func makeGallery(gid: String, title: String) -> Gallery {
+private func makeGallery(gid: String, title: String) -> Gallery {
     Gallery(
         gid: gid, token: "t", title: title, rating: 4, tags: [], category: .doujinshi,
         uploader: nil, pageCount: 1, postedDate: Date(timeIntervalSince1970: 0),
@@ -126,7 +126,7 @@ func makeGallery(gid: String, title: String) -> Gallery {
 }
 
 /// SplitMix64: a tiny deterministic generator for shuffles in tests.
-nonisolated struct SeededGenerator: RandomNumberGenerator, Sendable {
+nonisolated struct SplitMix64: RandomNumberGenerator, Sendable {
     private var state: UInt64
 
     init(seed: UInt64) {
