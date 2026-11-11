@@ -91,7 +91,7 @@ extension DetailTagRow {
 
 extension String {
     /// Drops characters that render as emoji by default, like legacy `emojisRipped`.
-    nonisolated var removingEmojiPresentation: String {
+    public nonisolated var removingEmojiPresentation: String {
         var scalars = String.UnicodeScalarView()
         scalars.append(contentsOf: unicodeScalars.filter { !$0.properties.isEmojiPresentation })
         return String(scalars)

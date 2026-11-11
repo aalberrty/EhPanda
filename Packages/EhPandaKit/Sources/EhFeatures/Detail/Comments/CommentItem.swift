@@ -94,4 +94,9 @@ public nonisolated enum CommentBlock: Equatable, Sendable {
 public nonisolated struct CommentImage: Equatable, Sendable {
     public let imageURL: URL
     public let link: URL?
+
+    public init(imageURL: URL, link: URL?) {
+        self.imageURL = imageURL
+        self.link = link
+    }
 }
