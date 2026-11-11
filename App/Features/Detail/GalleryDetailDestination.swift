@@ -2,11 +2,18 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-// Placeholder entry point. The feature that owns this screen replaces the body.
+/// The gallery detail screen, for `Route.detail` and for galleries opened from links.
 struct GalleryDetailDestination: View {
     let gallery: Gallery
 
+    @State private var model: GalleryDetailModel
+
+    init(gallery: Gallery) {
+        self.gallery = gallery
+        _model = State(initialValue: GalleryDetailModel(gallery: gallery))
+    }
+
     var body: some View {
-        FeaturePlaceholder(name: "Gallery \(gallery.gid)")
+        GalleryDetailView(model: model)
     }
 }
