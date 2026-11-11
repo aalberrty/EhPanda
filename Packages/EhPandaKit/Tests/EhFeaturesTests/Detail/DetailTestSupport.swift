@@ -58,11 +58,11 @@ struct DetailEnvironment {
             $0.appLogger = .console(minimumLevel: .error)
             $0.clipboardClient = ClipboardClient(
                 changeCount: { 0 }, url: { nil },
-                copyText: { [clipboard] in clipboard.append($0) }, copyImage: { _ in }
+                copyText: { [clipboard] in clipboard.record($0) }, copyImage: { _ in }
             )
             $0.applicationClient = ApplicationClient(
                 isPad: { false },
-                openURL: { [openedURLs] in openedURLs.append($0); return true },
+                openURL: { [openedURLs] in openedURLs.record($0); return true },
                 openSettings: {}, alternateIconName: { nil }, setAlternateIconName: { _ in true },
                 setOrientationLock: { _ in }
             )
@@ -112,23 +112,10 @@ struct DetailEnvironment {
     }
 }
 
-/// A thread-safe list of values a fake dependency received.
-final class Recorder<Value: Sendable>: Sendable {
-    private let values = Mutex<[Value]>([])
-
-    func append(_ value: Value) {
-        values.withLock { $0.append(value) }
-    }
-
-    var all: [Value] {
-        values.withLock { $0 }
-    }
-}
-
 /// Waits until `condition` holds, failing the test after 20 s. Generous because the whole
 /// suite runs in parallel on a busy machine.
 @MainActor
-func eventually(
+func pollUntil(
     _ comment: Comment? = nil, sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: () async -> Bool
 ) async {

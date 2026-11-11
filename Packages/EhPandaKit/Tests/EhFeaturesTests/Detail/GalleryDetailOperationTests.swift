@@ -17,8 +17,8 @@ import Testing
 
     /// Waits for the operation's haptic and the page fetched again after it.
     private func expectSuccessAndRefetch(_ model: GalleryDetailModel, _ env: DetailEnvironment) async {
-        await eventually { model.feedback?.isSuccess == true }
-        await eventually { env.detailFetchCount == 2 && model.loadingState == .idle }
+        await pollUntil { model.feedback?.isSuccess == true }
+        await pollUntil { env.detailFetchCount == 2 && model.loadingState == .idle }
     }
 
     @Test func favoriteAddsToTheChosenFolderThenRefetches() async throws {
@@ -49,7 +49,7 @@ import Testing
         #expect(model.userRating == 7)
         #expect(model.ratingCommitCount == 1)
         await expectSuccessAndRefetch(model, env)
-        await eventually { !model.showsRatingControl }
+        await pollUntil { !model.showsRatingControl }
         let json = jsonBody(try #require(env.requests("POST", path: "/api.php").first))
         #expect(json["method"] as? String == "rategallery")
         #expect(json["rating"] as? Int == 7)
@@ -67,7 +67,7 @@ import Testing
             == "commenttext_new=Nice")
 
         model.editComment(id: "42", text: "Edited")
-        await eventually { env.requests("POST", path: DetailEnvironment.detailPath).count == 2 }
+        await pollUntil { env.requests("POST", path: DetailEnvironment.detailPath).count == 2 }
         let edit = formBody(env.requests("POST", path: DetailEnvironment.detailPath)[1])
         #expect(edit.contains("edit_comment=42"))
         #expect(edit.contains("commenttext_edit=Edited"))
@@ -111,7 +111,7 @@ import Testing
         let model = await env.loadedDetailModel()
         env.transport.on(.method("POST"), reply: .error(URLError(.notConnectedToInternet)))
         model.favorite(category: 0)
-        await eventually { model.feedback?.kind == .failure }
+        await pollUntil { model.feedback?.kind == .failure }
         #expect(env.detailFetchCount == 1)
     }
 
@@ -194,7 +194,7 @@ import Testing
         model.openReader(page: 9)
         #expect(model.fullScreenDestination == .reader(page: 9))
         #expect(model.sheetDestination == nil)
-        await eventually { (try? await env.database.state(gid: DetailEnvironment.gid))?.readingProgress == 9 }
+        await pollUntil { (try? await env.database.state(gid: DetailEnvironment.gid))?.readingProgress == 9 }
     }
 
     @Test func dismissingAPresentationOnlyClearsItsOwnKind() async throws {

@@ -97,7 +97,7 @@ private let funds = "<p>12,345 GP [?] &nbsp; 67,890 Credits</p>"
         model.select(model.archives[1])
         model.sendDownloadCommand()
         #expect(model.download == .communicating)
-        await eventually { model.download == .finished(.success(message: "1280x -> MyClient.")) }
+        await pollUntil { model.download == .finished(.success(message: "1280x -> MyClient.")) }
         #expect(model.feedback?.isSuccess == true)
         let request = try #require(env.requests("POST", path: "/archiver.php").first)
         #expect(formBody(request) == "hathdl_xres=1280")
@@ -116,7 +116,7 @@ private let funds = "<p>12,345 GP [?] &nbsp; 67,890 Credits</p>"
         await model.load()
         model.select(model.archives[0])
         model.sendDownloadCommand()
-        await eventually { model.download == .finished(.hathClientNotOnline) }
+        await pollUntil { model.download == .finished(.hathClientNotOnline) }
         #expect(model.feedback?.kind == .failure)
     }
 }
@@ -163,7 +163,7 @@ private let funds = "<p>12,345 GP [?] &nbsp; 67,890 Credits</p>"
         let model = makeModel(env, directory: directory)
         await model.load()
         model.shareFile(of: try #require(model.torrents.first))
-        await eventually { model.sharedFile != nil }
+        await pollUntil { model.sharedFile != nil }
         let url = try #require(model.sharedFile?.url)
         #expect(url.lastPathComponent == "abcdef0123456789.torrent")
         #expect(try Data(contentsOf: url) == Data("d4:infoe".utf8))

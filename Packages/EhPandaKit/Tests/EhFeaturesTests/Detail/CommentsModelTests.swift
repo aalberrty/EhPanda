@@ -95,7 +95,7 @@ import Testing
 
         model.submit("New", for: .edit(commentID: "77", text: "Old"))
         #expect(model.composer == nil)
-        await eventually { detail.feedback?.isSuccess == true }
+        await pollUntil { detail.feedback?.isSuccess == true }
         #expect(formBody(try #require(env.requests("POST", path: DetailEnvironment.detailPath).first))
             .contains("edit_comment=77"))
     }
@@ -109,7 +109,7 @@ import Testing
         model.vote(uploaderComment, up: true)
         let votable = try #require(model.comments.first { $0.comment.votable })
         model.vote(votable, up: false)
-        await eventually { detail.feedback?.isSuccess == true }
+        await pollUntil { detail.feedback?.isSuccess == true }
         let votes = env.requests("POST", path: "/api.php").map(jsonBody)
         #expect(votes.count == 1)
         #expect(votes.first?["comment_id"] as? Int == Int(votable.id))
@@ -143,7 +143,7 @@ import Testing
         let env = try await DetailEnvironment()
         let (_, model) = await makeModel(env)
         model.openLink(URL(string: "https://example.com/page")!)
-        await eventually { env.openedURLs.all.count == 1 }
+        await pollUntil { env.openedURLs.all.count == 1 }
         #expect(model.linkedGallery == nil)
     }
 
@@ -155,12 +155,12 @@ import Testing
         let requestsBefore = env.transport.requests.count
 
         model.openLink(URL(string: "https://e-hentai.org/s/0123456789/999-5")!)
-        await eventually { model.linkedGallery != nil }
+        await pollUntil { model.linkedGallery != nil }
 
         #expect(model.linkedGallery == other)
         #expect(env.transport.requests.count == requestsBefore)
         #expect(env.intents.take(for: "999") == .read(page: 5))
-        await eventually { (try? await env.database.state(gid: "999"))?.readingProgress == 5 }
+        await pollUntil { (try? await env.database.state(gid: "999"))?.readingProgress == 5 }
     }
 
     @Test func unknownGalleryIsResolvedThenPushedWithTheCommentIntent() async throws {
@@ -171,7 +171,7 @@ import Testing
         env.transport.on(.path("/g/31338/cafe/"), reply: .fixture("Parser/Gallery/GalleryDetail.html"))
 
         model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/#c5143504")!)
-        await eventually { model.linkedGallery != nil }
+        await pollUntil { model.linkedGallery != nil }
 
         let gallery = try #require(model.linkedGallery)
         #expect(gallery.gid == "31338")
@@ -188,7 +188,7 @@ import Testing
         env.transport.on(.path("/g/31337/beef/"), reply: .error(URLError(.timedOut)))
 
         model.openLink(URL(string: "https://e-hentai.org/g/31337/beef/")!)
-        await eventually { model.linkState == .failed(.networkingFailed) }
+        await pollUntil { model.linkState == .failed(.networkingFailed) }
 
         #expect(model.linkedGallery == nil)
         model.dismissLinkState()

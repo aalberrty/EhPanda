@@ -42,7 +42,7 @@ import Testing
         let model = env.makeDetailModel()
         let loading = Task { await model.load() }
 
-        await eventually { model.detail?.title == "Stored title" && model.loadingState == .loading }
+        await pollUntil { model.detail?.title == "Stored title" && model.loadingState == .loading }
         #expect(model.userRating == 5)
         #expect(model.tagRows.map(\.tag.rawNamespace) == ["female"])
         #expect(model.previews.map(\.index) == [1])
@@ -75,7 +75,7 @@ import Testing
         let gid = DetailEnvironment.gid
 
         // Storing happens after the screen has what it needs, so wait for the last write.
-        await eventually { (try? await database.state(gid: gid))?.previewConfig != nil }
+        await pollUntil { (try? await database.state(gid: gid))?.previewConfig != nil }
         let pages = try await database.pages(gid: gid)
         #expect(pages.compactMap(\.previewURL).count == 40)
         let detail = try await database.detail(gid: gid)
@@ -96,7 +96,7 @@ import Testing
 
         env.serveDetail()
         model.refetch()
-        await eventually { model.detail != nil && model.loadingState == .idle }
+        await pollUntil { model.detail != nil && model.loadingState == .idle }
         #expect(model.detail?.title == "[Artist] mks")
     }
 
@@ -177,7 +177,7 @@ import Testing
         let env = try await DetailEnvironment()
         env.intents.set(.read(page: 12), for: DetailEnvironment.gid)
         let model = await env.loadedDetailModel()
-        await eventually { model.destination == .reader(page: 12) }
+        await pollUntil { model.destination == .reader(page: 12) }
         #expect(env.intents.take(for: DetailEnvironment.gid) == nil)
     }
 
@@ -185,7 +185,7 @@ import Testing
         let env = try await DetailEnvironment()
         env.intents.set(.comments(scrollTo: "5143504"), for: DetailEnvironment.gid)
         let model = await env.loadedDetailModel()
-        await eventually { model.destination == .comments(scrollTo: "5143504") }
+        await pollUntil { model.destination == .comments(scrollTo: "5143504") }
     }
 
     @Test func intentsForOtherGalleriesAreLeftAlone() async throws {
@@ -230,7 +230,7 @@ import Testing
         env.settings.translatesTags = true
         let model = await env.loadedDetailModel()
         let chip = try #require(model.tagRows.first?.chips.first)
-        await eventually { model.translation(for: chip) != nil }
+        await pollUntil { model.translation(for: chip) != nil }
         let translation = model.translation(for: chip)
         #expect(chip.text(translation: translation, showsImages: true) == "非H图集 🐱")
         #expect(chip.text(translation: translation, showsImages: false) == "非H图集 ")

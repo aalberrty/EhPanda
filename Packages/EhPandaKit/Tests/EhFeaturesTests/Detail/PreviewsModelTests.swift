@@ -67,7 +67,7 @@ import Testing
         await model.load()
 
         model.thumbnailAppeared(40)
-        await eventually { model.preview(at: 40) != nil }
+        await pollUntil { model.preview(at: 40) != nil }
 
         #expect(previewRequests(env) == ["0"])
         #expect(model.preview(at: 1) != nil)
@@ -81,10 +81,10 @@ import Testing
         await model.load()
 
         model.thumbnailAppeared(2)
-        await eventually { model.preview(at: 2) != nil }
+        await pollUntil { model.preview(at: 2) != nil }
 
         #expect(model.preview(at: 1)?.source == .image(known))
-        await eventually {
+        await pollUntil {
             (try? await env.database.pages(gid: DetailEnvironment.gid))?.count == 39
         }
     }
@@ -108,7 +108,7 @@ import Testing
         model.thumbnailAppeared(1)
         #expect(env.transport.requests.isEmpty)
         await model.load()
-        await eventually { model.preview(at: 1) != nil }
+        await pollUntil { model.preview(at: 1) != nil }
         #expect(previewRequests(env) == ["0"])
     }
 
@@ -118,7 +118,7 @@ import Testing
         let model = makeModel(env)
         await model.load()
         model.thumbnailAppeared(10)
-        await eventually { model.hasFailed(at: 10) }
+        await pollUntil { model.hasFailed(at: 10) }
         #expect(model.hasFailed(at: 40))
         #expect(!model.hasFailed(at: 41))
 
@@ -127,7 +127,7 @@ import Testing
         model.thumbnailDisappeared(10)
         model.thumbnailAppeared(10)
         #expect(!model.hasFailed(at: 10))
-        await eventually { model.preview(at: 10) != nil }
+        await pollUntil { model.preview(at: 10) != nil }
         #expect(previewRequests(env) == ["0", "0"])
     }
 
@@ -137,12 +137,12 @@ import Testing
         let model = makeModel(env)
         await model.load()
         model.thumbnailAppeared(90)
-        await eventually { previewRequests(env) == ["2"] }
+        await pollUntil { previewRequests(env) == ["2"] }
         model.thumbnailDisappeared(90)
 
         env.serveDetail()
         model.thumbnailAppeared(90)
-        await eventually { previewRequests(env).count == 2 }
+        await pollUntil { previewRequests(env).count == 2 }
         #expect(!model.hasFailed(at: 90))
     }
 
@@ -151,6 +151,6 @@ import Testing
         let model = makeModel(env)
         model.openReader(at: 33)
         #expect(model.readerDestination == .reader(page: 33))
-        await eventually { (try? await env.database.state(gid: DetailEnvironment.gid))?.readingProgress == 33 }
+        await pollUntil { (try? await env.database.state(gid: DetailEnvironment.gid))?.readingProgress == 33 }
     }
 }
