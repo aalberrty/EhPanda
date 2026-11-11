@@ -161,10 +161,7 @@ extension DFSessionDelegate: URLSessionDataDelegate {
             load.onEvent(.finished)
             return
         }
-        let reported = reportedError(for: error, load: load)
-        let code = reported.code.rawValue
-        NetworkLog.logger.debug("Domain fronting: a request for \(self.host, privacy: .public) failed (\(code))")
-        load.onEvent(.failed(reported))
+        load.onEvent(.failed(reportedError(for: error, load: load)))
     }
 
     /// The session's error as the app should see it: about the URL it asked for rather than
