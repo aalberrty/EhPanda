@@ -69,11 +69,11 @@ private typealias T = RequestTesting
         )
     }
 
-    @Test func commentKeepsFormSeparatorsUnescapedAsInLegacy() {
+    @Test func commentEscapesFormSeparators() {
         T.expectFormPOST(
             T.eh.commentGallery(content: "a&b=c+d 中", galleryURL: galleryURL),
             "https://exhentai.org/g/2345678/0a1b2c3d4e/",
-            body: "commenttext_new=a&b=c+d%20%E4%B8%AD"
+            body: "commenttext_new=a%26b%3Dc%2Bd%20%E4%B8%AD"
         )
     }
 
