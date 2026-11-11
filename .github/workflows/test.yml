@@ -19,8 +19,12 @@ jobs:
           command: xcodebuild -downloadPlatform iOS
       - name: Show Xcode version
         run: xcodebuild -version
-      - name: Run tests
-        run: xcodebuild clean test
-          -skipMacroValidation
+      - name: Run package tests
+        run: swift test --package-path Packages/EhPandaKit
+      - name: Build app for simulator
+        run: xcodebuild build
+          -project EhPanda.xcodeproj
           -scheme ${{ env.SCHEME_NAME }}
-          -destination 'platform=iOS Simulator,name=iPhone Air'
+          -destination 'generic/platform=iOS Simulator'
+          -skipMacroValidation
+          CODE_SIGNING_ALLOWED=NO
