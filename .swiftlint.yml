@@ -1,10 +1,22 @@
 disabled_rules:
  - large_tuple
- - file_length
  - opening_brace
- - type_body_length
- - function_body_length
- - cyclomatic_complexity
+
+file_length:
+ warning: 500
+ error: 800
+
+type_body_length:
+ warning: 350
+ error: 500
+
+function_body_length:
+ warning: 80
+ error: 120
+
+cyclomatic_complexity:
+ warning: 15
+ error: 25
 
 identifier_name:
  excluded:
@@ -14,5 +26,6 @@ identifier_name:
   - no
 
 excluded:
- - EhPandaTests
- - EhPanda/App/Generated
+ - Legacy
+ - App/Generated
+ - Packages/EhPandaKit/.build

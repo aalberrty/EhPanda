@@ -1,56 +1,49 @@
-//
-//  ShareViewController.swift
-//  ShareExtension
-//
-
 import UIKit
+import UniformTypeIdentifiers
 
-class ShareViewController: UIViewController {
+/// Forwards a shared web link to the main app by rewriting its scheme to `ehpanda://`.
+final class ShareViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        Task { await forwardSharedLink() }
+    }
 
-        guard let extensionItem = extensionContext?
-                .inputItems.first as? NSExtensionItem,
-              let itemProvider = extensionItem.attachments?.first,
-              itemProvider.hasItemConformingToTypeIdentifier("public.url")
-        else {
-            extensionContext?.completeRequest(
-                returningItems: nil,
-                completionHandler: nil
-            )
-            return
+    private func forwardSharedLink() async {
+        let appURL = await sharedLink().flatMap(Self.appURL(for:))
+        extensionContext?.completeRequest(returningItems: nil) { [weak self] _ in
+            guard let appURL else { return }
+            Task { @MainActor in self?.openInMainApp(appURL) }
         }
+    }
 
-        itemProvider.loadItem(forTypeIdentifier: "public.url") { (item, _) in
-            if let shareURL = item as? URL, let scheme = shareURL.scheme,
-               let replacedURL = URL(string: shareURL.absoluteString
-                .replacingOccurrences(of: scheme, with: "ehpanda"))
-            {
-                self.openMainApp(url: replacedURL)
+    private func sharedLink() async -> URL? {
+        let typeIdentifier = UTType.url.identifier
+        guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
+              let provider = item.attachments?.first(where: { $0.hasItemConformingToTypeIdentifier(typeIdentifier) })
+        else { return nil }
+
+        return await withCheckedContinuation { continuation in
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                continuation.resume(returning: url)
             }
         }
     }
 
-    private func openMainApp(url: URL) {
-        extensionContext?.completeRequest(
-            returningItems: nil,
-            completionHandler: { [weak self] _ in
-                self?.openURL(url)
-            }
-        )
+    private static func appURL(for link: URL) -> URL? {
+        guard var components = URLComponents(url: link, resolvingAgainstBaseURL: false) else { return nil }
+        components.scheme = "ehpanda"
+        return components.url
     }
 
-    @discardableResult
-    @objc private func openURL(_ url: URL) -> Bool {
+    /// Extensions have no `UIApplication.shared`, so the application is found through the responder chain.
+    private func openInMainApp(_ url: URL) {
         var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                return application.perform(
-                    #selector(openURL(_:)), with: url
-                ) != nil
+        while let current = responder {
+            if let application = current as? UIApplication {
+                application.open(url)
+                return
             }
-            responder = responder?.next
+            responder = current.next
         }
-        return false
     }
 }
