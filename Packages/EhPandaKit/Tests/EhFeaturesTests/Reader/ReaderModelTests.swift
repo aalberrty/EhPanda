@@ -292,6 +292,7 @@ import Testing
         ])
         let model = await harness.startedModel()
         #expect(model.pageState(at: 4) == .image(stale))
+        model.pagesNeeded([4])
 
         model.imageDidFail(page: 4)
 
@@ -305,6 +306,29 @@ import Testing
         model.imageDidFail(page: 4)
         await readerSettle()
         #expect(model.pageState(at: 4) == .image(harness.site.image(4)))
+        #expect(harness.site.started == ["page:4"])
+    }
+
+    /// The engine prefetches the images of the pages around the visible ones, so a stored URL
+    /// can turn out to have expired after its page has left that window.
+    @Test func aStoredImageURLThatFailsAfterItsPageLeftTheWindowWaitsUntilThePageIsNeeded() async throws {
+        let harness = try ReaderModelHarness()
+        let stale = URL(string: "https://stored.example/4.jpg")!
+        try await harness.database.upsertPages([
+            GalleryPage(gid: harness.gid, index: 4, pageURL: harness.site.link(4), imageURL: stale)
+        ])
+        let model = await harness.startedModel()
+        model.pagesNeeded([4])
+        model.pagesNoLongerNeeded([4])
+
+        model.imageDidFail(page: 4)
+
+        #expect(model.pageState(at: 4) == .pending)
+        await readerSettle()
+        #expect(harness.site.started.isEmpty)
+
+        model.pagesNeeded([4])
+        await readerEventually { model.pageState(at: 4) == .image(harness.site.image(4)) }
         #expect(harness.site.started == ["page:4"])
     }
 

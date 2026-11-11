@@ -8,17 +8,8 @@ extension ImageCacheClient: @retroactive DependencyKey {
         configure: { limits in await ImageCacheConfiguration.apply(limits) },
         diskCacheSize: { Int(try await KingfisherManager.shared.cache.diskStorageSize) },
         clearDiskCache: { await KingfisherManager.shared.cache.clearDiskCache() },
-        imageData: { url in try await originalData(for: url) }
+        // The one implementation of "the original bytes of a URL": the image pipeline's, which
+        // reads the disk cache every image shares and downloads what is not there.
+        imageData: { url in try await ImagePipeline.originalData(for: url) }
     )
-
-    /// The original bytes are on disk under the plain URL key when the image was cached without
-    /// a processor (or with `.cacheOriginalImage`); otherwise download them again.
-    @concurrent
-    nonisolated private static func originalData(for url: URL) async throws -> Data {
-        let manager = KingfisherManager.shared
-        if let data = try? manager.cache.diskStorage.value(forKey: url.cacheKey) {
-            return data
-        }
-        return try await manager.downloader.downloadImage(with: url).originalData
-    }
 }

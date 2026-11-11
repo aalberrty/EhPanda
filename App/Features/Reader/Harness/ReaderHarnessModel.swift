@@ -173,7 +173,7 @@ final class ReaderHarnessModel: ReaderEngineDataSource, ReaderEngineDelegate {
     /// Shows that the untouched original is still on disk for the host to save or share.
     private func reportOriginal(of url: URL, page: Int, action: String) {
         Task { [weak self] in
-            let bytes = await ImagePipeline.originalData(for: url)?.count
+            let bytes = await ImagePipeline.storedOriginalData(for: url)?.count
             self?.log("\(action) page \(page): original " + (bytes.map { "\($0 / 1_024) KB on disk" } ?? "missing"))
         }
     }

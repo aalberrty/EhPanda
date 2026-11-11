@@ -209,7 +209,6 @@ final class ReaderPageResolver {
         case .refetching:
             return
         case .unresolved:
-            needed.insert(page)
             schedulePump()
         case .resolved, .failed:
             statuses[page] = images[page] == nil ? .unresolved : .refetching
@@ -219,6 +218,8 @@ final class ReaderPageResolver {
 
     /// Forgets the page's image and resolves it afresh from its viewer page, without asking
     /// for another server. For an image URL that has expired, not one whose server is broken.
+    /// The failure of a prefetched image can be reported after its page has left the reader's
+    /// reach; such a page is resolved when it is needed again, not now.
     func resolveAgain(_ page: Int) {
         guard isValid(page) else { return }
         cancel(.page(page))
@@ -265,8 +266,11 @@ final class ReaderPageResolver {
         page >= 1 && page <= pageCount
     }
 
+    /// The page's status changed and it wants a request. It gets one if the reader needs the
+    /// page, which is what makes it a candidate; a page outside the reader's reach waits until
+    /// it is needed. Adding it to `needed` here would keep it there for good, since only the
+    /// reader takes pages out and it has already taken this one out.
     private func requestNow(_ page: Int) {
-        needed.insert(page)
         onEvent?(.updated(page: page))
         schedulePump()
     }

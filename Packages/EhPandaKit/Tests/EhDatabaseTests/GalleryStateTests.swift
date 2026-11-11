@@ -99,6 +99,21 @@ import Testing
         #expect(try await database.rowCount("galleryState") == 1)
     }
 
+    /// The reader opens on the stored progress and pages by the stored layout. It reads
+    /// those two, not the tags and comments stored in the same row.
+    @Test func readingStateIsTheProgressAndThePreviewLayout() async throws {
+        let database = try await TestDatabase.inMemory()
+        #expect(try await database.readingState(gid: "1") == nil)
+
+        try await database.updateReadingProgress(gid: "1", progress: 7)
+        #expect(try await database.readingState(gid: "1") == ReadingState(readingProgress: 7, previewConfig: nil))
+
+        try await database.saveDetail(SampleData.detail("1"), state: fetchedState())
+        #expect(try await database.readingState(gid: "1")
+            == ReadingState(readingProgress: 7, previewConfig: .large(rows: 6)))
+        #expect(try await database.readingState(gid: "2") == nil)
+    }
+
     @Test func aDetailSavedBeforeAnythingWasReadHasZeroProgress() async throws {
         let database = try await TestDatabase.inMemory()
         try await database.saveDetail(SampleData.detail("1"), state: GalleryState(gid: "1", tags: SampleData.tags()))

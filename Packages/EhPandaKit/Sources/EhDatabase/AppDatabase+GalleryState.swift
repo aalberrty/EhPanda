@@ -2,6 +2,18 @@ import EhModels
 import Foundation
 import GRDB
 
+/// What the reader needs to open a gallery where it was left.
+public struct ReadingState: Sendable, Equatable {
+    /// The 1-based page last read, or 0.
+    public var readingProgress: Int
+    public var previewConfig: PreviewConfig?
+
+    public init(readingProgress: Int, previewConfig: PreviewConfig?) {
+        self.readingProgress = readingProgress
+        self.previewConfig = previewConfig
+    }
+}
+
 // MARK: - Detail
 
 extension AppDatabase {
@@ -58,7 +70,8 @@ extension AppDatabase {
     /// The stored per-gallery state, or `nil` if none was saved.
     ///
     /// Only `tags`, `readingProgress`, `previewConfig` and `comments` are filled; page URLs
-    /// live in `galleryPage` and are read with ``pages(gid:)``.
+    /// live in `galleryPage` and are read with ``pages(gid:)``. Decodes every tag and comment:
+    /// a caller that needs neither reads ``readingState(gid:)``.
     public func state(gid: String) async throws -> GalleryState? {
         try await writer.read { db in
             let row = try Row.fetchOne(
@@ -76,6 +89,23 @@ extension AppDatabase {
                 readingProgress: row["readingProgress"],
                 previewConfig: JSONColumn.decode(PreviewConfig.self, from: row["previewConfig"]),
                 comments: JSONColumn.decode([GalleryComment].self, from: row["comments"]) ?? []
+            )
+        }
+    }
+
+    /// The reading progress and the preview layout, without reading the tags and comments
+    /// stored next to them. `nil` if nothing was saved for the gallery.
+    public func readingState(gid: String) async throws -> ReadingState? {
+        try await writer.read { db in
+            let row = try Row.fetchOne(
+                db,
+                sql: "SELECT readingProgress, previewConfig FROM \(Schema.galleryState) WHERE gid = ?",
+                arguments: [gid]
+            )
+            guard let row else { return nil }
+            return ReadingState(
+                readingProgress: row["readingProgress"],
+                previewConfig: JSONColumn.decode(PreviewConfig.self, from: row["previewConfig"])
             )
         }
     }

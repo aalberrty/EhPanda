@@ -324,8 +324,12 @@ private final class ResolverHarness {
 
     @Test func refetchOfAnUnresolvedPageSimplyResolvesIt() async {
         let harness = ResolverHarness()
+        harness.site.hold("links:0")
+        harness.resolver.need([7])
+        await readerEventually { harness.site.inFlight == ["links:0"] }
 
         harness.resolver.refetch(7)
+        harness.site.release("links:0")
 
         await readerEventually { harness.isResolved(7) }
         #expect(harness.site.started == ["links:0", "page:7"])
@@ -338,6 +342,7 @@ private final class ResolverHarness {
             previewConfig: .normal(rows: 4), links: harness.site.links(1...40), images: [4: stale]
         )
         #expect(harness.resolver.state(of: 4) == .image(stale.imageURL))
+        harness.resolver.need([4])
 
         harness.resolver.resolveAgain(4)
         #expect(harness.resolver.state(of: 4) == .pending)
@@ -345,6 +350,34 @@ private final class ResolverHarness {
 
         await readerEventually { harness.isResolved(4) }
         #expect(harness.site.started == ["page:4"])
+    }
+
+    /// Only the reader takes pages out of the resolver's demand, and it does so once, when a
+    /// page leaves its reach. A command that put such a page back would leave it a candidate
+    /// until the reader closes.
+    @Test func aPageThatLeftTheReadersReachIsNotRequestedUntilItIsNeededAgain() async {
+        let harness = ResolverHarness()
+        let stale = PageImage(index: 4, imageURL: URL(string: "https://old.example/4.jpg")!, originalImageURL: nil)
+        harness.resolver.restore(
+            previewConfig: .normal(rows: 4), links: harness.site.links(1...40), images: [4: stale]
+        )
+        harness.site.fail("page:9")
+        harness.resolver.need([4, 9])
+        await readerEventually { harness.failed == [9] }
+        harness.resolver.release([4, 9])
+
+        // The failure of a prefetched image is reported after its page scrolled out of reach.
+        harness.resolver.resolveAgain(4)
+        harness.resolver.refetch(4)
+        harness.resolver.retry(9)
+        #expect(harness.resolver.state(of: 4) == .pending)
+        #expect(harness.resolver.state(of: 9) == .pending)
+        await readerSettle()
+        #expect(harness.site.started == ["page:9"])
+
+        harness.resolver.need([4, 9])
+        await readerEventually { harness.isResolved(4, 9) }
+        #expect(harness.site.started.sorted() == ["page:4", "page:9", "page:9"])
     }
 
     @Test func retryAllFailedResetsEveryFailedPage() async {

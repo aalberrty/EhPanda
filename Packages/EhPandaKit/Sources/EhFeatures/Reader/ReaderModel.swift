@@ -157,7 +157,9 @@ public final class ReaderModel {
         let database = database
         let gid = gallery.gid
         async let storedPages = database.pages(gid: gid)
-        async let storedState = database.state(gid: gid)
+        // Only the progress and the preview layout: the tags and comments stored next to them
+        // would be decoded for nothing, in front of the first page.
+        async let storedState = database.readingState(gid: gid)
         let pages = (try? await storedPages) ?? []
         let state = try? await storedState
         guard !isClosed, !isReady else { return }
@@ -199,7 +201,7 @@ public final class ReaderModel {
         await writer.waitUntilWritten()
     }
 
-    private func restore(pages: [GalleryPage], state: GalleryState?) {
+    private func restore(pages: [GalleryPage], state: ReadingState?) {
         var links: [Int: URL] = [:]
         var images: [Int: PageImage] = [:]
         for page in pages where page.index >= 1 && page.index <= pageCount {

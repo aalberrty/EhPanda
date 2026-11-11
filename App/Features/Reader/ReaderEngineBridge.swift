@@ -71,21 +71,3 @@ final class ReaderEngineBridge: ReaderEngineDataSource, ReaderEngineDelegate {
         return UIMenu(children: actions)
     }
 }
-
-/// The original bytes of a reader image, for copying, saving and sharing.
-nonisolated enum ReaderImageData {
-    /// From the reader's disk cache when the page was shown or prefetched. Anything else (a
-    /// full-size original, mostly) is downloaded through the reader's pipeline, which sends
-    /// the site's cookies and follows the domain-fronting setting, and is kept on disk.
-    @concurrent
-    static func load(_ url: URL) async throws -> Data {
-        if let data = await ImagePipeline.originalData(for: url) {
-            return data
-        }
-        _ = try await ImagePipeline.prefetch(url)
-        guard let data = await ImagePipeline.originalData(for: url) else {
-            throw ImagePipelineError.undecodable
-        }
-        return data
-    }
-}
