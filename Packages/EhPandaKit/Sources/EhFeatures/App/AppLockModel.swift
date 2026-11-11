@@ -23,7 +23,7 @@ public final class AppLockModel {
     /// When the scene stopped being active. Kept from the first resignation until the next
     /// unlock, so returning through `inactive` from the background does not restart the timer.
     @ObservationIgnored private(set) var inactiveSince: Date?
-    @ObservationIgnored public private(set) var isAuthenticating = false
+    @ObservationIgnored private(set) var isAuthenticating = false
     /// The authentication prompt itself makes the scene inactive and then active again; that
     /// activation must not lock the app again (which would prompt again after a cancel).
     @ObservationIgnored private var ignoresNextActivation = false

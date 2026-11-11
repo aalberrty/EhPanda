@@ -8,7 +8,7 @@ import Observation
 /// Fetches the daily "New Dawn" greeting on launch and on every unlock (legacy
 /// `SettingReducer.fetchGreeting`) and hands one worth announcing to the shell.
 @Observable
-public final class GreetingModel {
+final class GreetingModel {
     private let router: AppRouter
 
     @ObservationIgnored private var isFetching = false
