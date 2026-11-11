@@ -154,6 +154,13 @@ public final class ReaderPageResolver {
         }
     }
 
+    /// Lets another reader of preview pages (the slider's thumbnails) correct the page size.
+    public func learnPaging(listed: some Collection<Int>, onPreviewPage number: Int) {
+        if paging.learn(listed: listed, onPreviewPage: number, pageCount: pageCount) {
+            schedulePump()
+        }
+    }
+
     // MARK: Demand
 
     /// These pages are on screen or about to be.
