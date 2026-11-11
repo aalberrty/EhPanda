@@ -27,14 +27,10 @@ nonisolated enum ImagePipeline {
     /// fronting on it (`ImageDownloaderConfiguration`), so reader pages follow both settings.
     static var downloader: ImageDownloader { .default }
 
-    /// The default cache, with its memory budget cut down from Kingfisher's quarter of the
-    /// device's RAM to an eighth, and never more than 512 MB of bitmaps.
-    static let cache: ImageCache = {
-        let cache = ImageCache.default
-        let budget = min(ProcessInfo.processInfo.physicalMemory / 8, 512 * 1024 * 1024)
-        cache.memoryStorage.config.totalCostLimit = Int(budget)
-        return cache
-    }()
+    /// The default cache, the one list covers use as well. The launch sequence gives it its
+    /// memory budget and disk limit (`ImageCacheConfiguration`), whether or not the reader is
+    /// ever opened.
+    static var cache: ImageCache { .default }
 
     /// Decoding is CPU and memory heavy, so only a few run at once.
     private static let decodeLimiter = ConcurrencyLimiter(limit: 3)

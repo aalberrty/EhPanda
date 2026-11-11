@@ -37,9 +37,27 @@ import Testing
 
     @Test func imageCacheTestValueReportsIssues() async {
         let client = ImageCacheClient.testValue
+        await withKnownIssue { await client.configure(.standard(physicalMemory: 0)) }
         await withKnownIssue { _ = try await client.diskCacheSize() }
         await withKnownIssue { await client.clearDiskCache() }
         await withKnownIssue { _ = try await client.imageData(url) }
+    }
+
+    @Test func imageCacheLimitsFollowTheDevicesMemoryUpToACap() {
+        let megabyte: UInt64 = 1024 * 1024
+        // An eighth of the RAM...
+        #expect(ImageCacheLimits.standard(physicalMemory: 2048 * megabyte).memoryBytes == 256 * 1024 * 1024)
+        #expect(ImageCacheLimits.standard(physicalMemory: 3072 * megabyte).memoryBytes == 384 * 1024 * 1024)
+        // ...and never more than 512 MB, however much there is.
+        #expect(ImageCacheLimits.standard(physicalMemory: 4096 * megabyte).memoryBytes == 512 * 1024 * 1024)
+        #expect(ImageCacheLimits.standard(physicalMemory: 16384 * megabyte).memoryBytes == 512 * 1024 * 1024)
+    }
+
+    @Test func theDiskCacheHasALimit() {
+        // Kingfisher reads 0 as "no limit", which is what the cache had.
+        for memory: UInt64 in [0, 2 << 30, 8 << 30] {
+            #expect(ImageCacheLimits.standard(physicalMemory: memory).diskBytes == 2 * 1024 * 1024 * 1024)
+        }
     }
 
     @Test func previewValuesDoNotReportIssues() async throws {

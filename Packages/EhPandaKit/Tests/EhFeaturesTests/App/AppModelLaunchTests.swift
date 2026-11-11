@@ -57,6 +57,9 @@ final class LaunchHarness {
         )
         let model = withDependencies {
             $0.launchClient = launchClient
+            $0.imageCacheClient.configure = { limits in
+                events.record("images \(limits.memoryBytes > 0 && limits.diskBytes > 0 ? "limited" : "unlimited")")
+            }
             $0.settings = settings
             $0.date = clock.generator
             $0.continuousClock = ShellInstantClock()
@@ -95,6 +98,32 @@ final class LaunchHarness {
         #expect(try #require(events.index(of: "import while launching")) > install)
         #expect(try #require(events.index(of: "expire")) > install)
         #expect(harness.model.launchState == .ready)
+    }
+
+    /// The cache used to get its memory budget from the reader's image pipeline, that is only
+    /// once the reader had been opened, and had no disk limit at all.
+    @Test func theImageCacheGetsItsLimitsBeforeTheFirstScreen() async throws {
+        let harness = LaunchHarness()
+
+        await harness.launch()
+
+        let configured = try #require(harness.events.index(of: "images limited"))
+        #expect(configured < (try #require(harness.events.index(of: "install"))))
+        #expect(harness.model.launchState == .ready)
+        #expect(harness.events.all.filter { $0.hasPrefix("images") } == ["images limited"])
+    }
+
+    @Test func theImageCacheIsConfiguredOnceHoweverOftenTheLaunchRuns() async {
+        let harness = LaunchHarness(openFailures: 1)
+        await harness.launch()
+        // The database could not be opened; the cache has its limits all the same.
+        #expect(harness.events.all.filter { $0.hasPrefix("images") } == ["images limited"])
+
+        harness.model.dropDatabase()
+        await harness.launch()
+
+        #expect(harness.model.launchState == .ready)
+        #expect(harness.events.all.filter { $0.hasPrefix("images") } == ["images limited"])
     }
 
     @Test func linksWaitUntilTheDatabaseIsInstalled() async {

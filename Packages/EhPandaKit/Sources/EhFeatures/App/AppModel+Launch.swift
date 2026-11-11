@@ -87,12 +87,24 @@ extension AppModel {
         }
     }
 
-    /// Opens the database while the cookie housekeeping runs, as legacy did both at once.
+    /// Opens the database while the cookie housekeeping runs, as legacy did both at once, and
+    /// while the image cache gets its limits: all three are done before the first screen,
+    /// which shows images, exists.
     private func openDatabase() async throws -> AppDatabase {
         async let cookiesPrepared: Void = launchClient.prepareCookies()
+        async let imageCacheConfigured: Void = configureImageCache()
         let database = try await launchClient.openDatabase()
         await cookiesPrepared
+        await imageCacheConfigured
         return database
+    }
+
+    /// The memory budget used to be set by the reader's image pipeline, so it applied only
+    /// once the reader had been used, and the disk cache had no limit.
+    private func configureImageCache() async {
+        guard !hasConfiguredImageCache else { return }
+        hasConfiguredImageCache = true
+        await imageCache.configure(.standard(physicalMemory: ProcessInfo.processInfo.physicalMemory))
     }
 
     private func runPostLaunchWork(database: AppDatabase) async {

@@ -5,6 +5,7 @@ import Kingfisher
 
 extension ImageCacheClient: @retroactive DependencyKey {
     nonisolated public static let liveValue = ImageCacheClient(
+        configure: { limits in await ImageCacheConfiguration.apply(limits) },
         diskCacheSize: { Int(try await KingfisherManager.shared.cache.diskStorageSize) },
         clearDiskCache: { await KingfisherManager.shared.cache.clearDiskCache() },
         imageData: { url in try await originalData(for: url) }
