@@ -5,8 +5,10 @@ import SwiftUI
 /// The reader's controls, floating over the page as glass (legacy `ControlPanel`): a bar at
 /// the top, the slider at the bottom. A tap in the middle of the page shows and hides them.
 ///
-/// The bars are only in the hierarchy while they show, so a hidden panel costs the reader
-/// nothing, and the rest of this view lets touches through to the engine underneath.
+/// The bars stay in the hierarchy while hidden, transparent and closed to touches, as in
+/// legacy. Taking them out would pull the slider or an open menu away from under a finger
+/// when a second finger taps the page. A fully transparent layer is not drawn, so the hidden
+/// panel does not cost the reader its glass.
 struct ReaderControlPanel: View {
     let model: ReaderModel
 
@@ -16,21 +18,23 @@ struct ReaderControlPanel: View {
     @State private var dismissals = 0
 
     var body: some View {
+        let isShown = model.showsPanel
         VStack(spacing: 0) {
-            if model.showsPanel {
-                ReaderTopBar(model: model, isLandscape: isLandscape, close: close)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
+            ReaderTopBar(model: model, isLandscape: isLandscape, close: close)
+                .offset(y: isShown ? 0 : -50)
             Spacer(minLength: 0)
             // Legacy: no slider for a single page.
-            if model.showsPanel, model.pageCount > 1 {
+            if model.pageCount > 1 {
                 ReaderBottomBar(model: model, isLandscape: isLandscape, close: close)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .offset(y: isShown ? 0 : 50)
             }
         }
+        .opacity(isShown ? 1 : 0)
+        .allowsHitTesting(isShown)
+        .accessibilityHidden(!isShown)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onGeometryChange(for: Bool.self) { $0.size.width > $0.size.height } action: { isLandscape = $0 }
-        .animation(.default, value: model.showsPanel)
+        .animation(.default, value: isShown)
         .sensoryFeedback(.impact(weight: .light), trigger: dismissals)
     }
 
