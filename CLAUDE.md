@@ -71,6 +71,32 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
 - **Navigation:** `NavigationStack` with typed, `Hashable` route enums. No `NavigationView`.
 - **Logging:** `AppLogger` (os.Logger plus a file sink). Never log per action, per frame or per cell.
 
+## Feature layer
+
+- **Model and view.** `EhFeatures/<Feature>/<Name>Model.swift` holds an `@Observable public final class`
+  (the target is `MainActor` by default; mark pure value types `nonisolated`). Its view lives in
+  `App/Features/<Feature>/`. A view owns its model with `@State`, so a model's `init` must be cheap
+  and start no work; loading starts from the view's `.task`, which also cancels it when the view goes away.
+- **Errors.** `EhClient` throws `AppError`, or `CancellationError` when the calling task was cancelled.
+  Models ignore cancellation and store other failures as `LoadingState.failed`.
+- **Shared stores** (`SettingsStore`, `FilterStore`, `UserStore`, `TagTranslationService`) are injected
+  into the SwiftUI environment at the root and are also available to models through `@Dependency`.
+  Views read the individual properties they need.
+- **Navigation.**
+  - Cross-feature: push a `Route` (`EhFeatures/Navigation/Route.swift`) onto the `StackRouter` in the
+    environment, e.g. `stack.push(.detail(gallery))`. `App/Features/Shell/RouteDestination.swift` maps
+    each route to the owning feature's entry view. Features never reference each other's views.
+  - Inside a feature: child screens that need the parent's model (comments, previews, archives, …)
+    are presented by the parent with `navigationDestination(item:)` or a sheet, driven by a
+    `destination` property on the parent's model.
+  - `AppRouter` owns the selected tab, one `StackRouter` per tab, and the gallery sheet used for
+    deep links. Re-selecting a tab pops it to its root, or bumps `rootReselections` when already there.
+- **Entry points.** Each feature owns the entry views the shell references (`HomeScreen`,
+  `FavoritesScreen`, `SearchScreen`, `SearchResultsDestination`, `GalleryListDestination`,
+  `GalleryDetailDestination`, `SettingsScreen`, `SettingsDestination`). Keep their names and initializers.
+- **Tests.** Model tests run on the host with `withDependencies`, a `StubTransport` serving fixture
+  HTML and an in-memory `AppDatabase` (`EhTestSupport`), not with per-endpoint mocks.
+
 ## Performance rules
 
 These are requirements, not suggestions.

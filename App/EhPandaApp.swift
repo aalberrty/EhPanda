@@ -6,7 +6,7 @@ struct EhPandaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            AppShellView()
         }
     }
 }
