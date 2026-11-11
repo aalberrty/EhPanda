@@ -102,9 +102,14 @@ extension TagTranslationService {
     }
 
     /// Stores the tag translator of the legacy Core Data store (its raw JSON blob) with its
-    /// metadata, replacing what is stored. Does nothing for `nil` or a blob that does not decode.
-    public func importLegacyTranslator(_ data: Data?) async {
+    /// metadata, replacing what is stored. Does nothing for `nil` or a blob that does not
+    /// decode, since trying again could not help.
+    ///
+    /// - Throws: When the translations could not be written, so the caller keeps the legacy
+    ///   store and tries again on the next launch instead of losing them.
+    public func importLegacyTranslator(_ data: Data?) async throws {
         guard let data else { return }
+        var failure: (any Error)?
         await serialized {
             await load()
             guard let translator = await Self.decodeLegacyTranslator(data) else {
@@ -121,8 +126,10 @@ extension TagTranslationService {
                 ))
             } catch {
                 logger.error("Failed to import legacy tag translations: \(error)", category: Self.logCategory)
+                failure = error
             }
         }
+        if let failure { throw failure }
     }
 }
 
