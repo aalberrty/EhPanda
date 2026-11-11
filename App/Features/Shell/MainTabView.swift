@@ -41,7 +41,7 @@ struct MainTabView: View {
         .newDawnSheet(router: router, isTopmost: router.presentedGallery == nil)
         .hud(linkHUD)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: model.tabReselectionFeedback)
-        .sensoryFeedback(.impact(weight: .light), trigger: router.presentedGallery) { _, new in new != nil }
+        .sensoryFeedback(.impact(weight: .light), trigger: router.presentedGallery?.gid) { _, new in new != nil }
         .task(id: model.links.request) { await model.links.handleRequest() }
         .task(id: model.activationRequest) { await model.performActivationWork() }
     }

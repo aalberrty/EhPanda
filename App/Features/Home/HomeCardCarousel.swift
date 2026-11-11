@@ -37,8 +37,10 @@ struct HomeCardCarousel: View {
         .scrollPosition(id: $currentID, anchor: .center)
         .contentMargins(.horizontal, sideMargin, for: .scrollContent)
         .frame(height: Tokens.ImageSize.cardHeight)
-        .onChange(of: cards, initial: true) { _, cards in
-            currentID = HomeSections.initialCardIndex(count: cards.count).map { cards[$0].id }
+        // Only a new set of cards moves back to the first one; refreshed fields of the same
+        // galleries keep the card the user scrolled to.
+        .onChange(of: cards.map(\.id), initial: true) { _, ids in
+            currentID = HomeSections.initialCardIndex(count: ids.count).map { ids[$0] }
         }
     }
 

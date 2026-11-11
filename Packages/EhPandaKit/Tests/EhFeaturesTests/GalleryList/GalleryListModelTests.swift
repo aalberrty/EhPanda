@@ -2,6 +2,8 @@
 import EhModels
 import EhTestSupport
 import Foundation
+import Observation
+import Synchronization
 import Testing
 
 @Suite struct GalleryListModelTests {
@@ -184,6 +186,34 @@ import Testing
 
         #expect(model.galleries.last?.gid != ListFixture.frontpageLastID)
         #expect(env.query("next", ofRequest: 1) == nil)
+    }
+
+    /// Same galleries, same order, one new title: the refresh must notify observers and reach
+    /// the visible list, or the screen keeps the old title.
+    @Test func refreshWithChangedFieldsNotifiesObservers() async throws {
+        let env = try ListTestEnvironment()
+        let html = try Fixture.string(ListFixture.frontpage)
+        let oldTitle = "[ROM宅 (ROM)] せめぱん3 (ドラゴンボールGT) [DL版]"
+        let newTitle = "[ROM宅 (ROM)] せめぱん4 (ドラゴンボールGT) [DL版]"
+        #expect(html.contains(oldTitle))
+        env.transport.on(.any, replies: .html(html), .html(html.replacingOccurrences(of: oldTitle, with: newTitle)))
+        let model = env.make { GalleryListModel(source: .frontpage) }
+        await model.loadIfNeeded()
+        let ids = model.visibleGalleries.map(\.gid)
+        #expect(model.visibleGalleries.contains { $0.title == oldTitle })
+
+        let notified = Mutex(false)
+        withObservationTracking {
+            _ = model.visibleGalleries
+        } onChange: {
+            notified.withLock { $0 = true }
+        }
+        await model.refresh()
+
+        #expect(notified.withLock { $0 })
+        #expect(model.visibleGalleries.map(\.gid) == ids)
+        #expect(model.visibleGalleries.contains { $0.title == newTitle })
+        #expect(!model.visibleGalleries.contains { $0.title == oldTitle })
     }
 
     @Test func requestsUseTheFilterOfTheirRange() async throws {
