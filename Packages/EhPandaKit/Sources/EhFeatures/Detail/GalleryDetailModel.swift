@@ -62,6 +62,7 @@ public final class GalleryDetailModel {
     @ObservationIgnored @Dependency(\.settings) var settings
     @ObservationIgnored @Dependency(\.userStore) var userStore
     @ObservationIgnored @Dependency(\.continuousClock) var clock
+    @ObservationIgnored @Dependency(\.tagTranslationService) private var tagTranslations
     @ObservationIgnored @Dependency(\.appLogger) private var logger
 
     /// Cheap: nothing is read or fetched until `load()`.
@@ -100,6 +101,12 @@ public final class GalleryDetailModel {
         detail?.torrentCount ?? 0
     }
 
+    /// The translation of a tag, by synchronous lookup in the translation service. Reading it
+    /// observes the service, so chips update when the dictionary changes.
+    public func translation(for chip: DetailTagChip) -> TagTranslationDisplay? {
+        tagTranslations.display(forKey: chip.translationKey)
+    }
+
     // MARK: Loading
 
     /// Shows what is stored, records the visit in the history, then fetches the page.
@@ -110,6 +117,11 @@ public final class GalleryDetailModel {
     public func load() async {
         isLoggedIn = client.cookies.didLogin
         if initialLoad == nil {
+            if settings.translatesTags {
+                // Reads the stored dictionary once per launch; later calls return at once.
+                let tagTranslations = tagTranslations
+                Task { await tagTranslations.load() }
+            }
             initialLoad = tasks.run("load") { [weak self, database, gallery] in
                 async let recorded: Void = GalleryDetailModel.recordOpened(gallery, in: database)
                 let stored = await StoredDetail.read(gid: gallery.gid, from: database)
@@ -203,12 +215,14 @@ public final class GalleryDetailModel {
         }
     }
 
+    /// The rows carry each tag's translation detail, which needs Markdown rendering, so it is
+    /// prepared once per tag list off the main actor instead of when a context menu opens.
     private func setTags(_ newTags: [GalleryTag]) async {
         tags = newTags
-        let translations = await DetailTagTranslator.snapshot(for: newTags, database: database)
-        // A newer list may have arrived while the translations were looked up.
+        let details = await tagTranslations.details(forKeys: DetailTagRow.translationKeys(of: newTags))
+        // A newer list may have arrived meanwhile.
         guard tags == newTags else { return }
-        let rows = DetailTagRow.rows(for: newTags, translations: translations)
+        let rows = DetailTagRow.rows(for: newTags, details: details)
         if tagRows != rows {
             tagRows = rows
         }

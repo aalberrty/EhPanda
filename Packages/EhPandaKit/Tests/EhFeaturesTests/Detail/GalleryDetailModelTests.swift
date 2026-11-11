@@ -196,3 +196,44 @@ import Testing
         #expect(env.intents.take(for: "other") == .read(page: 2))
     }
 }
+
+@MainActor
+@Suite struct GalleryDetailTagTranslationTests {
+    private func seedTranslation(_ env: DetailEnvironment) async throws {
+        let translation = TagTranslation(
+            namespace: .other, key: "non-h imageset", value: "非H图集 🐱",
+            description: "Not hentai.", linksString: "[Wiki](https://example.com/wiki)"
+        )
+        try await env.database.replaceTagTranslations([
+            StoredTagTranslation(
+                key: "othernon-h imageset", translation: translation, displayValue: "非H图集 🐱", valueImageURL: nil
+            )
+        ])
+    }
+
+    @Test func chipsCarryKeysAndTheTranslationDetail() async throws {
+        let env = try await DetailEnvironment()
+        try await seedTranslation(env)
+        let model = await env.loadedDetailModel()
+        let chip = try #require(model.tagRows.first?.chips.first)
+        #expect(chip.translationKey == "othernon-h imageset")
+        #expect(chip.searchKeyword == "o:\"non-h imageset$\"")
+        #expect(chip.voteKeyword == "o:non-h imageset")
+        #expect(chip.detail?.description == "Not hentai.")
+        #expect(chip.detail?.links == [URL(string: "https://example.com/wiki")!])
+    }
+
+    @Test func translatedTextComesFromTheServiceBySynchronousLookup() async throws {
+        let env = try await DetailEnvironment()
+        try await seedTranslation(env)
+        env.settings.enablesTagsExtension = true
+        env.settings.translatesTags = true
+        let model = await env.loadedDetailModel()
+        let chip = try #require(model.tagRows.first?.chips.first)
+        await eventually { model.translation(for: chip) != nil }
+        let translation = model.translation(for: chip)
+        #expect(chip.text(translation: translation, showsImages: true) == "非H图集 🐱")
+        #expect(chip.text(translation: translation, showsImages: false) == "非H图集 ")
+        #expect(chip.text(translation: nil, showsImages: true) == "non-h imageset")
+    }
+}

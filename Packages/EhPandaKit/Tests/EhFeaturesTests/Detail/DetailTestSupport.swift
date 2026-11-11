@@ -48,6 +48,10 @@ struct DetailEnvironment {
             $0.ehClient = client
             $0.cookieStore = cookies
             $0.database = database
+            $0.tagTranslationService = TagTranslationService(
+                database: AppDatabaseProvider(database), remote: .testValue,
+                defaults: DetailEnvironment.makeDefaults(), preferredLanguages: { ["en"] }
+            )
             $0.settings = settings
             $0.userStore = userStore
             $0.continuousClock = InstantClock()
@@ -100,7 +104,7 @@ struct DetailEnvironment {
         requests("GET", path: Self.detailPath).count
     }
 
-    private static func makeDefaults() -> UserDefaults {
+    static func makeDefaults() -> UserDefaults {
         let name = "DetailTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
         defaults.removePersistentDomain(forName: name)
