@@ -18,11 +18,10 @@ import Testing
         #expect(PreviewPaging.pageNumber(forIndex: index, config: .large(rows: 4)) == page)
     }
 
-    /// The model's own method is off by one at exact multiples of the batch size; the feature
-    /// does not use it.
+    /// Legacy was off by one at exact multiples of the batch size.
     @Test func exactMultiplesStayOnTheirPage() {
         let config = PreviewConfig.normal(rows: 4)
-        #expect(config.pageNumber(index: 40) == 1)
+        #expect(config.pageNumber(index: 40) == 0)
         #expect(PreviewPaging.pageNumber(forIndex: 40, config: config) == 0)
         #expect(PreviewPaging.indices(onPage: 0, config: config) == 1...40)
         #expect(PreviewPaging.indices(onPage: 1, config: config) == 41...80)

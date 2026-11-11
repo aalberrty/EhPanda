@@ -16,9 +16,9 @@ import Testing
         let paging = ReaderPreviewPaging(config: .normal(rows: 4))
         #expect(paging.previewPage(for: 1) == 0)
         #expect(paging.previewPage(for: 39) == 0)
-        // Legacy (and `PreviewConfig.pageNumber(index:)`) answer 1 here, the next preview page.
+        // Legacy answered 1 here, the next preview page.
         #expect(paging.previewPage(for: 40) == 0)
-        #expect(PreviewConfig.normal(rows: 4).pageNumber(index: 40) == 1)
+        #expect(PreviewConfig.normal(rows: 4).pageNumber(index: 40) == 0)
         #expect(paging.previewPage(for: 41) == 1)
         #expect(paging.previewPage(for: 80) == 1)
         #expect(paging.previewPage(for: 81) == 2)

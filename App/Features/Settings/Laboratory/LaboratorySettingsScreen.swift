@@ -22,6 +22,12 @@ struct LaboratorySettingsScreen: View {
                 }
                 .tint(.purple)
             }
+            #if DEBUG
+            // Development aid: drives the reader engine with synthetic pages.
+            Section("Debug") {
+                ReaderHarnessLauncher()
+            }
+            #endif
         }
         .navigationTitle(L10n.Localizable.LaboratorySettingView.Title.laboratory)
         .animation(.default, value: settings.bypassesSNIFiltering)

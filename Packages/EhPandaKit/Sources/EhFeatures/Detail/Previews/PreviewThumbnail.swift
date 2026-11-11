@@ -34,12 +34,8 @@ public nonisolated struct PreviewThumbnail: Identifiable, Equatable, Sendable {
     }
 }
 
-/// Which preview page of the gallery page holds a given page index.
-///
-/// `PreviewConfig.pageNumber(index:)` computes `index / batchSize`, which is off by one for an
-/// index that is an exact multiple of the batch size (page 40 of a 40-per-page layout lands on
-/// preview page 1 instead of 0). Indices are 1-based, so the page is `(index - 1) / batchSize`.
-/// The detail feature uses this instead of the model's method.
+/// Which preview page of the gallery page holds a given page index. Indices are 1-based, so
+/// the page is `(index - 1) / batchSize` (page 40 of a 40-per-page layout is on preview page 0).
 public nonisolated enum PreviewPaging {
     /// Legacy's layout when the page did not say: normal previews, four rows.
     public static let defaultConfig = PreviewConfig.normal(rows: 4)

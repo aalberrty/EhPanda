@@ -106,13 +106,6 @@ private struct ReaderChrome: ViewModifier {
             .onChange(of: settings.enablesLandscape) { _, isEnabled in
                 model.enablesLandscapeDidChange(isEnabled)
             }
-        #if DEBUG
-            .onChange(of: model.timeToFirstPage) { _, time in
-                if let time {
-                    ReaderDebugSession.shared.record(firstPage: time, gid: model.gallery.gid)
-                }
-            }
-        #endif
     }
 
     private var notice: Binding<HUDConfiguration?> {

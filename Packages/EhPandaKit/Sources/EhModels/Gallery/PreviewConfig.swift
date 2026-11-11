@@ -16,12 +16,15 @@ extension PreviewConfig {
         }
     }
 
-    /// The 0-based preview page that holds `index`.
+    /// The 0-based preview page that holds the 1-based page `index`.
+    ///
+    /// The legacy app divided the index itself, which put every index that is an exact
+    /// multiple of the batch size (40, 80, …) on the following preview page.
     public func pageNumber(index: Int) -> Int {
-        index / batchSize
+        (max(index, 1) - 1) / max(batchSize, 1)
     }
 
-    /// The 1-based indices on the preview page that holds `index`.
+    /// The 1-based indices on the preview page that holds the 1-based page `index`.
     public func batchRange(index: Int) -> ClosedRange<Int> {
         let lowerBound = pageNumber(index: index) * batchSize + 1
         let upperBound = lowerBound + batchSize - 1

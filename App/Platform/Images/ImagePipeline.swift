@@ -22,16 +22,10 @@ nonisolated enum ImagePipelineError: Error {
 /// - Memory: bitmaps decoded for a particular `ImageDecodeTarget`, in Kingfisher's memory
 ///   cache, so the cost limit and the memory warning handling are shared with everything else.
 nonisolated enum ImagePipeline {
-    /// Downloads with the cookies in `HTTPCookieStorage.shared`, which the site's image servers
-    /// need. Kingfisher's default session is ephemeral and has a cookie store of its own.
-    /// Domain fronting can install its protocol classes on this downloader's configuration.
-    static let downloader: ImageDownloader = {
-        let downloader = ImageDownloader(name: "app.ehpanda.images")
-        let configuration = downloader.sessionConfiguration
-        configuration.httpCookieStorage = .shared
-        downloader.sessionConfiguration = configuration
-        return downloader
-    }()
+    /// Kingfisher's default downloader, the one list covers use as well. The launch sequence
+    /// gives it the shared cookie jar, which the site's image servers need, and switches domain
+    /// fronting on it (`ImageDownloaderConfiguration`), so reader pages follow both settings.
+    static var downloader: ImageDownloader { .default }
 
     /// The default cache, with its memory budget cut down from Kingfisher's quarter of the
     /// device's RAM to an eighth, and never more than 512 MB of bitmaps.

@@ -14,11 +14,8 @@ nonisolated struct ReaderPreviewPaging: Sendable, Equatable {
         batchSize = max((config ?? .normal(rows: 4)).batchSize, 1)
     }
 
-    /// The 0-based preview page that lists the 1-based page `index`.
-    ///
-    /// `PreviewConfig.pageNumber(index:)` divides the index itself, as legacy did, which is one
-    /// page too far for every index that is an exact multiple of the batch size. It is not
-    /// used here.
+    /// The 0-based preview page that lists the 1-based page `index`. Same rule as
+    /// `PreviewConfig.pageNumber(index:)`, applied to the batch size learned from responses.
     func previewPage(for index: Int) -> Int {
         (max(index, 1) - 1) / batchSize
     }
