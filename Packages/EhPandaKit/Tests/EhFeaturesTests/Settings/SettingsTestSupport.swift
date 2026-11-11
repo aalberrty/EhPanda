@@ -10,7 +10,7 @@ extension SettingsStore {
 import Synchronization
 
 /// A value shared with `@Sendable` dependency closures; a class so closures can capture it.
-nonisolated final class Locked<Value: Sendable>: Sendable {
+nonisolated final class SettingsTestLock<Value: Sendable>: Sendable {
     private let mutex: Mutex<Value>
 
     init(_ value: Value) {

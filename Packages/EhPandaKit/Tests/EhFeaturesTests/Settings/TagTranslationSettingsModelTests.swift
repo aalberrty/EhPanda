@@ -18,7 +18,7 @@ import Testing
         let service: TagTranslationService
         let settings: SettingsStore
         let database: AppDatabase
-        let downloads: Locked<Int>
+        let downloads: SettingsTestLock<Int>
     }
 
     /// A service over an in-memory database whose remote publishes `translations` (or fails
@@ -27,7 +27,7 @@ import Testing
         translations: [String: TagTranslation]?, language: String = "en-US"
     ) async throws -> Harness {
         let database = try await TestDatabase.inMemory()
-        let downloads = Locked(0)
+        let downloads = SettingsTestLock(0)
         let remote = TagTranslationRemote(
             latestReleaseDate: { _, _ in
                 guard translations != nil else { throw URLError(.notConnectedToInternet) }

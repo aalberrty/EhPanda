@@ -105,7 +105,7 @@ import Testing
     }
 
     @Test func openingTheFolderUsesTheFilesAppScheme() async {
-        let opened = Locked<URL?>(nil)
+        let opened = SettingsTestLock<URL?>(nil)
         let model = withDependencies {
             $0.applicationClient.openURL = { url in
                 opened.withLock { $0 = url }

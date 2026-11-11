@@ -9,7 +9,7 @@ import Testing
 
 @Suite struct AppIconModelTests {
     @Test func selectingAnIconSetsTheAlternateIconAndRecordsWhatTheSystemReports() async {
-        let iconName = Locked<String?>(nil)
+        let iconName = SettingsTestLock<String?>(nil)
         let settings = SettingsStore.ephemeral()
         let model = withDependencies {
             $0.settings = settings
@@ -46,7 +46,7 @@ import Testing
 
     @Test func syncMapsThePrimaryAndUnknownIconsToDefault() {
         let settings = SettingsStore.ephemeral()
-        let reported = Locked<String?>("AppIcon_StandWithUkraine2022")
+        let reported = SettingsTestLock<String?>("AppIcon_StandWithUkraine2022")
         let model = withDependencies {
             $0.settings = settings
             $0.applicationClient.alternateIconName = { reported.withLock { $0 } }
@@ -99,7 +99,7 @@ import Testing
             GalleryPage(gid: "1", index: 1, imageURL: url, previewURL: url),
             GalleryPage(gid: "2", index: 3, pageURL: url, originalImageURL: url)
         ])
-        let size = Locked(1_000_000)
+        let size = SettingsTestLock(1_000_000)
         let model = withDependencies {
             $0.database = database
             $0.imageCacheClient.diskCacheSize = { size.withLock { $0 } }
@@ -117,7 +117,7 @@ import Testing
     }
 
     @Test func languageOpensTheSettingsApp() async {
-        let opened = Locked(false)
+        let opened = SettingsTestLock(false)
         let model = withDependencies {
             $0.applicationClient.openSettings = { opened.withLock { $0 = true } }
         } operation: { GeneralSettingsModel() }
@@ -131,7 +131,7 @@ import Testing
 @Suite struct LaboratorySettingsModelTests {
     @Test func togglingSNIBypassStoresTheSettingAndSwitchesTheTransport() {
         let settings = SettingsStore.ephemeral()
-        let enabled = Locked(false)
+        let enabled = SettingsTestLock(false)
         let model = withDependencies {
             $0.settings = settings
             $0.domainFronting = DomainFrontingClient(
@@ -151,7 +151,7 @@ import Testing
 }
 
 @Suite struct ReadingSettingsModelTests {
-    private func makeModel(isPad: Bool, settings: SettingsStore, locks: Locked<[OrientationLock]>) -> ReadingSettingsModel {
+    private func makeModel(isPad: Bool, settings: SettingsStore, locks: SettingsTestLock<[OrientationLock]>) -> ReadingSettingsModel {
         withDependencies {
             $0.settings = settings
             $0.applicationClient.isPad = { isPad }
@@ -161,7 +161,7 @@ import Testing
 
     @Test func turningLandscapeOffOnIPhoneRestoresPortrait() {
         let settings = SettingsStore.ephemeral()
-        let locks = Locked<[OrientationLock]>([])
+        let locks = SettingsTestLock<[OrientationLock]>([])
         let model = makeModel(isPad: false, settings: settings, locks: locks)
 
         model.setEnablesLandscape(true)
@@ -175,7 +175,7 @@ import Testing
 
     @Test func iPadKeepsItsOrientation() {
         let settings = SettingsStore.ephemeral()
-        let locks = Locked<[OrientationLock]>([])
+        let locks = SettingsTestLock<[OrientationLock]>([])
         let model = makeModel(isPad: true, settings: settings, locks: locks)
 
         model.setEnablesLandscape(false)
