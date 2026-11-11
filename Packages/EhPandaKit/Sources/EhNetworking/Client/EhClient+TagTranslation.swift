@@ -1,4 +1,5 @@
 import EhModels
+import EhParser
 import Foundation
 
 extension EhClient {
@@ -7,13 +8,22 @@ extension EhClient {
     public func tagTranslationReleaseDate(
         language: TranslatableLanguage, after updatedDate: Date
     ) async throws -> Date {
-        throw AppError.unknown
+        try await perform { builder in
+            let data = try await body(builder.tagTranslatorRelease(language: language))
+            return try Parser.parseTagTranslatorReleaseDate(data: data, updatedDate: updatedDate)
+        }
     }
 
     /// Downloads and decodes the tag-translation database for `language`.
+    ///
+    /// The translations are returned as published; legacy's conversion to Traditional
+    /// Chinese for `.traditionalChinese` is left to the caller (it needs OpenCC, in `EhCore`).
     public func tagTranslations(
         language: TranslatableLanguage
     ) async throws -> [String: TagTranslation] {
-        throw AppError.unknown
+        try await perform { builder in
+            let data = try await body(builder.tagTranslatorDownload(language: language))
+            return try Parser.parseTagTranslations(data: data)
+        }
     }
 }
