@@ -49,7 +49,7 @@ public final class GeneralSettingsModel {
         do {
             // A cutoff in the far future treats every gallery as not opened recently,
             // which deletes every stored page.
-            try await database.deleteExpiredPages(notOpenedWithin: 0, now: .distantFuture)
+            try await database.deleteAllPages()
         } catch {
             logger.error("Failed to remove stored image URLs: \(error)", category: "Settings")
         }
