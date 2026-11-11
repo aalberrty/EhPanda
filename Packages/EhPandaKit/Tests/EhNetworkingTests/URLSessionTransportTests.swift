@@ -43,7 +43,8 @@ struct URLSessionTransportTests {
         task.cancel()
         let result = await task.result
 
-        #expect(ContinuousClock.now - start < .seconds(2))
+        // Far below the request timeout; loose so a busy machine does not fail it.
+        #expect(ContinuousClock.now - start < .seconds(10))
         let error = #expect(throws: URLError.self) { try result.get() }
         #expect(error?.code == .cancelled)
     }

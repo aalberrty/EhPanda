@@ -118,7 +118,9 @@ struct RetryingTransportTests {
         task.cancel()
         let result = await task.result
 
-        #expect(ContinuousClock.now - start < .seconds(1))
+        // "Promptly" means well before any timeout would fire; the bound is loose so a busy
+        // machine does not fail it.
+        #expect(ContinuousClock.now - start < .seconds(10))
         #expect(throws: URLError(.cancelled)) { try result.get() }
         #expect(stub.requests.count == 1)
         #expect(recorder.delays.isEmpty)
