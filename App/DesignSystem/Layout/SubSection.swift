@@ -42,6 +42,7 @@ struct SubSection<Content: View>: View {
                         ProgressView()
                             .opacity(isLoading ? 1 : 0)
                             .animation(.default, value: isLoading)
+                            .accessibilityHidden(!isLoading)
                     }
                 }
                 .buttonStyle(.plain)
