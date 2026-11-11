@@ -1,15 +1,12 @@
-import Dependencies
 import EhDatabase
 import Foundation
 import Synchronization
 
-/// The app database behind a dependency.
+/// A database that is resolved on first use.
 ///
-/// `AppDatabase` can only be opened asynchronously, while dependency values are created
-/// synchronously, so the dependency holds this provider and callers `await` ``value``. The
-/// database opens once, on first use; concurrent callers share that open.
-///
-/// Lives here until the persistence layer owns a database key; move it then.
+/// The tag translation service is created before the launch sequence has opened the
+/// database, so it holds this provider and `await`s ``value`` when it needs the database.
+/// The database is resolved once; concurrent callers share that resolution.
 public final class AppDatabaseProvider: Sendable {
     private let open: @Sendable () async throws -> AppDatabase
     private let opening = Mutex<Task<AppDatabase, any Error>?>(nil)
@@ -40,30 +37,5 @@ public final class AppDatabaseProvider: Sendable {
                 throw error
             }
         }
-    }
-}
-
-extension AppDatabaseProvider: DependencyKey {
-    /// The app opens the on-disk database at launch and sets it with
-    /// `prepareDependencies { $0.database = AppDatabaseProvider(database) }`.
-    public static let liveValue = AppDatabaseProvider {
-        reportIssue("\\.database was used before the app set it.")
-        throw DatabaseNotSetError()
-    }
-
-    struct DatabaseNotSetError: Error {}
-
-    /// A fresh in-memory database per test.
-    public static var testValue: AppDatabaseProvider {
-        AppDatabaseProvider { try await AppDatabase.inMemory() }
-    }
-
-    public static var previewValue: AppDatabaseProvider { testValue }
-}
-
-extension DependencyValues {
-    public var database: AppDatabaseProvider {
-        get { self[AppDatabaseProvider.self] }
-        set { self[AppDatabaseProvider.self] = newValue }
     }
 }
