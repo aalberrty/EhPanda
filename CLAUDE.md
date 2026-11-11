@@ -1,8 +1,8 @@
 # EhPanda v2
 
-EhPanda is an unofficial E-Hentai client for iOS / iPadOS 26. Branch `v2` is a ground-up rebuild.
-The previous app lives in `Legacy/` **for reference only**: it is not built, must not be imported,
-and is deleted once v2 reaches parity.
+EhPanda is an unofficial E-Hentai client for iOS / iPadOS 26. Branch `v2` is a ground-up rebuild
+of the app on `main` (SwiftUI + TCA). The old sources are not in this branch; when the old
+behaviour matters, read them from `main` (`git show main:EhPanda/<path>`).
 
 ## Goals, in priority order
 
@@ -10,8 +10,8 @@ and is deleted once v2 reaches parity.
 2. **Modern UI.** Native iOS 26 APIs and Liquid Glass; no third-party UI kits.
 3. **Maintainability.** Small files, clear module boundaries, logic covered by host tests.
 
-Scope is **feature parity with `Legacy/` first**. Do not add features the old app does not have.
-When behaviour is unclear, read the matching code in `Legacy/` and keep its behaviour.
+Scope is **feature parity with the old app first**. Do not add features it does not have.
+When behaviour is unclear, read the matching old code on `main` and keep its behaviour.
 
 ## Layout
 
@@ -26,7 +26,6 @@ App/                      App target (SwiftUI + UIKit views only). Folder is syn
 Configuration/            Info.plists and entitlements
 ShareExtension/           Share extension target
 Packages/EhPandaKit/      Everything that is not a view (see below)
-Legacy/                   Old app, reference only
 ```
 
 ### `Packages/EhPandaKit` targets
@@ -43,7 +42,7 @@ EhModels → EhParser → EhNetworking ┐
 | `EhModels` | Plain value types. No dependencies, no UI types, no localized strings. |
 | `EhParser` | HTML / JSON → `EhModels` (Kanna). |
 | `EhNetworking` | `HTTPTransport`, retry, cookies, URL building, domain fronting, typed `EhClient`. |
-| `EhDatabase` | GRDB schema, migrations, queries, one-time import of the legacy Core Data store. |
+| `EhDatabase` | GRDB schema, migrations, queries, one-time import of the old app's Core Data store. |
 | `EhCore` | Dependency keys, `SettingsStore`, UI-independent services. |
 | `EhFeatures` | `@Observable` feature models (default isolation: `MainActor`). |
 | `EhTestSupport` | Test-only helpers and fixtures shared by the test targets. |

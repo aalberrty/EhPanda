@@ -26,6 +26,5 @@ identifier_name:
   - no
 
 excluded:
- - Legacy
  - App/Generated
  - Packages/EhPandaKit/.build
