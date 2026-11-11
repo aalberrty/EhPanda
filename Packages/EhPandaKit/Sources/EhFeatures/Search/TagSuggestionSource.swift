@@ -1,4 +1,5 @@
 import Dependencies
+import EhCore
 import EhModels
 import Foundation
 
@@ -28,30 +29,70 @@ nonisolated public struct SearchTagSuggestion: Hashable, Identifiable, Sendable 
     }
 }
 
-/// Where the search fields get their tag suggestions.
-///
-/// This is the only place search touches tag translations. Both closures run off the main actor.
+/// The first suggestions for a text, and how many matched in all.
+nonisolated public struct TagSuggestionResults: Sendable, Equatable {
+    public let items: [SearchTagSuggestion]
+    public let matchCount: Int
+
+    public init(items: [SearchTagSuggestion], matchCount: Int) {
+        self.items = items
+        self.matchCount = matchCount
+    }
+
+    public static let none = TagSuggestionResults(items: [], matchCount: 0)
+}
+
+/// Where the search fields get their tag suggestions. Ranking runs off the main actor.
 nonisolated public struct TagSuggestionSource: Sendable {
     /// Whether a translation dictionary is installed (legacy hid suggestions without one).
     public var hasTranslations: @Sendable () async -> Bool
-    /// Ranked, de-duplicated suggestions for everything typed after the last completed tag.
-    public var suggestions: @Sendable (_ text: String) async -> [SearchTagSuggestion]
+    /// Ranked, de-duplicated suggestions for everything typed after the last completed tag;
+    /// at most `limit` items, with the total count.
+    public var suggestions: @Sendable (_ text: String, _ limit: Int) async -> TagSuggestionResults
 
     public init(
         hasTranslations: @escaping @Sendable () async -> Bool,
-        suggestions: @escaping @Sendable (_ text: String) async -> [SearchTagSuggestion]
+        suggestions: @escaping @Sendable (_ text: String, _ limit: Int) async -> TagSuggestionResults
     ) {
         self.hasTranslations = hasTranslations
         self.suggestions = suggestions
     }
 
-    public static let unavailable = TagSuggestionSource(hasTranslations: { false }, suggestions: { _ in [] })
+    public static let unavailable = TagSuggestionSource(hasTranslations: { false }, suggestions: { _, _ in .none })
+
+    /// Suggestions from the tag translation dictionary.
+    public static func service(_ service: TagTranslationService) -> TagSuggestionSource {
+        TagSuggestionSource(
+            hasTranslations: { await !service.isEmpty },
+            suggestions: { text, limit in await results(for: text, limit: limit, service: service) }
+        )
+    }
+
+    @MainActor
+    private static func results(
+        for text: String, limit: Int, service: TagTranslationService
+    ) async -> TagSuggestionResults {
+        // `suggestions(for:)` ranks off the main actor; only the shown rows are looked up here.
+        let found = await service.suggestions(for: text)
+        let items = found.prefix(limit).map { suggestion in
+            let key = TagTranslationService.key(namespace: suggestion.tag.namespace, tag: suggestion.tag.key)
+            let display = service.display(forKey: key)
+            return SearchTagSuggestion(
+                suggestion: suggestion,
+                displayValue: display?.displayValue ?? suggestion.tag.value,
+                imageURL: display?.valueImageURL
+            )
+        }
+        return TagSuggestionResults(items: items, matchCount: found.count)
+    }
 }
 
 nonisolated enum TagSuggestionSourceKey: DependencyKey {
-    // TODO: Back this with `TagTranslationService` (EhCore) once it lands: `hasTranslations`
-    // from its dictionary and `suggestions` from its ranking. Until then search shows none.
-    static let liveValue = TagSuggestionSource.unavailable
+    static var liveValue: TagSuggestionSource {
+        @Dependency(\.tagTranslationService) var service
+        return .service(service)
+    }
+
     static let testValue = TagSuggestionSource.unavailable
     static let previewValue = TagSuggestionSource.unavailable
 }

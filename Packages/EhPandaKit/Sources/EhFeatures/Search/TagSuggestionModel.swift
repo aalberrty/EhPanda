@@ -48,11 +48,11 @@ public final class TagSuggestionModel {
                 return
             }
             let hasTranslations = await source.hasTranslations()
-            let found = hasTranslations ? await source.suggestions(text) : []
+            let found = hasTranslations ? await source.suggestions(text, Self.displayLimit) : .none
             guard !Task.isCancelled, let self else { return }
             let showsImages = settings.showsImagesInTags
-            suggestions = found.prefix(Self.displayLimit).map { showsImages ? $0 : $0.withoutImages() }
-            matchCount = found.count
+            suggestions = found.items.prefix(Self.displayLimit).map { showsImages ? $0 : $0.withoutImages() }
+            matchCount = found.matchCount
         }
     }
 
@@ -72,18 +72,11 @@ public final class TagSuggestionModel {
     /// Legacy normalisation while typing: runs of spaces become one, and the full-width colon
     /// that CJK keyboards type becomes `:`.
     nonisolated public static func normalize(_ text: String) -> String {
-        text.replacing(/\ {2,}/, with: " ").replacing("：", with: ":")
+        TagSuggestionEngine.normalizedSearchText(text)
     }
 
     /// `text` with the fragment `suggestion` matched replaced by its tag keyword and a space.
     nonisolated public static func complete(_ text: String, with suggestion: TagSuggestion) -> String {
-        var kept = text
-        while kept.last?.isWhitespace == true { kept.removeLast() }
-        if kept.hasSuffix(suggestion.originalKeyword) {
-            kept.removeLast(suggestion.originalKeyword.count)
-        } else if !kept.isEmpty {
-            kept += " "
-        }
-        return kept + suggestion.tag.searchKeyword + " "
+        TagSuggestionEngine.autoComplete(suggestion, in: text)
     }
 }

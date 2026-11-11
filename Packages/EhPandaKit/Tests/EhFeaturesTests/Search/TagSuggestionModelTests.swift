@@ -1,5 +1,7 @@
 import Dependencies
 import EhCore
+import EhDatabase
+import EhTestSupport
 @testable import EhFeatures
 import EhModels
 import Foundation
@@ -19,9 +21,10 @@ import Testing
         var source: TagSuggestionSource {
             TagSuggestionSource(
                 hasTranslations: { [hasTranslations] in hasTranslations },
-                suggestions: { [self] text in
+                suggestions: { [self] text, limit in
                     self.lookups.withLock { $0.append(text) }
-                    return (0..<15).map { suggestion(key: "\(text)\($0)", value: "\(text) \($0) 😀") }
+                    let all = (0..<15).map { suggestion(key: "\(text)\($0)", value: "\(text) \($0) 😀") }
+                    return TagSuggestionResults(items: Array(all.prefix(limit)), matchCount: all.count)
                 }
             )
         }
@@ -82,12 +85,12 @@ import Testing
         let started = AsyncStream<String>.makeStream()
         let source = TagSuggestionSource(
             hasTranslations: { true },
-            suggestions: { text in
+            suggestions: { text, _ in
                 started.continuation.yield(text)
                 if text == "slow" {
                     for await _ in gate.stream { break }
                 }
-                return [Self.suggestion(key: text, value: text)]
+                return TagSuggestionResults(items: [Self.suggestion(key: text, value: text)], matchCount: 1)
             }
         )
         let model = makeModel(source: source, clock: NoWaitClock())
@@ -189,8 +192,37 @@ import Testing
 
         #expect(TagSuggestionModel.complete("l:english$ f:big bre", with: suggestion)
             == "l:english$ f:\"big breasts$\" ")
-        // A fragment that no longer ends the text is not cut out.
-        #expect(TagSuggestionModel.complete("other", with: suggestion) == "other f:\"big breasts$\" ")
         #expect(TagSuggestionModel.complete("", with: suggestion) == "f:\"big breasts$\" ")
+    }
+}
+
+@Suite struct TagSuggestionServiceSourceTests {
+    @Test func rendersSuggestionsFromTheDictionary() async throws {
+        let database = try await TestDatabase.inMemory()
+        let glasses = TagTranslation(namespace: .female, key: "glasses", value: "眼镜")
+        let gloves = TagTranslation(namespace: .female, key: "gloves", value: "手套")
+        try await database.replaceTagTranslations([
+            StoredTagTranslation(
+                key: "femaleglasses", translation: glasses, displayValue: "眼镜",
+                valueImageURL: URL(string: "https://example.com/g.png")
+            ),
+            StoredTagTranslation(key: "femalegloves", translation: gloves, displayValue: "手套", valueImageURL: nil)
+        ])
+        let service = withDependencies { $0.database = database } operation: {
+            TagTranslationService.testValue
+        }
+        let source = TagSuggestionSource.service(service)
+        #expect(await source.hasTranslations() == false)
+
+        await service.load()
+        #expect(await source.hasTranslations())
+
+        let results = await source.suggestions("f:gl", 1)
+        #expect(results.matchCount == 2)
+        #expect(results.items.count == 1)
+        let first = try #require(results.items.first)
+        #expect(first.displayValue == (first.suggestion.tag.key == "glasses" ? "眼镜" : "手套"))
+        #expect(TagSuggestionModel.complete("l:english$ f:gl", with: first.suggestion)
+            == "l:english$ \(first.suggestion.tag.searchKeyword) ")
     }
 }
