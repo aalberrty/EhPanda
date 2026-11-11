@@ -48,7 +48,10 @@ extension EhClient: DependencyKey {
     public static let liveValue = EhClient(
         transport: RetryingTransport(LiveNetwork.transport),
         cookies: .liveValue,
-        host: LiveNetwork.hostProvider.currentHost
+        host: LiveNetwork.hostProvider.currentHost,
+        onFailure: { failure in
+            AppLogger.liveValue.warning(failure.description, category: "Network")
+        }
     )
 
     /// Fails the test for any request, so a test that forgets to install a client with a

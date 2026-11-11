@@ -70,6 +70,20 @@ import Testing
         }
     }
 
+    @Test func exhentaiRefusingTheSessionFailsItsSectionsWithThatReason() async throws {
+        serveFixtures()
+        // ExHentai's answer to a stale login; toplists always come from e-hentai.org.
+        transport.on(.host("exhentai.org"), reply: .status(200))
+        let model = makeModel(host: .exhentai)
+        model.loadIfNeeded()
+
+        try await homeEventually { settled(model, after: 6) }
+
+        #expect(model.frontpageState == .failed(.exhentaiAccessDenied))
+        #expect(model.popularState == .failed(.exhentaiAccessDenied))
+        #expect(!model.toplists(for: .pastYear).isEmpty)
+    }
+
     @Test func emptyPopularIsNotFound() async throws {
         serveFixtures()
         transport.on(.path("/popular"), reply: .html("<html><body></body></html>"))
@@ -210,9 +224,9 @@ import Testing
         transport.on(.path("/toplist.php"), reply: .fixture("Parser/List/ToplistsCompactList.html"))
     }
 
-    private func makeModel() -> HomeModel {
+    private func makeModel(host: GalleryHost = .ehentai) -> HomeModel {
         let client = EhClient(
-            transport: transport, cookies: CookieStore(storage: InMemoryCookieStorage()), host: { .ehentai }
+            transport: transport, cookies: CookieStore(storage: InMemoryCookieStorage()), host: { host }
         )
         return withDependencies {
             $0.ehClient = client

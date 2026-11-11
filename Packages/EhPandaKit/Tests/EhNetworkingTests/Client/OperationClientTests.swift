@@ -155,9 +155,18 @@ struct TagTranslationClientTests {
         #expect(translations["femalebig breasts"]?.value == "巨乳")
     }
 
-    @Test func notFoundPageIsAParseFailure() async throws {
+    @Test func unreadableNotFoundPageIsAServerError() async throws {
         let harness = ClientHarness()
         harness.transport.on(.any, reply: .response(status: 404, body: Data("Not Found".utf8)))
+
+        let error = await thrownError { try await harness.client.tagTranslations(language: .english) }
+
+        #expect(error as? AppError == .serverError(404))
+    }
+
+    @Test func unreadableReleaseWithASuccessStatusIsAParseFailure() async throws {
+        let harness = ClientHarness()
+        harness.transport.on(.any, reply: .body(Data("not json".utf8)))
 
         let error = await thrownError { try await harness.client.tagTranslations(language: .english) }
 

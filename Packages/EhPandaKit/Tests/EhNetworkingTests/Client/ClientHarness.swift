@@ -9,6 +9,8 @@ import Testing
 struct ClientHarness {
     let transport = StubTransport()
     let storage = InMemoryCookieStorage()
+    /// What the client reported to `onFailure`.
+    let failures = FailureLog()
     private let selectedHost: HostBox
 
     init(host: GalleryHost = .ehentai) {
@@ -16,7 +18,10 @@ struct ClientHarness {
     }
 
     var client: EhClient {
-        EhClient(transport: transport, cookies: cookies, host: { [selectedHost] in selectedHost.value })
+        EhClient(
+            transport: transport, cookies: cookies, host: { [selectedHost] in selectedHost.value },
+            onFailure: failures.append
+        )
     }
 
     var cookies: CookieStore { CookieStore(storage: storage) }
@@ -44,6 +49,16 @@ struct ClientHarness {
     }
 }
 
+final class FailureLog: Sendable {
+    private let entries = Mutex<[EhClientFailure]>([])
+
+    var all: [EhClientFailure] { entries.withLock { $0 } }
+
+    @Sendable func append(_ failure: EhClientFailure) {
+        entries.withLock { $0.append(failure) }
+    }
+}
+
 private final class HostBox: Sendable {
     private let host: Mutex<GalleryHost>
 
@@ -65,6 +80,8 @@ enum ClientFixture {
     static let mpvKeys = "Parser/Gallery/GalleryMPVKeys.html"
     static let ehSetting = "Parser/Other/EhSetting.html"
     static let ipBanned = "Parser/Other/IPBanned.html"
+    /// What e-hentai.org's `bounce_login.php` sends after redirecting a page that needs a login.
+    static let loginRequired = "Parser/Other/LoginRequired.html"
 
     static func list(_ name: String) -> String { "Parser/List/\(name).html" }
 }

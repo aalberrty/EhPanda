@@ -31,6 +31,16 @@ import Testing
         #expect(env.transport.requests.isEmpty)
     }
 
+    @Test func anExpiredLoginFailsWithLoginRequiredInsteadOfAnEmptyList() async throws {
+        let env = try ListTestEnvironment()
+        env.transport.on(.any, reply: .fixture("Parser/Other/LoginRequired.html"))
+        let model = env.make { FavoritesModel() }
+
+        await model.list.loadIfNeeded()
+
+        #expect(model.list.phase == .failed(.loginRequired))
+    }
+
     @Test func eachFolderKeepsItsOwnList() async throws {
         let env = try ListTestEnvironment()
         env.transport.on(.any, reply: .fixture(ListFixture.favorites))

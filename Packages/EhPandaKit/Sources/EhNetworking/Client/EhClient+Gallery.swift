@@ -103,10 +103,10 @@ extension EhClient {
         }
     }
 
-    /// Raw bytes of a URL (torrent files).
+    /// Raw bytes of a URL (torrent files). Not a page, so the response is not classified.
     public func data(from url: URL) async throws -> Data {
         try await perform { builder in
-            try await body(builder.data(url: url))
+            try await send(builder.data(url: url)).data
         }
     }
 }
