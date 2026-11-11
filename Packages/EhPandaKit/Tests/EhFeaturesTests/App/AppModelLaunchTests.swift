@@ -14,9 +14,9 @@ import Testing
 final class LaunchHarness {
     enum StubError: Error { case cannotOpen, cannotDrop }
 
-    let events = EventLog()
+    let events = ShellEventLog()
     let settings = SettingsStore(storage: .ephemeral())
-    let clock = TestClock()
+    let clock = ShellTestClock()
     let transport = StubTransport()
     var model: AppModel!
 
@@ -26,7 +26,7 @@ final class LaunchHarness {
     init(
         openFailures: Int = 0, dropFails: Bool = false, isPad: Bool = false,
         alternateIconName: String? = nil, biometrics: BiometricsClient = AppFixture.biometrics(),
-        clipboard: ClipboardClient = AppFixture.clipboard(), expireGate: Gate? = nil,
+        clipboard: ClipboardClient = AppFixture.clipboard(), expireGate: ShellGate? = nil,
         tagTranslationRemote: TagTranslationRemote? = nil
     ) {
         let events = events
@@ -59,7 +59,7 @@ final class LaunchHarness {
             $0.launchClient = launchClient
             $0.settings = settings
             $0.date = clock.generator
-            $0.continuousClock = InstantClock()
+            $0.continuousClock = ShellInstantClock()
             $0.applicationClient = AppFixture.application(isPad: isPad, alternateIconName: alternateIconName, events: events)
             $0.domainFronting = AppFixture.domainFronting(events: events)
             $0.biometricsClient = biometrics
@@ -188,11 +188,11 @@ final class LaunchHarness {
     }
 
     @Test func postLaunchWorkDoesNotHoldBackTheTabs() async {
-        let gate = Gate()
+        let gate = ShellGate()
         let harness = LaunchHarness(expireGate: gate)
 
         let launch = Task { await harness.launch() }
-        await waitUntil { gate.isWaiting }
+        await shellWaitUntil { gate.isWaiting }
 
         #expect(harness.model.launchState == .ready)
         #expect(!harness.events.all.contains("expired"))
@@ -203,7 +203,7 @@ final class LaunchHarness {
     }
 
     @Test func tagTranslationUpdateDoesNotHoldBackTheTabs() async {
-        let gate = Gate()
+        let gate = ShellGate()
         let remote = TagTranslationRemote(
             latestReleaseDate: { _, stored in
                 await gate.wait()
@@ -218,7 +218,7 @@ final class LaunchHarness {
         harness.settings.enablesTagsExtension = true
 
         let launch = Task { await harness.launch() }
-        await waitUntil { gate.isWaiting }
+        await shellWaitUntil { gate.isWaiting }
 
         #expect(harness.model.launchState == .ready)
         gate.open()
@@ -318,8 +318,8 @@ final class LaunchHarness {
         defer { following.cancel() }
 
         harness.settings.bypassesSNIFiltering = true
-        await waitUntil { harness.events.all.contains("domainFronting true") }
+        await shellWaitUntil { harness.events.all.contains("domainFronting true") }
         harness.settings.bypassesSNIFiltering = false
-        await waitUntil { harness.events.all.contains("domainFronting false") }
+        await shellWaitUntil { harness.events.all.contains("domainFronting false") }
     }
 }

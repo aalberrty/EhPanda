@@ -14,7 +14,7 @@ import Testing
     private let router = AppRouter()
     /// 2026-01-15 10:00 UTC. In the past, because the client stamps greetings with the real
     /// time and the store keeps only newer ones.
-    private let clock = TestClock(Date(timeIntervalSince1970: 1_768_471_200))
+    private let clock = ShellTestClock(Date(timeIntervalSince1970: 1_768_471_200))
 
     private static let noRewardPage = "<html><body><div id='eventpane'><p>It is the dawn of a new day!</p></div></body></html>"
 

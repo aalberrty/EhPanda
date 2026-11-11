@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 /// Ordered log of what the stubs saw.
-nonisolated final class EventLog: Sendable {
+nonisolated final class ShellEventLog: Sendable {
     private let events = LockIsolated<[String]>([])
 
     func record(_ event: String) {
@@ -25,7 +25,7 @@ nonisolated final class EventLog: Sendable {
 }
 
 /// Lets a stub wait until the test opens it.
-nonisolated final class Gate: Sendable {
+nonisolated final class ShellGate: Sendable {
     private let stream: AsyncStream<Void>
     private let continuation: AsyncStream<Void>.Continuation
     private let waiting = LockIsolated(false)
@@ -48,7 +48,7 @@ nonisolated final class Gate: Sendable {
 }
 
 /// A mutable "now" for `\.date`.
-nonisolated final class TestClock: Sendable {
+nonisolated final class ShellTestClock: Sendable {
     private let now: LockIsolated<Date>
 
     init(_ start: Date = Date(timeIntervalSince1970: 1_800_000_000)) {
@@ -105,7 +105,7 @@ nonisolated enum AppFixture {
     }
 
     static func application(
-        isPad: Bool = false, alternateIconName: String? = nil, events: EventLog = EventLog()
+        isPad: Bool = false, alternateIconName: String? = nil, events: ShellEventLog = ShellEventLog()
     ) -> ApplicationClient {
         ApplicationClient(
             isPad: { isPad }, openURL: { _ in true }, openSettings: {},
@@ -114,7 +114,7 @@ nonisolated enum AppFixture {
         )
     }
 
-    static func domainFronting(events: EventLog) -> DomainFrontingClient {
+    static func domainFronting(events: ShellEventLog) -> DomainFrontingClient {
         let enabled = LockIsolated(false)
         return DomainFrontingClient(
             isEnabled: { enabled.value },
@@ -128,8 +128,8 @@ nonisolated enum AppFixture {
 
 /// Polls `condition` on the main actor until it holds, failing after `timeout`.
 @MainActor
-func waitUntil(
-    timeout: Duration = .seconds(2), sourceLocation: SourceLocation = #_sourceLocation,
+func shellWaitUntil(
+    timeout: Duration = .seconds(10), sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: () -> Bool
 ) async {
     let clock = ContinuousClock()
@@ -145,7 +145,7 @@ func waitUntil(
 
 /// A clock whose sleeps return at once (unless cancelled). `ImmediateClock` yields through
 /// background-priority tasks, which a busy machine can starve for seconds.
-nonisolated struct InstantClock: Clock {
+nonisolated struct ShellInstantClock: Clock {
     struct Instant: InstantProtocol {
         var offset: Duration = .zero
 

@@ -7,7 +7,7 @@ import Foundation
 import Testing
 
 @MainActor @Suite struct AppLockModelTests {
-    private let clock = TestClock()
+    private let clock = ShellTestClock()
     private let settings = SettingsStore(storage: .ephemeral())
 
     private func makeLock(biometrics: BiometricsClient = AppFixture.biometrics()) -> AppLockModel {
@@ -121,7 +121,7 @@ import Testing
 
     @Test func failedAuthenticationStaysLockedWithoutPromptingAgain() async {
         settings.autoLockPolicy = .instantly
-        let gate = Gate()
+        let gate = ShellGate()
         let lock = makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
             await gate.wait()
             return false
@@ -130,7 +130,7 @@ import Testing
         _ = lock.sceneBecameActive()
 
         let attempt = Task { await lock.authenticate() }
-        await waitUntil { gate.isWaiting }
+        await shellWaitUntil { gate.isWaiting }
         // The system prompt makes the scene inactive, then active again.
         lock.sceneBecameInactive()
         gate.open()
@@ -146,7 +146,7 @@ import Testing
 
     @Test func promptActivationBeforeTheResultIsIgnored() async {
         settings.autoLockPolicy = .instantly
-        let gate = Gate()
+        let gate = ShellGate()
         let lock = makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
             await gate.wait()
             return true
@@ -155,7 +155,7 @@ import Testing
         _ = lock.sceneBecameActive()
 
         let attempt = Task { await lock.authenticate() }
-        await waitUntil { gate.isWaiting }
+        await shellWaitUntil { gate.isWaiting }
         lock.sceneBecameInactive()
         #expect(lock.sceneBecameActive() == .ignored)
         gate.open()

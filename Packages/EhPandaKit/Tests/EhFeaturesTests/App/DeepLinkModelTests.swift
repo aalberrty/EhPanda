@@ -25,7 +25,7 @@ import Testing
             $0.settings = settings
             $0.clipboardClient = clipboard
             $0.clipboardChangeCountStore = changeCounts
-            $0.continuousClock = InstantClock()
+            $0.continuousClock = ShellInstantClock()
         } operation: {
             DeepLinkModel(router: router)
         }
@@ -193,7 +193,7 @@ import Testing
 
         model.open(URL(string: "https://e-hentai.org/g/1/aaaaaaaaaa/")!)
         let first = Task { await model.handleRequest() }
-        await waitUntil { transport.requests.count == 1 }
+        await shellWaitUntil { transport.requests.count == 1 }
         #expect(model.progress == .loading)
         first.cancel()
         await first.value
