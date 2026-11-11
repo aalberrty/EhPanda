@@ -28,6 +28,7 @@ struct DetailTagsSection: View {
                     .equatable()
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .sensoryFeedback(.impact(flexibility: .soft), trigger: searchCount)
         }
     }

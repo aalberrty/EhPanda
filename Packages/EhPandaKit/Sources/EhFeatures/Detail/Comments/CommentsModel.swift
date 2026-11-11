@@ -22,6 +22,12 @@ public final class CommentsModel {
     public private(set) var linkState: LinkState?
     /// The post / edit sheet.
     public var composer: CommentComposer?
+    /// A gallery opened from a link, pushed on top of this screen.
+    ///
+    /// Pushed from here rather than as `Route.detail` on the stack: appending to the stack's path
+    /// while this screen is shown through `navigationDestination(item:)` makes SwiftUI drop this
+    /// screen, so Back would skip it, where legacy returned to the comments.
+    public var linkedGallery: Gallery?
 
     public enum LinkState: Equatable, Sendable {
         case resolving
@@ -108,11 +114,11 @@ public final class CommentsModel {
     // MARK: Links
 
     /// Gallery and image-page links on E-Hentai / ExHentai open in the app: the gallery is
-    /// pushed on `stack`, an image-page link then opens the reader at that page and a comment
-    /// link opens that comment. Anything else opens outside the app.
+    /// pushed (`linkedGallery`), an image-page link then opens the reader at that page and a
+    /// comment link opens that comment. Anything else opens outside the app.
     ///
     /// A gallery the app has not stored is first resolved from the site behind a HUD.
-    public func openLink(_ url: URL, stack: StackRouter?) {
+    public func openLink(_ url: URL) {
         guard EhURL.isHandleable(url), let gid = EhURL.galleryID(of: url) else {
             let application = application
             Task { _ = await application.openURL(url) }
@@ -121,7 +127,7 @@ public final class CommentsModel {
         let analysis = EhURL.analyze(url)
         tasks.run("link") { [weak self, database, client] in
             if let stored = try? await database.gallery(gid: gid) {
-                self?.open(stored, analysis: analysis, stack: stack)
+                self?.open(stored, analysis: analysis)
                 return
             }
             self?.linkState = .resolving
@@ -130,7 +136,7 @@ public final class CommentsModel {
             switch outcome {
             case .success(let gallery):
                 linkState = nil
-                open(gallery, analysis: analysis, stack: stack)
+                open(gallery, analysis: analysis)
             case .failure(let error):
                 // Legacy cleared the HUD before switching it to the error, so this never showed.
                 linkState = .failed(error)
@@ -147,7 +153,7 @@ public final class CommentsModel {
         }
     }
 
-    private func open(_ gallery: Gallery, analysis: EhLinkAnalysis, stack: StackRouter?) {
+    private func open(_ gallery: Gallery, analysis: EhLinkAnalysis) {
         if let page = analysis.pageIndex {
             let database = database
             Task { try? await database.updateReadingProgress(gid: gallery.gid, progress: page) }
@@ -155,7 +161,7 @@ public final class CommentsModel {
         } else if let commentID = analysis.commentID {
             intents.set(.comments(scrollTo: commentID), for: gallery.gid)
         }
-        stack?.push(.detail(gallery))
+        linkedGallery = gallery
     }
 }
 

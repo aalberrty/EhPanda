@@ -142,10 +142,9 @@ import Testing
     @Test func linksOutsideTheSiteOpenExternally() async throws {
         let env = try await DetailEnvironment()
         let (_, model) = await makeModel(env)
-        let stack = StackRouter()
-        model.openLink(URL(string: "https://example.com/page")!, stack: stack)
+        model.openLink(URL(string: "https://example.com/page")!)
         await eventually { env.openedURLs.all.count == 1 }
-        #expect(stack.path.isEmpty)
+        #expect(model.linkedGallery == nil)
     }
 
     @Test func storedGalleryOpensWithoutARequest() async throws {
@@ -154,12 +153,11 @@ import Testing
         let other = otherGallery()
         try await env.database.recordOpened(other)
         let requestsBefore = env.transport.requests.count
-        let stack = StackRouter()
 
-        model.openLink(URL(string: "https://e-hentai.org/s/0123456789/999-5")!, stack: stack)
-        await eventually { !stack.path.isEmpty }
+        model.openLink(URL(string: "https://e-hentai.org/s/0123456789/999-5")!)
+        await eventually { model.linkedGallery != nil }
 
-        #expect(stack.path == [.detail(other)])
+        #expect(model.linkedGallery == other)
         #expect(env.transport.requests.count == requestsBefore)
         #expect(env.intents.take(for: "999") == .read(page: 5))
         await eventually { (try? await env.database.state(gid: "999"))?.readingProgress == 5 }
@@ -168,18 +166,14 @@ import Testing
     @Test func unknownGalleryIsResolvedThenPushedWithTheCommentIntent() async throws {
         let env = try await DetailEnvironment()
         let (_, model) = await makeModel(env)
-        let stack = StackRouter()
 
         // Any gallery page parses; the gallery takes its gid and token from the link.
         env.transport.on(.path("/g/31338/cafe/"), reply: .fixture("Parser/Gallery/GalleryDetail.html"))
 
-        model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/#c5143504")!, stack: stack)
-        await eventually { !stack.path.isEmpty }
+        model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/#c5143504")!)
+        await eventually { model.linkedGallery != nil }
 
-        guard case .detail(let gallery) = try #require(stack.path.first) else {
-            Issue.record("Expected a detail route")
-            return
-        }
+        let gallery = try #require(model.linkedGallery)
         #expect(gallery.gid == "31338")
         #expect(gallery.token == "cafe")
         #expect(gallery.title == "[Artist] mks")
@@ -192,12 +186,11 @@ import Testing
         let env = try await DetailEnvironment()
         let (_, model) = await makeModel(env)
         env.transport.on(.path("/g/31337/beef/"), reply: .error(URLError(.timedOut)))
-        let stack = StackRouter()
 
-        model.openLink(URL(string: "https://e-hentai.org/g/31337/beef/")!, stack: stack)
+        model.openLink(URL(string: "https://e-hentai.org/g/31337/beef/")!)
         await eventually { model.linkState == .failed(.networkingFailed) }
 
-        #expect(stack.path.isEmpty)
+        #expect(model.linkedGallery == nil)
         model.dismissLinkState()
         #expect(model.linkState == nil)
     }

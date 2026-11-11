@@ -6,8 +6,6 @@ import SwiftUI
 struct CommentsScreen: View {
     @State private var model: CommentsModel
 
-    @Environment(StackRouter.self) private var stack: StackRouter?
-
     init(detail: GalleryDetailModel, scrollTo commentID: String?) {
         _model = State(initialValue: CommentsModel(detail: detail, scrollTo: commentID))
     }
@@ -54,9 +52,12 @@ struct CommentsScreen: View {
             }
         }
         .environment(\.openURL, OpenURLAction { url in
-            model.openLink(url, stack: stack)
+            model.openLink(url)
             return .handled
         })
+        .navigationDestination(item: $model.linkedGallery) { gallery in
+            GalleryDetailDestination(gallery: gallery)
+        }
         .task(id: model.isScrollTargetReady) { await model.scrollToTarget() }
         .navigationTitle(L10n.Localizable.CommentsView.Title.comments)
         .toolbar {

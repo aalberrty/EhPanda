@@ -63,7 +63,7 @@ struct GalleryInfosScreen: View {
             InfoRow(Title.favorited, detail.isFavorited ? yes : no),
             InfoRow(Title.ratingCount, String(detail.ratingCount)),
             // Legacy truncated these to integers; show the precision the site gives.
-            InfoRow(Title.averageRating, detail.rating.formatted(.number.precision(.fractionLength(0...2)))),
+            InfoRow(Title.averageRating, detail.rating.formatted(.number.precision(.fractionLength(2)))),
             InfoRow(Title.myRating, detail.userRating == 0 ? nil : detail.userRating.formatted()),
             InfoRow(Title.torrentCount, String(detail.torrentCount))
         ]
