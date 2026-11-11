@@ -78,7 +78,7 @@ struct URLSessionTransportTests {
 
         #expect(configuration.httpCookieStorage === storage)
         #expect(configuration.httpMaximumConnectionsPerHost > 6)
-        #expect(configuration.timeoutIntervalForRequest == 30)
+        #expect(configuration.timeoutIntervalForRequest == 15)
         #expect(configuration.timeoutIntervalForResource == 120)
         #expect(!configuration.isDomainFrontingEnabled)
     }

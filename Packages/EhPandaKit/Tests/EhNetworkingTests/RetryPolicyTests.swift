@@ -32,6 +32,24 @@ struct RetryPolicyTests {
         }
     }
 
+    @Test func attemptsAreBounded() {
+        let policy = RetryPolicy(maxAttempts: 3)
+        let error = URLError(.networkConnectionLost)
+        #expect(policy.shouldRetry(method: "GET", error: error, attempt: 1, timeouts: 0))
+        #expect(policy.shouldRetry(method: "GET", error: error, attempt: 2, timeouts: 0))
+        #expect(!policy.shouldRetry(method: "GET", error: error, attempt: 3, timeouts: 0))
+    }
+
+    @Test func aTimeoutIsRetriedUntilTheTimeoutBudgetIsSpent() {
+        let policy = RetryPolicy(maxAttempts: 3, maxTimeoutAttempts: 2)
+        let timedOut = URLError(.timedOut)
+        #expect(policy.shouldRetry(method: "GET", error: timedOut, attempt: 1, timeouts: 1))
+        #expect(!policy.shouldRetry(method: "GET", error: timedOut, attempt: 2, timeouts: 2))
+        // Other failures still use the remaining attempts.
+        #expect(policy.shouldRetry(method: "GET", error: URLError(.networkConnectionLost), attempt: 2, timeouts: 1))
+        #expect(!policy.shouldRetry(method: "POST", error: timedOut, attempt: 1, timeouts: 1))
+    }
+
     @Test func delayDoublesPerAttempt() {
         let policy = RetryPolicy(baseDelay: .milliseconds(100), jitterFraction: 0.25)
         #expect(policy.delay(afterAttempt: 1, random: 0) == .milliseconds(100))
