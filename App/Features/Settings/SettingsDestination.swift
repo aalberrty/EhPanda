@@ -1,12 +1,30 @@
+import EhCore
 import EhFeatures
 import EhModels
 import SwiftUI
 
-// Placeholder entry point. The feature that owns this screen replaces the body.
+/// Maps a `SettingsRoute` to its screen. Every settings screen is tinted with the accent colour,
+/// as in legacy.
 struct SettingsDestination: View {
     let route: SettingsRoute
 
+    @Environment(SettingsStore.self) private var settings
+
     var body: some View {
-        FeaturePlaceholder(name: "Setting: \(route)")
+        screen.tint(settings.accentColor.color)
+    }
+
+    @ViewBuilder private var screen: some View {
+        switch route {
+        case .account: AccountSettingScreen()
+        case .login: LoginScreen()
+        case .ehSetting: EhSettingScreen()
+        case .general: GeneralSettingsScreen()
+        case .appearance: AppearanceSettingsScreen()
+        case .reading: ReadingSettingsScreen()
+        case .laboratory: LaboratorySettingsScreen()
+        case .logs: LogsScreen()
+        case .about: AboutScreen()
+        }
     }
 }
