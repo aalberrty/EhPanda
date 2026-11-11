@@ -9,9 +9,10 @@ import Observation
 import SwiftUI
 import Synchronization
 
-// DEBUG ONLY. A way into the reader with a real gallery until the gallery detail screen
-// exists: it loads the frontpage and opens one of its galleries. Delete it together with
-// `FeaturePlaceholder`.
+// DEBUG ONLY. A shortcut into the reader for measuring and for provoking failures: it loads
+// the frontpage and opens one of its galleries without going through the detail screen, and
+// lists how long each open took to show its first page. It sits under the reader harness
+// launcher on `FeaturePlaceholder`; delete it together with that.
 //
 // Launching the app with `-ReaderDebugGallery <n>` opens the n-th frontpage gallery (1-based)
 // straight away, and `-ReaderDebugPage <p>` opens it on page p. `-ReaderDebugFaults YES` makes
@@ -93,8 +94,8 @@ final class ReaderDebugSession {
         await open(index: number - 1, initialPage: page > 0 ? page : nil)
     }
 
-    /// The app does not open its database at launch yet, so the launcher brings its own, in a
-    /// file of its own so that reopening a gallery after a relaunch can be tried too.
+    /// A database of its own, so that the galleries opened from here stay out of the user's
+    /// history. It is a file, so reopening a gallery after a relaunch can be tried too.
     private func debugDatabase() async throws -> AppDatabase {
         if let database { return database }
         let url = URL.applicationSupportDirectory.appending(path: "EhPanda/ReaderDebug.sqlite")

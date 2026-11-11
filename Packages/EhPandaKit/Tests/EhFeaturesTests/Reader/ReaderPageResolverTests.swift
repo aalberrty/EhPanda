@@ -132,7 +132,7 @@ private final class ResolverHarness {
 
         harness.resolver.setFocus(12)
 
-        await readerEventually { harness.isResolved(12) }
+        await readerEventually { harness.isResolved(12) && !harness.site.cancelled.isEmpty }
         // Page 2 gave way; page 3 was left alone.
         #expect(harness.site.cancelled == ["page:2"])
         #expect(harness.site.inFlight.contains("page:3"))
@@ -180,7 +180,7 @@ private final class ResolverHarness {
 
         harness.resolver.release([2, 3])
 
-        await readerEventually { harness.isResolved(4) }
+        await readerEventually { harness.isResolved(4) && !harness.site.cancelled.isEmpty }
         #expect(harness.site.cancelled == ["page:2"])
         #expect(!harness.site.started.contains("page:3"))
         #expect(harness.resolver.state(of: 2) == .pending)
@@ -398,7 +398,7 @@ private final class ResolverHarness {
         harness.resolver.reset()
         harness.site.release("page:1")
 
-        await readerEventually { harness.isResolved(1) }
+        await readerEventually { harness.isResolved(1) && !harness.site.cancelled.isEmpty }
         #expect(harness.site.cancelled == ["page:1"])
         // The links were forgotten too, so the page went through its preview page again.
         #expect(harness.site.started == ["page:1", "links:0", "page:1"])

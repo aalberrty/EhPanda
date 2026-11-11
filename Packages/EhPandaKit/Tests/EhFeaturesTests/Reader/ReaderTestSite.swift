@@ -124,12 +124,14 @@ nonisolated final class ReaderTestSite: Sendable {
         }
         defer { state.withLock { _ = $0.inFlight.remove(key) } }
         while isHeld(key) {
-            do {
-                try await Task.sleep(for: .milliseconds(2))
-            } catch {
-                state.withLock { $0.cancelled.append(key) }
-                throw URLError(.cancelled)
-            }
+            // The sleep only ends early when the request's task is cancelled.
+            try? await Task.sleep(for: .milliseconds(2))
+            if Task.isCancelled { break }
+        }
+        // Also for a request that was cancelled and released before it got to wait.
+        if Task.isCancelled {
+            state.withLock { $0.cancelled.append(key) }
+            throw URLError(.cancelled)
         }
         if shouldFail { throw URLError(.timedOut) }
         guard let body = body(for: key),
