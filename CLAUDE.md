@@ -144,6 +144,15 @@ swift test  --package-path Packages/EhPandaKit
 # App
 xcodebuild build -project EhPanda.xcodeproj -scheme EhPanda \
   -destination 'platform=iOS Simulator,name=iPhone 17' -skipMacroValidation -quiet
+
+# Device, signed with a personal team: the project's team and bundle id belong to the original
+# developer, so override both. Needs an Apple ID signed in under Xcode > Settings > Accounts.
+xcodebuild build -project EhPanda.xcodeproj -scheme EhPanda -configuration Release \
+  -destination 'platform=iOS,id=<device udid>' -skipMacroValidation \
+  -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
+  EHPANDA_BUNDLE_ID=app.ehpanda.<TEAMID> DEVELOPMENT_TEAM=<TEAMID> CODE_SIGN_STYLE=Automatic \
+  PROVISIONING_PROFILE_SPECIFIER= CODE_SIGN_IDENTITY="Apple Development"
+xcrun devicectl device install app --device <device id> <path to EhPanda.app>
 ```
 
 A change is done when the package tests pass and the app builds without new warnings.
