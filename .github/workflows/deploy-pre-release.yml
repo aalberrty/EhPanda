@@ -17,6 +17,7 @@ on:
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app
   SCHEME_NAME: 'EhPanda'
+  APP_INFO_PLIST_PATH: './Configuration/EhPanda-Info.plist'
   ALTSTORE_JSON_PATH: './AltStore.json'
   BUILDS_PATH: '/tmp/action-builds'
   PAYLOAD_PATH: '/tmp/action-builds/Payload'
@@ -44,16 +45,25 @@ jobs:
           command: xcodebuild -downloadPlatform iOS
       - name: Show Xcode version
         run: xcodebuild -version
-      - name: Run tests
-        run: xcodebuild clean test
-          -skipMacroValidation
+      - name: Run package tests
+        run: swift test --package-path Packages/EhPandaKit
+      - name: Build app for simulator
+        run: xcodebuild build
+          -project EhPanda.xcodeproj
           -scheme ${{ env.SCHEME_NAME }}
-          -destination 'platform=iOS Simulator,name=iPhone Air'
+          -destination 'generic/platform=iOS Simulator'
+          -skipMacroValidation
+          CODE_SIGNING_ALLOWED=NO
       - name: Bump version
         id: bump-version
-        uses: yanamura/ios-bump-version@v1
-        with:
-          version: ${{ inputs.versionTag }}
+        env:
+          NEW_VERSION: ${{ inputs.versionTag }}
+        run: |
+          plist="$APP_INFO_PLIST_PATH"
+          build="$(plutil -extract CFBundleVersion raw -o - "$plist")"
+          plutil -replace CFBundleShortVersionString -string "$NEW_VERSION" "$plist"
+          plutil -replace CFBundleVersion -string "$((build + 1))" "$plist"
+          echo "version=$(plutil -extract CFBundleShortVersionString raw -o - "$plist")" >> "$GITHUB_OUTPUT"
       - name: Xcode archive
         run: xcodebuild archive
           -skipMacroValidation

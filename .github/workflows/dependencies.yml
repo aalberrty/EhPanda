@@ -20,8 +20,18 @@ jobs:
           forceResolution: true
           failWhenOutdated: false
           xcodePath: '/Applications/Xcode_26.5.app'
+      - name: Resolve EhPandaKit Dependencies
+        env:
+          DEVELOPER_DIR: '/Applications/Xcode_26.5.app'
+        run: swift package update --package-path Packages/EhPandaKit
+      - name: Detect changes
+        id: changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Create Pull Request
-        if: steps.resolution.outputs.dependenciesChanged == 'true'
+        if: steps.resolution.outputs.dependenciesChanged == 'true' || steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
           branch: 'update-dependencies'
