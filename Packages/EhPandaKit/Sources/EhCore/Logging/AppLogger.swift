@@ -129,6 +129,12 @@ extension AppLogger {
         await sink?.logFiles() ?? []
     }
 
+    /// Log files, newest first, each with its line count and the dates of its first and last
+    /// line. Computed where the files are read, so no line reaches the caller.
+    public func logSummaries() async -> [LogSummary] {
+        await sink?.summaries() ?? []
+    }
+
     /// The non-empty lines of `file`, oldest first.
     public func lines(of file: LogFile) async throws -> [String] {
         guard let sink else { return [] }
