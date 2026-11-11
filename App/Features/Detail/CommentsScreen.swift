@@ -5,6 +5,7 @@ import SwiftUI
 /// Every comment of the gallery, with votes, editing, composing and in-app links.
 struct CommentsScreen: View {
     @State private var model: CommentsModel
+    @Environment(StackRouter.self) private var stack
 
     init(detail: GalleryDetailModel, scrollTo commentID: String?) {
         _model = State(initialValue: CommentsModel(detail: detail, scrollTo: commentID))
@@ -52,12 +53,9 @@ struct CommentsScreen: View {
             }
         }
         .environment(\.openURL, OpenURLAction { url in
-            model.openLink(url)
+            model.openLink(url, on: stack)
             return .handled
         })
-        .navigationDestination(item: $model.linkedGallery) { gallery in
-            GalleryDetailDestination(gallery: gallery)
-        }
         .task(id: model.isScrollTargetReady) { await model.scrollToTarget() }
         .navigationTitle(L10n.Localizable.CommentsView.Title.comments)
         .toolbar {

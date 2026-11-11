@@ -206,6 +206,14 @@ import Testing
         model.pushedDestination = nil
         #expect(model.destination == nil)
     }
+
+    @Test func childScreensArePushedAndOthersPresented() {
+        #expect(DetailDestination.comments(scrollTo: nil).presentation == .push)
+        #expect(DetailDestination.previews.presentation == .push)
+        #expect(DetailDestination.galleryInfos.presentation == .push)
+        #expect(DetailDestination.torrents.presentation == .sheet)
+        #expect(DetailDestination.reader(page: nil).presentation == .fullScreen)
+    }
 }
 
 @Suite struct DetailSearchKeywordTests {

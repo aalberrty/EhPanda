@@ -70,7 +70,10 @@ public final class AppRouter {
     }
 
     /// What the link that opened the presented gallery pointed at, if anything.
-    public private(set) var presentedGalleryTarget: GalleryLinkTarget?
+    ///
+    /// Not observed: the sheet takes it while building its root screen, and taking it must not
+    /// invalidate the view being built.
+    @ObservationIgnored public private(set) var presentedGalleryTarget: GalleryLinkTarget?
 
     /// Returns the presented gallery's link target and forgets it, so it is honoured once.
     /// `nil` when `gid` is not the presented gallery or there is no target.

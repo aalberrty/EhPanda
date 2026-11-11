@@ -30,17 +30,45 @@ nonisolated public enum SettingsRoute: Hashable, Sendable {
     case about
 }
 
-/// A screen that one feature can ask another to show.
+/// A pushed screen.
 ///
-/// Routes are for **cross-feature** navigation only: opening a gallery, a list or a search
-/// from anywhere. Child screens that need their parent's model (comments, previews,
-/// archives, …) are presented locally by the parent with `navigationDestination(item:)`
-/// or a sheet, driven by a `destination` property on the parent's model.
+/// Every screen pushed onto a tab's or the gallery sheet's `NavigationStack` is a route in that
+/// stack's path, including a feature's own child screens: SwiftUI keeps path entries below
+/// screens pushed with `navigationDestination(item:)`, so mixing the two drops screens from the
+/// stack. Sheets and full-screen covers stay local to the feature that presents them.
 nonisolated public enum Route: Hashable, Sendable {
     case galleryList(GalleryListKind)
     /// Search results for a keyword built from a tag, an uploader or a title ("detail
-    /// search"). Unlike a search typed in the Search tab, it is not added to the search history.
+    /// search"). Unlike `typedSearch`, it is not added to the search history.
     case search(keyword: String)
-    case detail(Gallery)
+    /// Search results for a keyword typed or picked in the Search tab; recorded in the history.
+    case typedSearch(keyword: String)
+    /// A gallery's detail screen. `intent` is what it should do once it has opened.
+    case detail(Gallery, intent: DetailIntent? = nil)
+    /// A child screen of a gallery's detail screen (comments, previews, gallery infos).
+    case detailChild(DetailChildRoute)
     case settings(SettingsRoute)
+}
+
+/// A screen pushed from a gallery's detail screen. It needs the detail's model, which stays
+/// alive anyway: the detail screen is below it in the same stack.
+///
+/// Two values are equal when they hold the same model instance and the same destination.
+nonisolated public struct DetailChildRoute: Hashable, Sendable {
+    public let parent: GalleryDetailModel
+    public let destination: DetailDestination
+
+    public init(parent: GalleryDetailModel, destination: DetailDestination) {
+        self.parent = parent
+        self.destination = destination
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.parent === rhs.parent && lhs.destination == rhs.destination
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(parent))
+        hasher.combine(destination)
+    }
 }

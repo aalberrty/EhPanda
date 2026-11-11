@@ -20,8 +20,6 @@ public final class SearchRootModel {
     public private(set) var quickSearchWords: [QuickSearchWord] = []
     public private(set) var recentGalleries: [Gallery] = []
 
-    /// The results screen pushed for a typed search.
-    public var destination: SearchRequest?
     public var sheet: SearchSheet?
     /// Bumped when the tab is re-selected at its root; the view restarts `observe()` on it.
     public private(set) var reloadID = 0
@@ -80,14 +78,15 @@ public final class SearchRootModel {
 
     // MARK: Actions
 
-    public func submit() {
-        search(keyword)
+    public func submit(on stack: StackRouter) {
+        search(keyword, on: stack)
     }
 
-    /// Pushes the results screen for `keyword`. The results screen records the search history.
-    public func search(_ keyword: String) {
+    /// Pushes the results screen for `keyword` as `Route.typedSearch`, whose results screen
+    /// records the search history.
+    public func search(_ keyword: String, on stack: StackRouter) {
         self.keyword = keyword
-        destination = SearchRequest(keyword: keyword)
+        stack.push(.typedSearch(keyword: keyword))
     }
 
     public func removeHistoryKeyword(_ keyword: String) async {
@@ -109,19 +108,16 @@ public final class SearchRootModel {
         sheet = nil
     }
 
-    public func sheetDismissed() {
+    public func sheetDismissed(on stack: StackRouter) {
         guard let pendingSearch else { return }
         self.pendingSearch = nil
-        search(pendingSearch)
+        search(pendingSearch, on: stack)
     }
 
-    /// The Search tab was tapped while showing this root: pop the typed search, or reload.
+    /// The Search tab was tapped while already showing this root: reload the lists.
+    /// (Re-selecting it with results pushed pops the whole stack in `AppRouter.select`.)
     public func rootReselected() {
-        if destination != nil {
-            destination = nil
-        } else {
-            reloadID += 1
-        }
+        reloadID += 1
     }
 
     // MARK: Layout
@@ -146,17 +142,6 @@ nonisolated public struct SearchKeyword: Hashable, Sendable {
     public init(keyword: String, title: String) {
         self.keyword = keyword
         self.title = title
-    }
-}
-
-/// A search started from the Search tab. Each one is a new push, even for the same keyword.
-nonisolated public struct SearchRequest: Hashable, Identifiable, Sendable {
-    public let id: UUID
-    public let keyword: String
-
-    public init(id: UUID = UUID(), keyword: String) {
-        self.id = id
-        self.keyword = keyword
     }
 }
 

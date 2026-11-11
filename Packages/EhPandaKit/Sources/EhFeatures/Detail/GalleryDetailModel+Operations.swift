@@ -124,7 +124,8 @@ extension GalleryDetailModel {
         destination = .tagDetail(detail)
     }
 
-    /// The pushed child, as a binding target for `navigationDestination(item:)`.
+    /// The pushed child the screen asked for. The view hands it to its stack as
+    /// `Route.detailChild` and clears it; it is never presented outside the stack's path.
     public var pushedDestination: DetailDestination? {
         get { destination?.presentation == .push ? destination : nil }
         set { replaceDestination(of: .push, with: newValue) }

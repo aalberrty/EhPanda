@@ -82,6 +82,8 @@ import Testing
         #expect(router.presentedGallery?.gid == "0000000")
         #expect(router.presentedGalleryTarget == .page(3))
         #expect(try await database.state(gid: "0000000")?.readingProgress == 3)
+        // The gallery sheet opens the detail with this intent.
+        #expect(router.takePresentedGalleryTarget(for: "0000000").map(DetailIntent.init) == .read(page: 3))
     }
 
     @Test func commentLinkOpensTheComments() async throws {
@@ -92,6 +94,10 @@ import Testing
 
         #expect(router.presentedGallery?.gid == "3103480")
         #expect(router.presentedGalleryTarget == .comment("4242"))
+        // The gallery sheet opens the detail with this intent.
+        #expect(
+            router.takePresentedGalleryTarget(for: "3103480").map(DetailIntent.init) == .comments(scrollTo: "4242")
+        )
     }
 
     @Test func galleryInTheHistoryOpensWithoutLoading() async throws {

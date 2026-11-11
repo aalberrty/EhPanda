@@ -34,6 +34,22 @@ import Testing
         #expect(router.rootReselectionCount(for: .home) == 0)
     }
 
+    @Test func reselectingATabPopsChildScreensAndSearchesInOneTap() {
+        let router = AppRouter()
+        let gallery = makeGallery()
+        router.select(.search)
+        router.search.push(.typedSearch(keyword: "a"))
+        router.search.push(.detail(gallery))
+        router.search.push(.detailChild(DetailChildRoute(
+            parent: GalleryDetailModel(gallery: gallery), destination: .comments(scrollTo: nil)
+        )))
+
+        router.select(.search)
+
+        #expect(router.search.isAtRoot)
+        #expect(router.rootReselectionCount(for: .search) == 0)
+    }
+
     @Test func reselectingATabAtItsRootBumpsTheCounter() {
         let router = AppRouter()
 

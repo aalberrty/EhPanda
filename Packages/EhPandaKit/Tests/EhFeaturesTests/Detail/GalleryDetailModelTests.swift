@@ -175,25 +175,32 @@ import Testing
 @Suite struct GalleryDetailIntentTests {
     @Test func readIntentOpensTheReaderAtThePage() async throws {
         let env = try await DetailEnvironment()
-        env.intents.set(.read(page: 12), for: DetailEnvironment.gid)
-        let model = await env.loadedDetailModel()
+        let model = await env.loadedDetailModel(intent: .read(page: 12))
         await pollUntil { model.destination == .reader(page: 12) }
-        #expect(env.intents.take(for: DetailEnvironment.gid) == nil)
+        #expect(model.fullScreenDestination == .reader(page: 12))
     }
 
-    @Test func commentsIntentOpensTheComments() async throws {
+    @Test func commentsIntentAsksToPushTheComments() async throws {
         let env = try await DetailEnvironment()
-        env.intents.set(.comments(scrollTo: "5143504"), for: DetailEnvironment.gid)
-        let model = await env.loadedDetailModel()
+        let model = await env.loadedDetailModel(intent: .comments(scrollTo: "5143504"))
         await pollUntil { model.destination == .comments(scrollTo: "5143504") }
+        #expect(model.pushedDestination == .comments(scrollTo: "5143504"))
     }
 
-    @Test func intentsForOtherGalleriesAreLeftAlone() async throws {
+    @Test func withoutAnIntentNothingOpens() async throws {
         let env = try await DetailEnvironment()
-        env.intents.set(.read(page: 2), for: "other")
         let model = await env.loadedDetailModel()
         #expect(model.destination == nil)
-        #expect(env.intents.take(for: "other") == .read(page: 2))
+    }
+
+    @Test func theIntentRunsOnlyOnce() async throws {
+        let env = try await DetailEnvironment()
+        let model = await env.loadedDetailModel(intent: .read(page: 3))
+        await pollUntil { model.destination == .reader(page: 3) }
+        // Back from the reader, then the screen appears again (e.g. after popping a child).
+        model.fullScreenDestination = nil
+        await model.load()
+        #expect(model.destination == nil)
     }
 }
 

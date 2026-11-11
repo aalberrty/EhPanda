@@ -9,14 +9,18 @@ struct GalleryDetailView: View {
     @Bindable var model: GalleryDetailModel
 
     @Environment(AppRouter.self) private var appRouter: AppRouter?
+    @Environment(StackRouter.self) private var stack: StackRouter?
 
     var body: some View {
         content
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbar }
             .task { await model.load() }
-            .navigationDestination(item: $model.pushedDestination) { destination in
-                DetailPushedScreen(destination: destination, model: model)
+            // Pushed children are entries of the stack's path, never pushed from here.
+            .onChange(of: model.pushedDestination, initial: true) { _, destination in
+                guard let destination, let stack else { return }
+                stack.push(.detailChild(DetailChildRoute(parent: model, destination: destination)))
+                model.pushedDestination = nil
             }
             .sheet(item: $model.sheetDestination) { destination in
                 DetailSheet(destination: destination, model: model)
@@ -103,30 +107,6 @@ private struct DetailContent: View {
         .scrollIndicators(.hidden)
         .background(alignment: .top) {
             DetailBackdrop(model: model)
-        }
-    }
-}
-
-/// The child screens pushed from the detail screen.
-private struct DetailPushedScreen: View {
-    let destination: DetailDestination
-    let model: GalleryDetailModel
-
-    var body: some View {
-        switch destination {
-        case .comments(let commentID):
-            CommentsScreen(detail: model, scrollTo: commentID)
-        case .previews:
-            PreviewsGridScreen(
-                gallery: model.gallery, pageCount: model.pageCount,
-                config: model.previewConfig, previewURLs: model.previewURLs
-            )
-        case .galleryInfos:
-            if let detail = model.detail {
-                GalleryInfosScreen(gallery: model.gallery, detail: detail)
-            }
-        case .archives, .torrents, .postComment, .tagDetail, .reader:
-            EmptyView()
         }
     }
 }

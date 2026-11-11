@@ -74,52 +74,58 @@ import Testing
         ])
     }
 
-    @Test func submittingPushesResultsForTheKeyword() {
+    @Test func submittingPushesATypedSearch() {
         let model = SearchRootModel()
+        let stack = StackRouter()
         model.keyword = "language:english"
 
-        model.submit()
+        model.submit(on: stack)
 
-        #expect(model.destination?.keyword == "language:english")
+        #expect(stack.path == [.typedSearch(keyword: "language:english")])
     }
 
-    @Test func searchingTheSameKeywordTwicePushesANewScreen() {
+    @Test func pickingAKeywordPushesATypedSearchAndFillsTheField() {
         let model = SearchRootModel()
-        model.search("a")
-        let first = model.destination
-        model.search("a")
-        #expect(model.destination != first)
+        let stack = StackRouter()
+
+        model.search("f:glasses$", on: stack)
+
+        #expect(model.keyword == "f:glasses$")
+        #expect(stack.path == [.typedSearch(keyword: "f:glasses$")])
+    }
+
+    @Test func searchingTheSameKeywordTwicePushesTwoScreens() {
+        let model = SearchRootModel()
+        let stack = StackRouter()
+        model.search("a", on: stack)
+        model.search("a", on: stack)
+        #expect(stack.path == [.typedSearch(keyword: "a"), .typedSearch(keyword: "a")])
     }
 
     @Test func quickSearchPickSearchesOnceTheSheetIsGone() {
         let model = SearchRootModel()
+        let stack = StackRouter()
         model.showQuickSearch()
 
         model.selectQuickSearchWord("f:glasses$")
 
         #expect(model.sheet == nil)
         #expect(model.keyword == "f:glasses$")
-        #expect(model.destination == nil)
+        #expect(stack.isAtRoot)
 
-        model.sheetDismissed()
-        #expect(model.destination?.keyword == "f:glasses$")
+        model.sheetDismissed(on: stack)
+        #expect(stack.path == [.typedSearch(keyword: "f:glasses$")])
 
         // Dismissing a sheet without a pick pushes nothing.
-        model.destination = nil
+        stack.popToRoot()
         model.showFilters()
         model.sheet = nil
-        model.sheetDismissed()
-        #expect(model.destination == nil)
+        model.sheetDismissed(on: stack)
+        #expect(stack.isAtRoot)
     }
 
-    @Test func reselectionPopsTheResultsThenReloads() {
+    @Test func rootReselectionReloads() {
         let model = SearchRootModel()
-        model.search("a")
-
-        model.rootReselected()
-        #expect(model.destination == nil)
-        #expect(model.reloadID == 0)
-
         model.rootReselected()
         #expect(model.reloadID == 1)
     }
