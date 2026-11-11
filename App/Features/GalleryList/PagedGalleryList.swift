@@ -19,10 +19,7 @@ struct PagedGalleryList: View {
             case .loading:
                 LoadingStateView()
             case .failed(let error):
-                ErrorStateView(
-                    message: error.alertText, systemImage: error.symbol.rawValue,
-                    retry: error.isRetryable ? { model.retry() } : nil
-                )
+                ErrorStateView(error: error, retry: error.isRetryable ? { model.retry() } : nil)
             case .content:
                 GalleryCollection(galleries: model.visibleGalleries) {
                     ListPaginationFooter(model: model)

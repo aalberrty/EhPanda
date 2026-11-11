@@ -191,6 +191,8 @@ internal enum L10n {
     }
     internal enum Website {
       internal enum Response {
+        /// ExHentai did not accept your login. The login may have expired, or this account may not have access to ExHentai. Log in again in Settings › Account, or switch the gallery host to E-Hentai there.
+        internal static let exhentaiAccessDenied = L10n.tr("Localizable", "error_view.title.exhentai_access_denied", fallback: "ExHentai did not accept your login. The login may have expired, or this account may not have access to ExHentai. Log in again in Settings › Account, or switch the gallery host to E-Hentai there.")
         /// This gallery has been removed or is unavailable.
         internal static let galleryUnavailable = L10n.tr("Constant", "website.response.gallery_unavailable", fallback: "This gallery has been removed or is unavailable.")
         /// Constant.strings
@@ -1664,6 +1666,16 @@ internal enum L10n {
         /// Retry
         internal static let retry = L10n.tr("Localizable", "error_view.button.retry", fallback: "Retry")
       }
+      internal enum Headline {
+        /// ExHentai Refused the Login
+        internal static let exhentaiAccessDenied = L10n.tr("Localizable", "error_view.headline.exhentai_access_denied", fallback: "ExHentai Refused the Login")
+        /// Login Required
+        internal static let loginRequired = L10n.tr("Localizable", "error_view.headline.login_required", fallback: "Login Required")
+        /// Unreadable Page
+        internal static let parseFailed = L10n.tr("Localizable", "error_view.headline.parse_failed", fallback: "Unreadable Page")
+        /// Server Error
+        internal static let serverError = L10n.tr("Localizable", "error_view.headline.server_error", fallback: "Server Error")
+      }
       internal enum Title {
         /// This gallery is unavailable due to a copyright claim by %@. Sorry about that.
         internal static func copyrightClaim(_ p1: Any) -> String {
@@ -1672,18 +1684,26 @@ internal enum L10n {
         /// The database is corrupted.
         /// Please submit an issue on GitHub.
         internal static let databaseCorrupted = L10n.tr("Localizable", "error_view.title.database_corrupted", fallback: "The database is corrupted.\nPlease submit an issue on GitHub.")
+        /// ExHentai did not accept your login. The login may have expired, or this account may not have access to ExHentai. Log in again in Settings › Account, or switch the gallery host to E-Hentai there.
+        internal static let exhentaiAccessDenied = L10n.tr("Localizable", "error_view.title.exhentai_access_denied", fallback: "ExHentai did not accept your login. The login may have expired, or this account may not have access to ExHentai. Log in again in Settings › Account, or switch the gallery host to E-Hentai there.")
         /// This gallery has been removed or is unavailable.
         internal static let galleryUnavailable = L10n.tr("Localizable", "error_view.title.gallery_unavailable", fallback: "This gallery has been removed or is unavailable.")
         /// Your IP address has been temporarily banned for excessive pageloads which indicates that you are using automated mirroring / harvesting software. The ban expires in %@.
         internal static func ipBanned(_ p1: Any) -> String {
           return L10n.tr("Localizable", "error_view.title.ip_banned", String(describing: p1), fallback: "Your IP address has been temporarily banned for excessive pageloads which indicates that you are using automated mirroring / harvesting software. The ban expires in %@.")
         }
+        /// This page requires a login, and yours is missing or has expired. Log in again in Settings › Account.
+        internal static let loginRequired = L10n.tr("Localizable", "error_view.title.login_required", fallback: "This page requires a login, and yours is missing or has expired. Log in again in Settings › Account.")
         /// A network error occurred.
         internal static let network = L10n.tr("Localizable", "error_view.title.network", fallback: "A network error occurred.")
         /// There seems to be nothing here.
         internal static let notFound = L10n.tr("Localizable", "error_view.title.not_found", fallback: "There seems to be nothing here.")
-        /// A parsing error occurred.
-        internal static let parsing = L10n.tr("Localizable", "error_view.title.parsing", fallback: "A parsing error occurred.")
+        /// The site returned a page that EhPanda could not read. The site may have changed, or it may be temporarily unavailable.
+        internal static let parsing = L10n.tr("Localizable", "error_view.title.parsing", fallback: "The site returned a page that EhPanda could not read. The site may have changed, or it may be temporarily unavailable.")
+        /// The server answered with error %@ instead of a page. It may be temporarily unavailable.
+        internal static func serverError(_ p1: Any) -> String {
+          return L10n.tr("Localizable", "error_view.title.server_error", String(describing: p1), fallback: "The server answered with error %@ instead of a page. It may be temporarily unavailable.")
+        }
         /// Please try again later.
         internal static let tryLater = L10n.tr("Localizable", "error_view.title.try_later", fallback: "Please try again later.")
         /// An unknown error occurred.

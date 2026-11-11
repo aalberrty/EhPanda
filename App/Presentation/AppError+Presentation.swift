@@ -12,10 +12,29 @@ extension AppError {
         case .copyrightClaim, .expunged: .trashCircleFill
         case .networkingFailed: .wifiExclamationmark
         case .parseFailed: .rectangleAndTextMagnifyingglass
+        case .exhentaiAccessDenied: .personCropCircleBadgeXmark
+        case .loginRequired: .personCropCircleBadgeQuestionmarkFill
+        case .serverError: .serverRack
         case .notFound, .unknown, .noUpdates, .webImageFailed: .questionmarkCircleFill
         }
     }
 
+    /// A short headline above `alertText` in full-screen error views, for the errors whose
+    /// explanation is longer than a line. Legacy errors keep their single message.
+    var headline: String? {
+        switch self {
+        case .parseFailed: L10n.Localizable.ErrorView.Headline.parseFailed
+        case .exhentaiAccessDenied: L10n.Localizable.ErrorView.Headline.exhentaiAccessDenied
+        case .loginRequired: L10n.Localizable.ErrorView.Headline.loginRequired
+        case .serverError: L10n.Localizable.ErrorView.Headline.serverError
+        case .databaseCorrupted, .copyrightClaim, .ipBanned, .expunged, .networkingFailed,
+             .webImageFailed, .noUpdates, .notFound, .unknown:
+            nil
+        }
+    }
+
+    /// What happened and what to do about it. Stands on its own where no headline is shown
+    /// (HUD captions, footers).
     var alertText: String {
         let tryLater = L10n.Localizable.ErrorView.Title.tryLater
         switch self {
@@ -36,6 +55,12 @@ extension AppError {
             return [L10n.Localizable.ErrorView.Title.network, tryLater].joined(separator: "\n")
         case .parseFailed:
             return [L10n.Localizable.ErrorView.Title.parsing, tryLater].joined(separator: "\n")
+        case .exhentaiAccessDenied:
+            return L10n.Localizable.ErrorView.Title.exhentaiAccessDenied
+        case .loginRequired:
+            return L10n.Localizable.ErrorView.Title.loginRequired
+        case .serverError(let status):
+            return [L10n.Localizable.ErrorView.Title.serverError("\(status)"), tryLater].joined(separator: "\n")
         case .noUpdates, .webImageFailed:
             return ""
         case .notFound:
@@ -43,5 +68,18 @@ extension AppError {
         case .unknown:
             return [L10n.Localizable.ErrorView.Title.unknown, tryLater].joined(separator: "\n")
         }
+    }
+}
+
+extension ErrorStateView {
+    /// The error's headline, explanation and symbol, with an optional retry button.
+    init(
+        error: AppError, retryTitle: String = L10n.Localizable.ErrorView.Button.retry,
+        retry: (() -> Void)? = nil
+    ) {
+        self.init(
+            title: error.headline, message: error.alertText, systemImage: error.symbol.rawValue,
+            retryTitle: retryTitle, retry: retry
+        )
     }
 }

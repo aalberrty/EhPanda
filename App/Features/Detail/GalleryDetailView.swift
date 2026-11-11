@@ -48,10 +48,7 @@ struct GalleryDetailView: View {
         if model.detail != nil {
             DetailContent(model: model)
         } else if let error = model.loadingState.failed {
-            ErrorStateView(
-                message: error.alertText, systemImage: error.symbol.rawValue,
-                retry: error.isRetryable ? { model.refetch() } : nil
-            )
+            ErrorStateView(error: error, retry: error.isRetryable ? { model.refetch() } : nil)
         } else {
             LoadingStateView()
         }

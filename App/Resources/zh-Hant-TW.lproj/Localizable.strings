@@ -66,13 +66,20 @@
 "error_view.button.drop_database" = "刪除資料庫";
 "error_view.title.try_later" = "請稍後再試";
 "error_view.title.network" = "網路發生故障，請檢查網路狀態";
-"error_view.title.parsing" = "網頁解析器發生故障";
+"error_view.title.parsing" = "網站傳回了 EhPanda 無法讀取的頁面。網站可能有所變更，或暫時無法存取。";
 "error_view.title.unknown" = "發生不明錯誤";
 "error_view.title.not_found" = "這邊看起來空空如也";
 "error_view.title.database_corrupted" = "資料庫已經損壞\n請提交 issue 至 GitHub.";
 "error_view.title.ip_banned" = "你的 IP 因為頁面載入次數過於頻繁而被暫時禁止存取，這可能是因為你正在使用爬蟲/鏡像軟體，禁止存取將在 %@ 後解除";
 "error_view.title.copyright_claim" = "非常抱歉，這個畫廊已因為 %@ 提出的版權聲索而不再提供存取";
 "error_view.title.gallery_unavailable" = "此畫廊已被刪除或你沒有權限存取";
+"error_view.title.exhentai_access_denied" = "ExHentai 不接受你的登入。登入可能已經過期，或此帳號沒有 ExHentai 的存取權限。請在「設定 › 帳號設定」重新登入，或在那裡將圖庫網站切換為 E-Hentai。";
+"error_view.title.login_required" = "此頁面需要登入，但你尚未登入或登入已經過期。請在「設定 › 帳號設定」重新登入。";
+"error_view.title.server_error" = "伺服器傳回了錯誤 %@，而不是頁面。伺服器可能暫時無法存取。";
+"error_view.headline.parse_failed" = "無法讀取頁面";
+"error_view.headline.exhentai_access_denied" = "ExHentai 拒絕了登入";
+"error_view.headline.login_required" = "需要登入";
+"error_view.headline.server_error" = "伺服器錯誤";
 
 // MARK: ConfirmationDialog
 "confirmation_dialog.title.drop_database" = "繼續此操作將會清除 APP 中的所有資料\n確定要刪除資料庫?";

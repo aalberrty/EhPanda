@@ -66,13 +66,20 @@
 "error_view.button.drop_database" = "丢弃数据库";
 "error_view.title.try_later" = "请稍后再试";
 "error_view.title.network" = "发生了网络故障";
-"error_view.title.parsing" = "发生了解析错误";
+"error_view.title.parsing" = "网站返回了 EhPanda 无法读取的页面。网站可能有所改动，或暂时无法访问。";
 "error_view.title.unknown" = "发生了未知错误";
 "error_view.title.not_found" = "这里似乎什么也没有";
 "error_view.title.database_corrupted" = "数据库已损毁。\n请到 GitHub 提起 Issue 反馈。";
 "error_view.title.ip_banned" = "当前的 IP 地址发生了过量的页面加载，因有使用爬虫程序的嫌疑已被暂时封禁。封禁将在 %@后解除。";
 "error_view.title.copyright_claim" = "抱歉，该画廊因 %@ 的版权主张已无法访问。";
 "error_view.title.gallery_unavailable" = "该画廊已被移除或不可用。";
+"error_view.title.exhentai_access_denied" = "ExHentai 未接受你的登录。登录可能已过期，或该账户没有 ExHentai 的访问权限。请在「设置 › 账户」中重新登录，或在那里将画廊站点切换为 E-Hentai。";
+"error_view.title.login_required" = "该页面需要登录，但你尚未登录或登录已过期。请在「设置 › 账户」中重新登录。";
+"error_view.title.server_error" = "服务器返回了错误 %@，而不是页面。服务器可能暂时无法访问。";
+"error_view.headline.parse_failed" = "无法读取页面";
+"error_view.headline.exhentai_access_denied" = "ExHentai 拒绝了登录";
+"error_view.headline.login_required" = "需要登录";
+"error_view.headline.server_error" = "服务器错误";
 
 // MARK: ConfirmationDialog
 "confirmation_dialog.title.drop_database" = "你将失去这个 App 中所有的数据。\n确定要丢弃数据库吗？";
