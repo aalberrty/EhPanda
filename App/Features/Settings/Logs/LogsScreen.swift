@@ -6,6 +6,7 @@ import SwiftUI
 /// Settings › General › Logs (legacy `LogsView`).
 struct LogsScreen: View {
     @State private var model = LogsModel()
+    @Environment(StackRouter.self) private var stack
 
     var body: some View {
         content
@@ -18,9 +19,6 @@ struct LogsScreen: View {
                         Label(L10n.Localizable.LogsView.Title.logs, systemImage: "folder.badge.gearshape")
                     }
                 }
-            }
-            .navigationDestination(item: $model.selectedLog) { file in
-                LogDetailScreen(file: file)
             }
             .task { await model.load() }
             .refreshable { await model.load() }
@@ -37,7 +35,7 @@ struct LogsScreen: View {
             List {
                 ForEach(model.logs) { log in
                     Button {
-                        model.selectedLog = log.file
+                        stack.push(.settings(.log(log.file)))
                     } label: {
                         LogRow(log: log, isLatest: log.file == model.latestLog)
                     }

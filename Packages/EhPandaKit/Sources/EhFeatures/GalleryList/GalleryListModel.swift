@@ -9,8 +9,9 @@ import Observation
 ///
 /// **Driving it from a view.** Every load runs in a task the view owns, so leaving the screen
 /// cancels it, and a cancelled load leaves the state as it was:
-/// - `.task(id: model.loadRequest) { await model.loadIfNeeded() }` performs the first load, and
-///   loads again after `retry()`, `reload()`, `reset(to:)` or `jumpToPage(_:)`;
+/// - `.task(id: model.loadTrigger) { await model.loadIfNeeded() }` performs the first load, and
+///   loads again after `retry()`, `reload()`, `reset(to:)` or `jumpToPage(_:)`, and when the screen
+///   swaps in another list (a Toplists period, a Favorites folder);
 /// - `.refreshable { await model.refresh() }`;
 /// - the pagination footer runs `.task(id: model.paginationTrigger) { await model.loadMore() }`,
 ///   so the next page loads when the end of the list comes into view, again after each page
@@ -37,6 +38,16 @@ public final class GalleryListModel {
         case end
     }
 
+    /// The id of the view task that runs `loadIfNeeded()`.
+    public struct LoadTrigger: Hashable, Sendable {
+        /// A screen that swaps in another list keeps the same view, and a new list's request
+        /// counter starts at 0 like every other's, so the list's identity must be part of the id.
+        /// The list shown before a swap is still retained by its screen, so its identifier
+        /// cannot be reused by the new list.
+        let list: ObjectIdentifier
+        let request: Int
+    }
+
     public struct PaginationTrigger: Hashable, Sendable {
         let pagesLoaded: Int
         let retries: Int
@@ -61,8 +72,8 @@ public final class GalleryListModel {
     public private(set) var needsLogin = false
     /// The favourites order the server reported with the last page (favourites only).
     public private(set) var favoritesSortOrder: FavoritesSortOrder?
-    /// Changes whenever the view should run `loadIfNeeded()` again.
-    public private(set) var loadRequest = 0
+    /// Bumped whenever the view should run `loadIfNeeded()` again.
+    private(set) var loadRequest = 0
     public private(set) var paginationTrigger = PaginationTrigger(pagesLoaded: 0, retries: 0)
     private(set) var nextRequest: PageRequest?
 
@@ -94,6 +105,12 @@ public final class GalleryListModel {
         case .failed: .failed
         case .idle: hasNextPage ? .idle : .end
         }
+    }
+
+    /// Changes whenever the view should run `loadIfNeeded()` again, including when the view is
+    /// handed a different list.
+    public var loadTrigger: LoadTrigger {
+        LoadTrigger(list: ObjectIdentifier(self), request: loadRequest)
     }
 
     public var hasNextPage: Bool { nextRequest != nil }

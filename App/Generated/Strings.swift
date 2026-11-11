@@ -24,6 +24,8 @@ internal enum L10n {
           internal static let ehTagTranslationDatabase = L10n.tr("Constant", "app.acknowledgement.link.ehTagTranslationDatabase", fallback: "https://github.com/EhTagTranslation/Database")
           /// https://github.com/markrenaud/FilePicker
           internal static let filePicker = L10n.tr("Constant", "app.acknowledgement.link.filePicker", fallback: "https://github.com/markrenaud/FilePicker")
+          /// https://github.com/groue/GRDB.swift
+          internal static let grdb = L10n.tr("Constant", "app.acknowledgement.link.grdb", fallback: "https://github.com/groue/GRDB.swift")
           /// https://github.com/tid-kijyun/Kanna
           internal static let kanna = L10n.tr("Constant", "app.acknowledgement.link.kanna", fallback: "https://github.com/tid-kijyun/Kanna")
           /// https://github.com/onevcat/Kingfisher
@@ -32,6 +34,8 @@ internal enum L10n {
           internal static let sfSafeSymbols = L10n.tr("Constant", "app.acknowledgement.link.sfSafeSymbols", fallback: "https://github.com/SFSafeSymbols/SFSafeSymbols")
           /// https://github.com/gonzalezreal/SwiftCommonMark
           internal static let swiftCommonMark = L10n.tr("Constant", "app.acknowledgement.link.swiftCommonMark", fallback: "https://github.com/gonzalezreal/SwiftCommonMark")
+          /// https://github.com/pointfreeco/swift-dependencies
+          internal static let swiftDependencies = L10n.tr("Constant", "app.acknowledgement.link.swiftDependencies", fallback: "https://github.com/pointfreeco/swift-dependencies")
           /// https://github.com/SwiftGen/SwiftGen
           internal static let swiftGen = L10n.tr("Constant", "app.acknowledgement.link.swiftGen", fallback: "https://github.com/SwiftGen/SwiftGen")
           /// https://github.com/pointfreeco/swiftui-navigation
@@ -60,6 +64,8 @@ internal enum L10n {
           internal static let ehTagTranslationDatabase = L10n.tr("Constant", "app.acknowledgement.text.ehTagTranslationDatabase", fallback: "EhTagTranslation/Database")
           /// FilePicker
           internal static let filePicker = L10n.tr("Constant", "app.acknowledgement.text.filePicker", fallback: "FilePicker")
+          /// GRDB.swift
+          internal static let grdb = L10n.tr("Constant", "app.acknowledgement.text.grdb", fallback: "GRDB.swift")
           /// Kanna
           internal static let kanna = L10n.tr("Constant", "app.acknowledgement.text.kanna", fallback: "Kanna")
           /// Kingfisher
@@ -68,6 +74,8 @@ internal enum L10n {
           internal static let sfSafeSymbols = L10n.tr("Constant", "app.acknowledgement.text.sfSafeSymbols", fallback: "SFSafeSymbols")
           /// SwiftCommonMark
           internal static let swiftCommonMark = L10n.tr("Constant", "app.acknowledgement.text.swiftCommonMark", fallback: "SwiftCommonMark")
+          /// swift-dependencies
+          internal static let swiftDependencies = L10n.tr("Constant", "app.acknowledgement.text.swiftDependencies", fallback: "swift-dependencies")
           /// SwiftGen
           internal static let swiftGen = L10n.tr("Constant", "app.acknowledgement.text.swiftGen", fallback: "SwiftGen")
           /// SwiftUI Navigation

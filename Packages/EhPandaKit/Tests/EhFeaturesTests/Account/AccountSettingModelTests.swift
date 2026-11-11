@@ -53,6 +53,28 @@ import Testing
         #expect(model.ehCookies.passHash.editingText == "draft")
     }
 
+    @Test func pendingEditsAreCommittedWhenTheScreenGoesAway() async throws {
+        let harness = try await AccountHarness()
+        harness.setLogin(on: .ehentai)
+        let model = harness.make { AccountSettingModel() }
+        model.loadCookies()
+        let revision = harness.session.cookieRevision
+
+        // Nothing edited: nothing written.
+        model.commitPendingEdits()
+        #expect(harness.session.cookieRevision == revision)
+
+        model.exCookies.igneous.editingText = " pasted "
+        model.ehCookies.passHash.editingText = "other"
+        model.commitPendingEdits()
+
+        #expect(harness.cookie(CookieName.igneous, GalleryHost.exhentai.url) == "pasted")
+        #expect(harness.cookie(CookieName.ipbPassHash, GalleryHost.ehentai.url) == "other")
+        #expect(harness.cookie(CookieName.ipbMemberId, GalleryHost.ehentai.url) == "123")
+        #expect(model.exCookies.igneous.editingText == "pasted")
+        #expect(model.ehCookies.passHash.editingText == "other")
+    }
+
     @Test func editingCookiesUpdatesTheSession() async throws {
         let harness = try await AccountHarness()
         let model = harness.make { AccountSettingModel() }

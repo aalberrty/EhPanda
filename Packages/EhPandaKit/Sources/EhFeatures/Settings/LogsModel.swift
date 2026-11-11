@@ -36,8 +36,6 @@ nonisolated public struct LogSummary: Sendable, Hashable, Identifiable {
 public final class LogsModel {
     public private(set) var logs: [LogSummary] = []
     public private(set) var loadingState: LoadingState = .idle
-    /// The log shown in the log viewer.
-    public var selectedLog: LogFile?
 
     @ObservationIgnored @Dependency(\.appLogger) private var logger
     @ObservationIgnored @Dependency(\.applicationClient) private var application
@@ -67,7 +65,6 @@ public final class LogsModel {
 
     public func delete(_ log: LogSummary) async {
         logs.removeAll { $0.id == log.id }
-        if selectedLog == log.file { selectedLog = nil }
         await logger.delete(log.file)
     }
 

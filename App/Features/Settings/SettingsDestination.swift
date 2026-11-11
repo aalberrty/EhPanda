@@ -21,9 +21,11 @@ struct SettingsDestination: View {
         case .ehSetting: EhSettingScreen()
         case .general: GeneralSettingsScreen()
         case .appearance: AppearanceSettingsScreen()
+        case .appIcon: AppIconScreen()
         case .reading: ReadingSettingsScreen()
         case .laboratory: LaboratorySettingsScreen()
         case .logs: LogsScreen()
+        case .log(let file): LogDetailScreen(file: file)
         case .about: AboutScreen()
         }
     }

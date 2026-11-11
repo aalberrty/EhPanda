@@ -162,8 +162,9 @@ import Testing
     @Test func redirectingKeepsLinksOnTheSelectedHost() {
         let url = URL(string: "https://e-hentai.org/s/abc/1-2")!
 
-        #expect(DeepLinkModel.redirecting(url, to: .ehentai) == url)
-        #expect(DeepLinkModel.redirecting(url, to: .exhentai).absoluteString == "https://exhentai.org/s/abc/1-2")
+        #expect(LinkRedirection(host: .ehentai).redirect(url) == url)
+        #expect(LinkRedirection(host: .exhentai).redirect(url).absoluteString == "https://exhentai.org/s/abc/1-2")
+        #expect(LinkRedirection(host: nil).redirect(url) == url)
     }
 
     // MARK: Failure and replacement
