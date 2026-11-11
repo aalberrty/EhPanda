@@ -11,12 +11,7 @@ enum LiveNetwork {
     static let transport = URLSessionTransport(cookieStorage: .shared)
 
     /// The selected site, read on every call so a host switch applies to the next request.
-    /// Same key and raw values as `SettingsStore` writes.
-    static func currentHost() -> GalleryHost {
-        UserDefaults.standard.string(forKey: galleryHostKey).flatMap(GalleryHost.init(rawValue:)) ?? .ehentai
-    }
-
-    static let galleryHostKey = "galleryHost"
+    static let hostProvider = GalleryHostProvider(defaults: .standard)
 }
 
 // MARK: Cookie store
@@ -53,7 +48,7 @@ extension EhClient: DependencyKey {
     public static let liveValue = EhClient(
         transport: RetryingTransport(LiveNetwork.transport),
         cookies: .liveValue,
-        host: { LiveNetwork.currentHost() }
+        host: LiveNetwork.hostProvider.currentHost
     )
 
     /// Fails the test for any request, so a test that forgets to install a client with a
