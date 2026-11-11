@@ -123,12 +123,16 @@ private struct ReaderToolGroup: View {
             }
 
             Menu {
-                Picker(L10n.Localizable.ReadingView.ToolbarItem.Title.autoPlay, selection: autoPlay) {
-                    ForEach(ReaderAutoPlayPolicy.allCases) { policy in
-                        Text(policy.localizedName).tag(policy)
+                // The section gives the menu its "Auto-Play" heading, as in legacy.
+                Section(L10n.Localizable.ReadingView.ToolbarItem.Title.autoPlay) {
+                    Picker(L10n.Localizable.ReadingView.ToolbarItem.Title.autoPlay, selection: autoPlay) {
+                        ForEach(ReaderAutoPlayPolicy.allCases) { policy in
+                            Text(policy.localizedName).tag(policy)
+                        }
                     }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
                 }
-                .pickerStyle(.inline)
             } label: {
                 Image(systemName: "timer")
             }
