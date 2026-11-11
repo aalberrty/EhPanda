@@ -27,6 +27,12 @@ public final class AppDatabase: Sendable {
     /// An empty, migrated database that lives only in memory. For tests and previews.
     @concurrent
     public static func inMemory() async throws -> AppDatabase {
+        try makeInMemory()
+    }
+
+    /// Synchronous form of `inMemory()`, for the default dependency values of tests and
+    /// previews, which cannot await. Creating an empty in-memory database is quick.
+    public static func makeInMemory() throws -> AppDatabase {
         let queue = try DatabaseQueue(configuration: makeConfiguration())
         return try AppDatabase(writer: queue)
     }

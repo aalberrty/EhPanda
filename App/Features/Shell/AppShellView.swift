@@ -1,3 +1,5 @@
+import Dependencies
+import EhCore
 import EhFeatures
 import EhModels
 import SwiftUI
@@ -9,6 +11,12 @@ import SwiftUI
 /// route to the owning feature's entry view.
 struct AppShellView: View {
     @State private var router = AppRouter()
+
+    // Shared stores. They are injected into the environment so views read the individual
+    // properties they render; models reach the same instances through `@Dependency`.
+    @Dependency(\.settings) private var settings
+    @Dependency(\.filterStore) private var filterStore
+    @Dependency(\.userStore) private var userStore
 
     var body: some View {
         TabView(selection: selectedTab) {
@@ -26,6 +34,9 @@ struct AppShellView: View {
             }
         }
         .environment(router)
+        .environment(settings)
+        .environment(filterStore)
+        .environment(userStore)
         .sheet(item: presentedGallery) { gallery in
             RoutedStack(router: router.presented) { GalleryDetailDestination(gallery: gallery) }
         }
