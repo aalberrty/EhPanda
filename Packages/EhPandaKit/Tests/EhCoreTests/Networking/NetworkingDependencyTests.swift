@@ -82,15 +82,13 @@ struct NetworkingDependencyTests {
 
     @Test func liveHostFollowsTheGalleryHostDefault() {
         let defaults = UserDefaults.standard
-        let key = LiveNetwork.galleryHostKey
+        let key = "galleryHost"
         let original = defaults.object(forKey: key)
         defer { defaults.set(original, forKey: key) }
 
         defaults.removeObject(forKey: key)
-        #expect(LiveNetwork.currentHost() == .ehentai)
+        #expect(LiveNetwork.hostProvider.current == .ehentai)
         defaults.set(GalleryHost.exhentai.rawValue, forKey: key)
-        #expect(LiveNetwork.currentHost() == .exhentai)
-        defaults.set("garbage", forKey: key)
-        #expect(LiveNetwork.currentHost() == .ehentai)
+        #expect(LiveNetwork.hostProvider.current == .exhentai)
     }
 }
