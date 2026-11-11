@@ -26,7 +26,8 @@ final class LaunchHarness {
     init(
         openFailures: Int = 0, dropFails: Bool = false, isPad: Bool = false,
         alternateIconName: String? = nil, biometrics: BiometricsClient = AppFixture.biometrics(),
-        clipboard: ClipboardClient = AppFixture.clipboard(), expireGate: Gate? = nil
+        clipboard: ClipboardClient = AppFixture.clipboard(), expireGate: Gate? = nil,
+        tagTranslationRemote: TagTranslationRemote? = nil
     ) {
         let events = events
         let opens = LockIsolated(0)
@@ -64,6 +65,9 @@ final class LaunchHarness {
             $0.biometricsClient = biometrics
             $0.clipboardClient = clipboard
             $0.ehClient = AppFixture.client(transport)
+            if let tagTranslationRemote {
+                $0.tagTranslationRemote = tagTranslationRemote
+            }
         } operation: {
             AppModel()
         }
@@ -196,6 +200,44 @@ final class LaunchHarness {
         gate.open()
         await launch.value
         #expect(harness.events.all.contains("expired"))
+    }
+
+    @Test func tagTranslationUpdateDoesNotHoldBackTheTabs() async {
+        let gate = Gate()
+        let remote = TagTranslationRemote(
+            latestReleaseDate: { _, stored in
+                await gate.wait()
+                return stored
+            },
+            downloadDatabase: { _ in
+                Issue.record("Nothing newer to download")
+                return [:]
+            }
+        )
+        let harness = LaunchHarness(tagTranslationRemote: remote)
+        harness.settings.enablesTagsExtension = true
+
+        let launch = Task { await harness.launch() }
+        await waitUntil { gate.isWaiting }
+
+        #expect(harness.model.launchState == .ready)
+        gate.open()
+        await launch.value
+    }
+
+    @Test func tagTranslationsAreNotUpdatedWithTheExtensionOff() async {
+        let remote = TagTranslationRemote(
+            latestReleaseDate: { _, stored in
+                Issue.record("Checked for an update with the extension off")
+                return stored
+            },
+            downloadDatabase: { _ in [:] }
+        )
+        let harness = LaunchHarness(tagTranslationRemote: remote)
+
+        await harness.launch()
+
+        #expect(harness.model.launchState == .ready)
     }
 
     @Test func syncsTheAppIconFromTheSystem() async {

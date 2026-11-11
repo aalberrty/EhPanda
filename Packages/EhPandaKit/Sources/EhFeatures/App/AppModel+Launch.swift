@@ -116,8 +116,10 @@ extension AppModel {
 
     /// Loads the stored translations and, with the tags extension on, checks for an update.
     private func prepareTagTranslations() async {
-        // TODO(tag-translation-service): `await tagTranslations.load()`, then
-        // `fetchUpdates()` when `settings.enablesTagsExtension`, once the service is merged.
+        await tagTranslations.load()
+        if settings.enablesTagsExtension {
+            await tagTranslations.fetchUpdates()
+        }
     }
 
     /// The stored choice can disagree with the icon the system actually shows (an imported

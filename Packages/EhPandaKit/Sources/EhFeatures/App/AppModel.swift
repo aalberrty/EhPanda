@@ -61,6 +61,7 @@ public final class AppModel {
     @ObservationIgnored @Dependency(\.applicationClient) var application
     @ObservationIgnored @Dependency(\.domainFronting) var domainFronting
     @ObservationIgnored @Dependency(\.accountSession) var account
+    @ObservationIgnored @Dependency(\.tagTranslationService) var tagTranslations
     @ObservationIgnored @Dependency(\.cookieStore) var cookies
     @ObservationIgnored @Dependency(\.continuousClock) var clock
     @ObservationIgnored @Dependency(\.appLogger) var logger
