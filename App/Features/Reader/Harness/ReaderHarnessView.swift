@@ -165,7 +165,8 @@ private struct ReaderHarnessPanel: View {
 }
 
 /// Opens the reader harness. It sits on the placeholder screen in debug builds, and launching
-/// the app with `-ReaderHarness YES` opens the harness straight away.
+/// the app with `-ReaderHarness YES` opens the harness straight away. The rows under it open
+/// a real gallery in the reader (see `ReaderDebugLauncher`).
 struct ReaderHarnessLauncher: View {
     private static var hasOpenedAtLaunch = false
 
@@ -180,6 +181,7 @@ struct ReaderHarnessLauncher: View {
                 Self.hasOpenedAtLaunch = true
                 isPresented = true
             }
+        ReaderDebugLauncher()
     }
 }
 #endif
