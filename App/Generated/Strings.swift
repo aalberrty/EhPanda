@@ -262,8 +262,8 @@ internal enum L10n {
       }
       internal enum Menu {
         internal enum Title {
-          /// Infite
-          internal static let infite = L10n.tr("Localizable", "appearance_setting_view.menu.title.infite", fallback: "Infite")
+          /// Infinite
+          internal static let infite = L10n.tr("Localizable", "appearance_setting_view.menu.title.infite", fallback: "Infinite")
         }
       }
       internal enum Section {
