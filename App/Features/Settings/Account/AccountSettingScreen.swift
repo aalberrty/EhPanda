@@ -8,6 +8,7 @@ struct AccountSettingScreen: View {
     @State private var model = AccountSettingModel()
     @State private var hud: HUDConfiguration?
     @Environment(StackRouter.self) private var stack
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Form {
@@ -37,6 +38,11 @@ struct AccountSettingScreen: View {
         .onChange(of: model.copyCount) { hud = .copiedToClipboard }
         // Loads on appear, and again when a login, logout or igneous fetch changed the cookies.
         .onChange(of: model.cookieRevision, initial: true) { model.syncCookies() }
+        // Back, a tab switch or backgrounding with a field still focused may not end its editing.
+        .onDisappear { model.commitPendingEdits() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { model.commitPendingEdits() }
+        }
     }
 }
 
