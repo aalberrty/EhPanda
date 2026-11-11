@@ -68,9 +68,14 @@ public final class TagTranslationService {
         namespace.rawValue + tag
     }
 
-    /// Display text and image for a lookup key.
+    /// Display text and image for a lookup key. `nil` when the database has an entry for the
+    /// tag but no name for it (most Japanese and all English entries only carry a
+    /// description), so callers fall back to the original tag instead of showing nothing.
     public func display(forKey key: String) -> TagTranslationDisplay? {
-        translations[key]
+        guard let display = translations[key],
+              !display.displayValue.isEmpty || display.valueImageURL != nil
+        else { return nil }
+        return display
     }
 
     /// Legacy `TagTranslator.lookup(word:returnOriginal:)`. `word` is a lookup key or
@@ -80,9 +85,13 @@ public final class TagTranslationService {
         guard !returnOriginal else { return TagTranslationLookup(text: word, key: nil, display: nil) }
         let (namespace, tag) = Self.splitAtColon(word)
         let key = (namespace ?? "") + tag
-        guard let display = translations[key] else { return TagTranslationLookup(text: word, key: nil, display: nil) }
-        let text = namespace.map { [$0, ":", display.displayValue].joined() } ?? display.displayValue
-        return TagTranslationLookup(text: text, key: key, display: display)
+        guard let entry = translations[key] else { return TagTranslationLookup(text: word, key: nil, display: nil) }
+        // An entry without a name keeps the original text; its key still leads to the details.
+        guard !entry.displayValue.isEmpty else {
+            return TagTranslationLookup(text: word, key: key, display: display(forKey: key))
+        }
+        let text = namespace.map { [$0, ":", entry.displayValue].joined() } ?? entry.displayValue
+        return TagTranslationLookup(text: text, key: key, display: entry)
     }
 
     /// Legacy `stringsBesideColon`: `(lhs, rhs)` when `word` splits into exactly two
@@ -143,8 +152,13 @@ public struct TagTranslationLookup: Sendable, Hashable {
 
 extension TagTranslationService: DependencyKey {
     public nonisolated static var liveValue: TagTranslationService {
-        @Dependency(\.database) var database
         @Dependency(\.tagTranslationRemote) var remote
+        // Launch installs the database after this service may first be referenced (the shell
+        // puts it in the environment), so `\.database` is read on first use, not here.
+        let database = AppDatabaseProvider {
+            @Dependency(\.database) var database
+            return database
+        }
         return TagTranslationService(database: database, remote: remote, defaults: .standard)
     }
 
@@ -153,7 +167,8 @@ extension TagTranslationService: DependencyKey {
         @Dependency(\.database) var database
         @Dependency(\.tagTranslationRemote) var remote
         return TagTranslationService(
-            database: database, remote: remote, defaults: .ephemeral(), preferredLanguages: { ["en"] }
+            database: AppDatabaseProvider(database), remote: remote, defaults: .ephemeral(),
+            preferredLanguages: { ["en"] }
         )
     }
 }

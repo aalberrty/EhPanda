@@ -242,6 +242,24 @@ import Testing
         #expect(TagTranslationService.splitAtColon("a::b") == ("a", "b"))
     }
 
+    @Test func entryWithoutANameKeepsTheOriginalTag() async throws {
+        let harness = try await ServiceHarness.make()
+        var translations = Samples.chinese
+        translations["femalenameless"] = TagTranslation(
+            namespace: .female, key: "nameless", value: "", description: "Only a description."
+        )
+        harness.remote.publish(.simplifiedChinese, date: Samples.releaseDate, translations: translations)
+        await harness.service.fetchUpdates()
+        let service = harness.service
+
+        let lookup = service.lookup(word: "female:nameless", returnOriginal: false)
+        #expect(lookup.text == "female:nameless")
+        #expect(lookup.key == "femalenameless")
+        #expect(lookup.display == nil)
+        #expect(service.display(forKey: "femalenameless") == nil)
+        #expect(service.display(forKey: "femalebig breasts")?.displayValue == "巨乳")
+    }
+
     @Test func detailsAreComputedOnDemand() async throws {
         let harness = try await ServiceHarness.make()
         harness.remote.publish(.simplifiedChinese, date: Samples.releaseDate, translations: Samples.chinese)
