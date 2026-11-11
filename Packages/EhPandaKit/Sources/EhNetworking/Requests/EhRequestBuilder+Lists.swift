@@ -66,11 +66,6 @@ extension EhRequestBuilder {
         }
         return RequestEncoding.get(RequestEncoding.appending(items, to: EhEndpoints.toplist))
     }
-
-    /// Always e-hentai.org.
-    public func moreToplistsGalleries(type: ToplistsType, pageNum: Int) -> URLRequest {
-        toplistsGalleries(type: type, pageNum: pageNum)
-    }
 }
 
 private extension EhRequestBuilder {

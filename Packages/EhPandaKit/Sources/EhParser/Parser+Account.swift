@@ -5,33 +5,6 @@ import Kanna
 // MARK: User
 
 extension Parser {
-    /// The display name and forum avatar from a forum profile page.
-    public static func parseUserInfo(doc: HTMLDocument) throws -> User {
-        var displayName: String?
-        var avatarURL: URL?
-
-        for ipbLink in doc.xpath("//table [@class='ipbtable']") {
-            guard let profileName = ipbLink.at_xpath("//div [@id='profilename']")?.text
-            else { continue }
-
-            displayName = profileName
-
-            for imgLink in ipbLink.xpath("//img") {
-                guard let imgURLString = imgLink["src"],
-                      imgURLString.contains("forums.e-hentai.org/uploads"),
-                      let imgURL = URL(string: imgURLString)
-                else { continue }
-
-                avatarURL = imgURL
-            }
-        }
-        if displayName != nil {
-            return User(displayName: displayName, avatarURL: avatarURL)
-        } else {
-            throw AppError.parseFailed
-        }
-    }
-
     /// The user's favorite folder names from the settings page, keyed by folder index 0–9.
     public static func parseFavoriteCategories(doc: HTMLDocument) throws -> [Int: String] {
         var favoriteCategories = [Int: String]()

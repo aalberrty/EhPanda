@@ -78,29 +78,6 @@ public final class TagTranslationService {
         return display
     }
 
-    /// Legacy `TagTranslator.lookup(word:returnOriginal:)`. `word` is a lookup key or
-    /// `namespace:tag`; a translated `namespace:tag` keeps its `namespace:` prefix.
-    ///
-    public func lookup(word: String, returnOriginal: Bool) -> TagTranslationLookup {
-        guard !returnOriginal else { return TagTranslationLookup(text: word, key: nil, display: nil) }
-        let (namespace, tag) = Self.splitAtColon(word)
-        let key = (namespace ?? "") + tag
-        guard let entry = translations[key] else { return TagTranslationLookup(text: word, key: nil, display: nil) }
-        // An entry without a name keeps the original text; its key still leads to the details.
-        guard !entry.displayValue.isEmpty else {
-            return TagTranslationLookup(text: word, key: key, display: display(forKey: key))
-        }
-        let text = namespace.map { [$0, ":", entry.displayValue].joined() } ?? entry.displayValue
-        return TagTranslationLookup(text: text, key: key, display: entry)
-    }
-
-    /// Legacy `stringsBesideColon`: `(lhs, rhs)` when `word` splits into exactly two
-    /// non-empty parts around colons, otherwise `(nil, word)`.
-    nonisolated static func splitAtColon(_ word: String) -> (String?, String) {
-        let parts = word.split(separator: ":").map(String.init)
-        return parts.count == 2 && !parts[0].isEmpty ? (parts[0], parts[1]) : (nil, word)
-    }
-
     /// The tag detail sheet's content for each key that has a description, computed off the
     /// main actor from one database read. Keys without a translation or description are absent.
     public func details(forKeys keys: [String]) async -> [String: TagDetail] {
@@ -137,15 +114,6 @@ public final class TagTranslationService {
     }
 
     nonisolated static let logCategory = "TagTranslation"
-}
-
-/// The result of translating one tag.
-public struct TagTranslationLookup: Sendable, Hashable {
-    /// The translated text (keeping a `namespace:` prefix), or the word unchanged.
-    public let text: String
-    /// The lookup key of the translation, for `details(forKeys:)`.
-    public let key: String?
-    public let display: TagTranslationDisplay?
 }
 
 // MARK: Dependency

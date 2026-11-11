@@ -4,13 +4,14 @@ import SwiftUI
 
 /// Settings › Laboratory (legacy `LaboratorySettingView`).
 struct LaboratorySettingsScreen: View {
-    @State private var model = LaboratorySettingsModel()
     @Environment(SettingsStore.self) private var settings
 
     var body: some View {
+        // `AppModel` applies the setting to the transport whenever it changes.
+        @Bindable var settings = settings
         Form {
             Section {
-                Toggle(isOn: bypassesSNIFiltering) {
+                Toggle(isOn: $settings.bypassesSNIFiltering) {
                     Label {
                         Text(L10n.Localizable.LaboratorySettingView.Title.bypassesSNIFiltering)
                     } icon: {
@@ -32,10 +33,6 @@ struct LaboratorySettingsScreen: View {
         .navigationTitle(L10n.Localizable.LaboratorySettingView.Title.laboratory)
         .animation(.default, value: settings.bypassesSNIFiltering)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: settings.bypassesSNIFiltering)
-    }
-
-    private var bypassesSNIFiltering: Binding<Bool> {
-        Binding(get: { settings.bypassesSNIFiltering }, set: { model.setBypassesSNIFiltering($0) })
     }
 }
 

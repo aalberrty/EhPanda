@@ -58,20 +58,6 @@ public final class UserStore {
 
     // MARK: Mutators
 
-    /// Merges freshly fetched profile info: only non-nil fields replace stored ones, and funds
-    /// change only when both credits and gallery points are present.
-    /// Legacy: `SettingReducer.State.updateUser(_:)`.
-    public func updateUserInfo(_ info: User) {
-        update { user in
-            if let displayName = info.displayName { user.displayName = displayName }
-            if let avatarURL = info.avatarURL { user.avatarURL = avatarURL }
-            if let galleryPoints = info.galleryPoints, let credits = info.credits {
-                user.galleryPoints = galleryPoints
-                user.credits = credits
-            }
-        }
-    }
-
     /// Stores a greeting if it is the first one or newer than the stored one; a greeting without
     /// an update time is ignored. Legacy: `SettingReducer.State.setGreeting(_:)`.
     public func updateGreeting(_ greeting: Greeting) {

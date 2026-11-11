@@ -46,50 +46,6 @@ struct ImagePlaceholder: View {
     }
 }
 
-/// Reader page placeholder with the page number and download progress
-/// (legacy `Placeholder(style: .progress)`).
-struct PageLoadingPlaceholder: View {
-    private let pageNumber: Int
-    private let progress: Progress
-    private let isDualPage: Bool
-    private let background: Color
-
-    init(pageNumber: Int, progress: Progress, isDualPage: Bool = false, background: Color = Color(.systemBackground)) {
-        self.pageNumber = pageNumber
-        self.progress = progress
-        self.isDualPage = isDualPage
-        self.background = background
-    }
-
-    var body: some View {
-        ZStack {
-            background
-            VStack(spacing: Tokens.Spacing.xxLarge) {
-                Text(pageNumber, format: .number)
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(.secondary)
-                // The `Progress` initializer observes the object, so the bar advances without
-                // re-rendering the parent.
-                ProgressView(progress)
-                    .progressViewStyle(BarOnlyProgressViewStyle())
-                    // Legacy used half the window width (a quarter in dual-page mode).
-                    .containerRelativeFrame(.horizontal) { [isDualPage] width, _ in
-                        width * (isDualPage ? 0.25 : 0.5)
-                    }
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// A linear bar without the percentage labels a `Progress`-backed `ProgressView` adds
-/// (legacy `PlainLinearProgressViewStyle`).
-private struct BarOnlyProgressViewStyle: ProgressViewStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        ProgressView(value: configuration.fractionCompleted ?? 0)
-    }
-}
-
 extension View {
     /// Sweeps a soft highlight across the view while `isActive`. Stops under Reduce Motion.
     func shimmering(_ isActive: Bool = true) -> some View {
@@ -145,16 +101,7 @@ private struct PlaceholdersPreview: View {
                 .font(.headline)
                 .redacted(reason: .placeholder)
                 .shimmering()
-            PageLoadingPlaceholder(pageNumber: 12, progress: Progress(totalUnitCount: 10, completed: 4))
-                .frame(height: 200)
         }
-    }
-}
-
-private extension Progress {
-    convenience init(totalUnitCount: Int64, completed: Int64) {
-        self.init(totalUnitCount: totalUnitCount)
-        completedUnitCount = completed
     }
 }
 
