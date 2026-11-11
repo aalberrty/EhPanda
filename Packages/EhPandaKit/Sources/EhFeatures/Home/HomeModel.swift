@@ -7,9 +7,9 @@ import Observation
 /// The Home tab root: Popular cards, the Frontpage cover strip and the four Toplists columns.
 ///
 /// Each section loads on its own, concurrently with the others, so one failing never blanks
-/// the rest. Loading happens inside `run()`, which the view calls from `.task`: leaving the
-/// screen cancels every request in flight. Reload requests made while a section is already
-/// loading are ignored for that section, as in legacy.
+/// the rest. The loads run in tasks the model owns: pushing a gallery while they are in flight
+/// does not abandon them, and they are cancelled only when the model goes away. Reload requests
+/// made while a section is already loading are ignored for that section, as in legacy.
 @Observable
 public final class HomeModel {
     public private(set) var cards: [Gallery] = []
@@ -26,13 +26,9 @@ public final class HomeModel {
     @ObservationIgnored @Dependency(\.filterStore) private var filterStore
     @ObservationIgnored @Dependency(\.withRandomNumberGenerator) private var withRandomNumberGenerator
 
-    /// Reload requests for the current `run()`; `nil` while the screen is not running.
-    @ObservationIgnored private var requests: AsyncStream<[HomeSection]>.Continuation?
-    @ObservationIgnored private var runID = 0
-    /// Sections with a load running in the current `run()`.
+    @ObservationIgnored private let tasks = ModelTasks()
+    /// Sections with a load in flight. One task per section bounds the fan-out to six.
     @ObservationIgnored private var inFlight: Set<HomeSection> = []
-    /// Bumped by every load, so a superseded load (from a cancelled run) never writes its result.
-    @ObservationIgnored private var generations: [HomeSection: Int] = [:]
 
     public init() {}
 
@@ -50,50 +46,31 @@ public final class HomeModel {
         toplists[type] ?? []
     }
 
-    // MARK: Lifecycle
+    // MARK: Commands
 
-    /// Loads what is missing, then serves reload requests until the calling task is cancelled.
-    ///
-    /// The fan-out is bounded by construction: one task per section (six), and a section that
-    /// is still loading is not started again.
-    public func run() async {
-        let (stream, continuation) = AsyncStream.makeStream(of: [HomeSection].self)
-        runID += 1
-        let id = runID
-        requests = continuation
-        // A previous run has been cancelled; its loads no longer count as in flight.
-        inFlight.removeAll()
-        defer {
-            if runID == id { requests = nil }
-        }
-
-        continuation.yield(sectionsToLoadOnAppear)
-        await withDiscardingTaskGroup { group in
-            for await sections in stream {
-                for section in sections where inFlight.insert(section).inserted {
-                    group.addTask { await self.load(section) }
-                }
-            }
-        }
+    /// Loads the sections that have nothing to show and are not loading. Call it each time the
+    /// screen appears.
+    public func loadIfNeeded() {
+        start(sectionsToLoadOnAppear)
     }
 
     /// Toolbar reload, Retry and re-selecting the Home tab: every section.
     public func reloadAll() {
-        requests?.yield(HomeSection.all)
+        start(HomeSection.all)
     }
 
     /// Tapping the Frontpage header.
     public func reloadFrontpage() {
-        requests?.yield([.frontpage])
+        start([.frontpage])
     }
 
     /// Tapping the Toplists header: all four periods.
     public func reloadToplists() {
-        requests?.yield(HomeSection.toplists)
+        start(HomeSection.toplists)
     }
 
     /// Legacy loaded everything on appear when Popular was empty. Sections left empty by a
-    /// load cancelled when the screen went away are loaded again too.
+    /// failed load are loaded again too.
     private var sectionsToLoadOnAppear: [HomeSection] {
         if cards.isEmpty { return HomeSection.all }
         var sections: [HomeSection] = []
@@ -106,40 +83,46 @@ public final class HomeModel {
 
     // MARK: Loading
 
-    private func load(_ section: HomeSection) async {
-        let generation = generations[section, default: 0] + 1
-        generations[section] = generation
-        let isCurrent = { [unowned self] in generations[section] == generation }
-        setState(.loading, for: section)
-        defer {
-            if isCurrent() { inFlight.remove(section) }
-        }
-
-        do {
-            let galleries = try await fetch(section)
-            guard isCurrent() else { return }
-            guard !galleries.isEmpty else {
-                setState(.failed(.notFound), for: section)
-                return
+    private func start(_ sections: [HomeSection]) {
+        for section in sections where inFlight.insert(section).inserted {
+            setState(.loading, for: section)
+            let fetch = fetch(section)
+            tasks.run(section.taskKey) { [weak self] in
+                let outcome = await Outcome.of { try await fetch() }
+                self?.finish(section, with: outcome)
             }
-            apply(galleries, to: section)
-            setState(.idle, for: section)
-        } catch is CancellationError {
-            if isCurrent() { setState(.idle, for: section) }
-        } catch {
-            if isCurrent() { setState(.failed(error as? AppError ?? .unknown), for: section) }
         }
     }
 
-    /// Popular and Frontpage use the Global filter; Toplists take none.
-    private func fetch(_ section: HomeSection) async throws -> [Gallery] {
+    private func finish(_ section: HomeSection, with outcome: Outcome<[Gallery]>) {
+        inFlight.remove(section)
+        switch outcome {
+        case .success(let galleries) where galleries.isEmpty:
+            setState(.failed(.notFound), for: section)
+        case .success(let galleries):
+            apply(galleries, to: section)
+            setState(.idle, for: section)
+        case .failure(let error):
+            setState(.failed(error), for: section)
+        case .cancelled:
+            setState(.idle, for: section)
+        }
+    }
+
+    /// The request for `section`, holding the client and filter but not the model, so a load
+    /// in flight does not keep a released model alive. Popular and Frontpage use the Global
+    /// filter; Toplists take none.
+    private func fetch(_ section: HomeSection) -> @Sendable () async throws -> [Gallery] {
+        let client = client
         switch section {
         case .popular:
-            try await client.popular(filter: filterStore.globalFilter)
+            let filter = filterStore.globalFilter
+            return { try await client.popular(filter: filter) }
         case .frontpage:
-            try await client.frontpage(filter: filterStore.globalFilter).galleries
+            let filter = filterStore.globalFilter
+            return { try await client.frontpage(filter: filter).galleries }
         case .toplists(let type):
-            try await client.toplists(type: type).galleries
+            return { try await client.toplists(type: type).galleries }
         }
     }
 

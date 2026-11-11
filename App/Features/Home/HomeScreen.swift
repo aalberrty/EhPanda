@@ -15,7 +15,8 @@ struct HomeScreen: View {
             .animation(.default, value: model.cards.isEmpty)
             .navigationTitle(L10n.Localizable.HomeView.Title.home)
             .toolbar { reloadItem }
-            .task { await model.run() }
+            // The model owns the loads, so pushing a gallery does not cancel them.
+            .onAppear { model.loadIfNeeded() }
             // `AppModel.selectTab` plays the re-selection haptic.
             .onChange(of: router.rootReselectionCount(for: .home)) {
                 model.reloadAll()
