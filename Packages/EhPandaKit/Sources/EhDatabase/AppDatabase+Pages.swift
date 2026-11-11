@@ -9,21 +9,27 @@ extension AppDatabase {
     public func upsertPages(_ pages: [GalleryPage]) async throws {
         guard !pages.isEmpty else { return }
         try await writer.write { db in
-            let statement = try db.makeStatement(sql: """
-                INSERT INTO \(Schema.galleryPage)
-                    (gid, pageIndex, pageURL, imageURL, originalImageURL, previewURL, imageWidth, imageHeight)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (gid, pageIndex) DO UPDATE SET
-                    pageURL = coalesce(excluded.pageURL, pageURL),
-                    imageURL = coalesce(excluded.imageURL, imageURL),
-                    originalImageURL = coalesce(excluded.originalImageURL, originalImageURL),
-                    previewURL = coalesce(excluded.previewURL, previewURL),
-                    imageWidth = coalesce(excluded.imageWidth, imageWidth),
-                    imageHeight = coalesce(excluded.imageHeight, imageHeight)
-                """)
-            for page in pages {
-                try statement.execute(arguments: page.databaseArguments)
-            }
+            try Self.upsert(pages, in: db)
+        }
+    }
+
+    /// The merge of `upsertPages`, for a transaction that writes more than pages.
+    static func upsert(_ pages: [GalleryPage], in db: Database) throws {
+        guard !pages.isEmpty else { return }
+        let statement = try db.makeStatement(sql: """
+            INSERT INTO \(Schema.galleryPage)
+                (gid, pageIndex, pageURL, imageURL, originalImageURL, previewURL, imageWidth, imageHeight)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (gid, pageIndex) DO UPDATE SET
+                pageURL = coalesce(excluded.pageURL, pageURL),
+                imageURL = coalesce(excluded.imageURL, imageURL),
+                originalImageURL = coalesce(excluded.originalImageURL, originalImageURL),
+                previewURL = coalesce(excluded.previewURL, previewURL),
+                imageWidth = coalesce(excluded.imageWidth, imageWidth),
+                imageHeight = coalesce(excluded.imageHeight, imageHeight)
+            """)
+        for page in pages {
+            try statement.execute(arguments: page.databaseArguments)
         }
     }
 

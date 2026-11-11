@@ -23,7 +23,7 @@ struct PreviewsGridScreen: View {
             ) {
                 ForEach(1..<(model.pageCount + 1), id: \.self) { index in
                     Button {
-                        model.openReader(at: index)
+                        model.select(index)
                     } label: {
                         PreviewGridCell(
                             index: index, thumbnail: model.preview(at: index),
@@ -67,5 +67,6 @@ private struct PreviewGridCell: View, Equatable {
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
+        .accessibilityHint(failed ? L10n.Localizable.ErrorView.Button.retry : "")
     }
 }

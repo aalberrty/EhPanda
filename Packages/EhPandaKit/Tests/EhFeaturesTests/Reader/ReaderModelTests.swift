@@ -1,4 +1,5 @@
 import CoreGraphics
+import EhCore
 import EhDatabase
 @testable import EhFeatures
 import EhModels
@@ -94,7 +95,7 @@ import Testing
 
     @Test func theStoredPreviewLayoutDecidesThePreviewPage() async throws {
         let harness = try ReaderModelHarness(site: ReaderTestSite(batchSize: 20))
-        try await harness.database.updatePreviewConfig(gid: harness.gid, config: .large(rows: 4))
+        try await harness.storeDetail(previewConfig: .large(rows: 4))
         let model = await harness.startedModel(initialPage: 25)
 
         model.pagesNeeded([25])
@@ -114,6 +115,40 @@ import Testing
 
         #expect(first >= .zero)
         #expect(model.timeToFirstPage == first)
+    }
+
+    /// The log files are in Documents, where the Files app shows them, and the release build
+    /// writes `info` and above: a line naming the gallery would be a list of what was read.
+    @Test func theLogDoesNotSayWhichGalleryWasRead() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appending(path: "ReaderLogTests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let logger = AppLogger.live(directory: directory, minimumLevel: .info)
+        let harness = try ReaderModelHarness()
+        harness.logger = logger
+        let gallery = Gallery(
+            gid: "987654321", token: "0a1b2c3d4e", title: "A very private title", rating: 4, tags: [],
+            category: .doujinshi, pageCount: 100, postedDate: Date(timeIntervalSince1970: 0), coverURL: nil,
+            galleryURL: URL(string: "https://e-hentai.org/g/987654321/0a1b2c3d4e/")
+        )
+        let model = harness.makeModel(gallery: gallery)
+        await model.start()
+
+        model.pagesNeeded([1, 2])
+        model.imageDidLoad(page: 1, pixelSize: CGSize(width: 100, height: 150))
+        model.currentPageDidChange(2)
+        await harness.flushWrites(of: model)
+        model.close()
+        await model.waitUntilSaved()
+        await logger.flush()
+
+        var lines: [String] = []
+        for file in await logger.logFiles() {
+            lines += try await logger.lines(of: file)
+        }
+        // The timing is logged; nothing that identifies the gallery is.
+        #expect(lines.contains { $0.contains("First page shown after") })
+        #expect(!lines.contains { $0.contains("987654321") || $0.contains("0a1b2c3d4e") || $0.contains("private") })
     }
 }
 
@@ -157,11 +192,24 @@ import Testing
         #expect(model.imageActions(for: 20).contains(.saveOriginal))
         await harness.flushWrites(of: model)
         let stored = try await harness.storedPages()
-        // The pages asked for and the three legacy fetched eagerly; no viewer links.
-        #expect(Set(stored.keys) == [1, 2, 3, 20, 21])
+        // Everything the preview page listed is kept, and the images of the pages asked for
+        // and of the three legacy fetched eagerly.
+        #expect(Set(stored.keys) == Set(1...40))
+        #expect(Set(stored.values.filter { $0.imageURL != nil }.map(\.index)) == [1, 2, 3, 20, 21])
         #expect(stored[20]?.imageURL == harness.site.mpvImage(20))
         #expect(stored[20]?.originalImageURL == harness.site.mpvOriginal(20))
-        #expect(stored[20]?.pageURL == nil)
+        #expect(stored[40]?.previewURL == harness.site.preview(40))
+        #expect(EhURL.isMPVURL(stored[20]?.pageURL))
+
+        // The stored link says where the keys are: the next session, on a preview page nobody
+        // has fetched, goes straight to them.
+        model.close()
+        let requests = harness.site.started.count
+        let reopened = await harness.startedModel(initialPage: 45)
+        reopened.pagesNeeded([45])
+        await readerEventually { reopened.pageState(at: 45) == .image(harness.site.mpvImage(45)) }
+        #expect(Array(harness.site.started.dropFirst(requests).prefix(2)) == ["mpv", "dispatch:45"])
+        #expect(harness.site.count(of: "links:1") == 0)
     }
 
     @Test func releasedPagesStopResolving() async throws {
@@ -244,6 +292,7 @@ import Testing
         ])
         let model = await harness.startedModel()
         #expect(model.pageState(at: 4) == .image(stale))
+        model.pagesNeeded([4])
 
         model.imageDidFail(page: 4)
 
@@ -257,6 +306,29 @@ import Testing
         model.imageDidFail(page: 4)
         await readerSettle()
         #expect(model.pageState(at: 4) == .image(harness.site.image(4)))
+        #expect(harness.site.started == ["page:4"])
+    }
+
+    /// The engine prefetches the images of the pages around the visible ones, so a stored URL
+    /// can turn out to have expired after its page has left that window.
+    @Test func aStoredImageURLThatFailsAfterItsPageLeftTheWindowWaitsUntilThePageIsNeeded() async throws {
+        let harness = try ReaderModelHarness()
+        let stale = URL(string: "https://stored.example/4.jpg")!
+        try await harness.database.upsertPages([
+            GalleryPage(gid: harness.gid, index: 4, pageURL: harness.site.link(4), imageURL: stale)
+        ])
+        let model = await harness.startedModel()
+        model.pagesNeeded([4])
+        model.pagesNoLongerNeeded([4])
+
+        model.imageDidFail(page: 4)
+
+        #expect(model.pageState(at: 4) == .pending)
+        await readerSettle()
+        #expect(harness.site.started.isEmpty)
+
+        model.pagesNeeded([4])
+        await readerEventually { model.pageState(at: 4) == .image(harness.site.image(4)) }
         #expect(harness.site.started == ["page:4"])
     }
 

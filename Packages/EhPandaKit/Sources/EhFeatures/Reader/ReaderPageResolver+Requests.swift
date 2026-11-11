@@ -11,11 +11,8 @@ extension ReaderPageResolver {
         let client = client
         switch job {
         case .links(let previewPage):
-            let galleryURL = galleryURL
-            return {
-                guard let galleryURL else { throw AppError.notFound }
-                return .links(try await client.pageLinks(galleryURL: galleryURL, pageNumber: previewPage))
-            }
+            let fetchPreviewPage = fetchPreviewPage
+            return { .previewPage(try await fetchPreviewPage(previewPage)) }
         case .mpvKeys:
             let mpvURL = mpvURL
             return {
@@ -47,12 +44,10 @@ extension ReaderPageResolver {
             }
         }
         guard let link = links[page] else { return { throw AppError.notFound } }
-        if isRefetch, let galleryURL, let storedImageURL = images[page]?.imageURL {
-            let previewPage = paging.previewPage(for: page)
+        if isRefetch, let storedImageURL = images[page]?.imageURL {
             return {
                 let image = try await client.refetchPageImage(
-                    index: page, pageNumber: previewPage, galleryURL: galleryURL,
-                    pageLink: link, storedImageURL: storedImageURL
+                    index: page, pageLink: link, storedImageURL: storedImageURL
                 )
                 return .image(image, skipServerIdentifier: nil)
             }

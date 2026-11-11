@@ -54,12 +54,16 @@ public final class AppModel {
 
     @ObservationIgnored var scenePhase: ScenePhase?
     @ObservationIgnored var dropsDatabaseBeforeLaunch = false
+    /// The image cache keeps its limits for the life of the process; a second launch attempt
+    /// (after "Drop the database") does not apply them again.
+    @ObservationIgnored var hasConfiguredImageCache = false
     @ObservationIgnored private var activationCount = 0
 
     @ObservationIgnored @Dependency(\.launchClient) var launchClient
     @ObservationIgnored @Dependency(\.settings) var settings
     @ObservationIgnored @Dependency(\.applicationClient) var application
     @ObservationIgnored @Dependency(\.domainFronting) var domainFronting
+    @ObservationIgnored @Dependency(\.imageCacheClient) var imageCache
     @ObservationIgnored @Dependency(\.accountSession) var account
     @ObservationIgnored @Dependency(\.tagTranslationService) var tagTranslations
     @ObservationIgnored @Dependency(\.cookieStore) var cookies

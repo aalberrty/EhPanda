@@ -12,6 +12,12 @@ public struct GalleryDetailResponse: Sendable {
     public let state: GalleryState
     public let apiKey: String
     public let greeting: Greeting?
+
+    /// The gallery's first preview page, which the detail page is: the thumbnails and the
+    /// viewer links of the pages it lists.
+    public var previewPage: PreviewPage {
+        PreviewPage(previewURLs: state.previewURLs, pageURLs: state.thumbnailURLs)
+    }
 }
 
 extension Parser {

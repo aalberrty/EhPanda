@@ -63,6 +63,7 @@ struct PreviewThumbnailView: View, Equatable {
     let thumbnail: PreviewThumbnail?
     /// The widest the cell can be, for decoding standalone images.
     let width: CGFloat
+    /// The preview could not be had; tapping the cell asks for it again (the reader's retry symbol).
     var failed = false
 
     var body: some View {
@@ -71,8 +72,15 @@ struct PreviewThumbnailView: View, Equatable {
             SpriteThumbnail(sheetURL: sheetURL, cropRect: CGRect(x: x, y: 0, width: tileWidth, height: height))
         case .image(let url):
             RemoteImage(url: url, width: width, aspectRatio: Tokens.Aspect.preview)
+        case nil where failed:
+            ImagePlaceholder(aspectRatio: Tokens.Aspect.preview, style: .plain)
+                .overlay {
+                    Image(systemName: "exclamationmark.arrow.triangle.2.circlepath")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
         case nil:
-            ImagePlaceholder(aspectRatio: Tokens.Aspect.preview, style: failed ? .failure : .activity)
+            ImagePlaceholder(aspectRatio: Tokens.Aspect.preview, style: .activity)
         }
     }
 }

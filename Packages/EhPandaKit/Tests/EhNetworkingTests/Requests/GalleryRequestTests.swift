@@ -51,10 +51,9 @@ private typealias T = RequestTesting
     }
 
     @Test(arguments: [0, 1, 12])
-    func previewAndThumbnailPagesSendPageNumber(pageNum: Int) {
+    func previewPageSendsPageNumber(pageNum: Int) {
         let expected = "https://exhentai.org/g/2345678/0a1b2c3d4e/?p=\(pageNum)"
-        T.expectGET(T.eh.galleryPreviewURLs(galleryURL: exGallery, pageNum: pageNum), expected)
-        T.expectGET(T.eh.thumbnailURLs(galleryURL: exGallery, pageNum: pageNum), expected)
+        T.expectGET(T.eh.galleryPreviewPage(galleryURL: exGallery, pageNum: pageNum), expected)
     }
 }
 

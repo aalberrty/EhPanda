@@ -5,7 +5,6 @@ import Foundation
 import Testing
 
 struct ReaderClientTests {
-    private let galleryURL = clientURL("https://e-hentai.org/g/3103480/0000000000/")
     private let pageLink = clientURL("https://e-hentai.org/s/abc123/3103480-1")
     /// The image on `ClientFixture.imagePage`.
     private let fixtureImage = "https://akrtazd.spuqplybaxmf.hath.network:65000/h/ea42b28bceeae68f1f6adb414da61d186b3d126b-311480-1280-1920-jpg/keystamp=1694132700-fd778f8260;fileindex=132044713;xres=1280/87052610_5090394_0.jpg"
@@ -13,18 +12,6 @@ struct ReaderClientTests {
 
     /// A viewer page reloaded through another server.
     private let reloadedPage = #"<div id="i3"><a><img id="img" src="https://other.example/1.jpg"></a></div>"#
-
-    @Test func pageLinks() async throws {
-        let harness = ClientHarness()
-        harness.transport.on(.any, reply: .fixture(ClientFixture.detail))
-
-        let links = try await harness.client.pageLinks(galleryURL: galleryURL, pageNumber: 1)
-
-        #expect(line(try harness.onlyRequest()) == "GET https://e-hentai.org/g/3103480/0000000000/?p=1")
-        #expect(links.count == 40)
-        #expect(links[40]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page40")
-        #expect(EhURL.isMPVURL(links[1]))
-    }
 
     @Test func pageImageResolvesOneViewerPage() async throws {
         let harness = ClientHarness()
@@ -38,7 +25,7 @@ struct ReaderClientTests {
         #expect(image.originalImageURL?.absoluteString == fixtureOriginal)
     }
 
-    @Test func refetchWithKnownLinkReloadsThroughAnotherServerAndStoresSkipServer() async throws {
+    @Test func refetchReloadsThroughAnotherServerAndStoresSkipServer() async throws {
         let harness = ClientHarness()
         harness.transport.on(.path("/s/abc123/3103480-1"), reply: .fixture(ClientFixture.imagePage))
         harness.transport.on(
@@ -48,7 +35,7 @@ struct ReaderClientTests {
 
         // The first load shows the image that already failed, so the reloaded one wins.
         let image = try await harness.client.refetchPageImage(
-            index: 1, pageNumber: 0, galleryURL: galleryURL, pageLink: pageLink,
+            index: 1, pageLink: pageLink,
             storedImageURL: clientURL(fixtureImage)
         )
 
@@ -71,7 +58,7 @@ struct ReaderClientTests {
         harness.transport.on(.query("nl"), reply: .html(reloadedPage))
 
         let image = try await harness.client.refetchPageImage(
-            index: 1, pageNumber: 0, galleryURL: galleryURL, pageLink: pageLink,
+            index: 1, pageLink: pageLink,
             storedImageURL: clientURL("https://failed.example/1.jpg")
         )
 
@@ -80,54 +67,13 @@ struct ReaderClientTests {
         #expect(harness.requests.count == 2)
     }
 
-    @Test func refetchWithoutLinkLooksItUpOnThePreviewPageFirst() async throws {
-        let harness = ClientHarness(host: .exhentai)
-        let exGallery = clientURL("https://exhentai.org/g/3103480/0000000000/")
-        let exLink = "https://exhentai.org/s/def456/3103480-22"
-        harness.transport.on(.path("/g/3103480/0000000000/"), reply: .html(
-            #"<div id="gdt"><a href="\#(exLink)"><div title="Page 22: a.jpg" style="background:transparent url(https://p.example/1.jpg) 0 0 no-repeat"></div></a></div>"#
-        ))
-        harness.transport.on(.path("/s/def456/3103480-22"), reply: .fixture(ClientFixture.imagePage))
-        harness.transport.on(
-            .query("nl"),
-            reply: .html(reloadedPage, headers: ["Set-Cookie": "skipserver=1-2; path=/s/; domain=exhentai.org"])
-        )
-
-        let image = try await harness.client.refetchPageImage(
-            index: 22, pageNumber: 1, galleryURL: exGallery, pageLink: nil, storedImageURL: clientURL(fixtureImage)
-        )
-
-        #expect(harness.requests.map(line) == [
-            "GET https://exhentai.org/g/3103480/0000000000/?p=1",
-            "GET \(exLink)",
-            "GET \(exLink)?nl=00000-000000"
-        ])
-        #expect(image.index == 22)
-        #expect(image.imageURL.absoluteString == "https://other.example/1.jpg")
-        #expect(harness.cookies.cookie(named: CookieName.skipServer, for: clientURL(exLink)).rawValue == "1-2")
-    }
-
-    @Test func refetchWhenThePreviewPageDoesNotListThePage() async throws {
-        let harness = ClientHarness()
-        harness.transport.on(.any, reply: .fixture(ClientFixture.detail))
-
-        let error = await thrownError {
-            try await harness.client.refetchPageImage(
-                index: 41, pageNumber: 0, galleryURL: galleryURL, pageLink: nil, storedImageURL: clientURL(fixtureImage)
-            )
-        }
-
-        #expect(error as? AppError == .notFound)
-        #expect(harness.requests.count == 1)
-    }
-
     @Test func refetchStopsWhenTheViewerPageDoesNotParse() async throws {
         let harness = ClientHarness()
         harness.transport.on(.any, reply: .html("<html><body>Nope</body></html>"))
 
         let error = await thrownError {
             try await harness.client.refetchPageImage(
-                index: 1, pageNumber: 0, galleryURL: galleryURL, pageLink: pageLink, storedImageURL: clientURL(fixtureImage)
+                index: 1, pageLink: pageLink, storedImageURL: clientURL(fixtureImage)
             )
         }
 
@@ -142,7 +88,7 @@ struct ReaderClientTests {
 
         let error = await thrownError {
             try await harness.client.refetchPageImage(
-                index: 1, pageNumber: 0, galleryURL: galleryURL, pageLink: pageLink, storedImageURL: clientURL(fixtureImage)
+                index: 1, pageLink: pageLink, storedImageURL: clientURL(fixtureImage)
             )
         }
 

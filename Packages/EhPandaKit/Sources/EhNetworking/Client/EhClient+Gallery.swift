@@ -3,8 +3,9 @@ import EhParser
 import Foundation
 
 extension EhClient {
-    /// The gallery page with all comments: detail, tags, previews, comments, the API key and
-    /// the daily greeting when the page carries one.
+    /// The gallery page with all comments: detail, tags, comments, the API key, the daily
+    /// greeting when the page carries one, and the gallery's first preview page (thumbnails
+    /// and viewer links), which this page is.
     public func galleryDetail(gid: String, galleryURL: URL) async throws -> GalleryDetailResponse {
         try await perform { builder in
             let data = try await body(builder.galleryDetail(galleryURL: galleryURL))
@@ -86,13 +87,19 @@ extension EhClient {
         }
     }
 
-    /// Preview thumbnails of one page of the gallery's preview grid, by 1-based page index.
-    /// `pageNumber` is the 0-based preview page.
-    public func previewURLs(galleryURL: URL, pageNumber: Int) async throws -> [Int: URL] {
+    /// One page of the gallery's preview grid: the thumbnails and the links to the viewer pages
+    /// of the gallery pages it lists, by 1-based page index. `pageNumber` is the 0-based
+    /// preview page; page 0 is what `galleryDetail` already returned as `previewPage`.
+    ///
+    /// This is the only request for a preview page. The previews grid, the reader and the
+    /// reader's slider all take both halves from it, so nobody fetches the page again for the
+    /// half someone else kept. A link may be a multi-page-viewer URL (`EhURL.isMPVURL`), in
+    /// which case the gallery is read through the MPV operations.
+    public func previewPage(galleryURL: URL, pageNumber: Int) async throws -> PreviewPage {
         try await perform { builder in
-            let data = try await body(builder.galleryPreviewURLs(galleryURL: galleryURL, pageNum: pageNumber))
+            let data = try await body(builder.galleryPreviewPage(galleryURL: galleryURL, pageNum: pageNumber))
             let document = try Parser.htmlDocument(data: data)
-            return try Parser.parsePreviewURLs(doc: document)
+            return try Parser.parsePreviewPage(doc: document)
         }
     }
 

@@ -1,3 +1,4 @@
+import EhModels
 import Foundation
 import GRDB
 
@@ -48,6 +49,17 @@ public struct GalleryPage: Sendable, Hashable {
             imageWidth: row["imageWidth"],
             imageHeight: row["imageHeight"]
         )
+    }
+
+    /// One page for every gallery page a preview page lists, with its viewer link and its
+    /// thumbnail, ready for `AppDatabase.upsertPages`.
+    public static func pages(gid: String, listedOn previewPage: PreviewPage) -> [GalleryPage] {
+        previewPage.indices.sorted().map { index in
+            GalleryPage(
+                gid: gid, index: index,
+                pageURL: previewPage.pageURLs[index], previewURL: previewPage.previewURLs[index]
+            )
+        }
     }
 
     var databaseArguments: StatementArguments {

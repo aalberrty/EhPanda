@@ -6,9 +6,9 @@ import Foundation
 extension ReaderPageResolver {
     func handle(_ result: Result<Output, any Error>, of job: Job) {
         switch result {
-        case .success(.links(let found)):
+        case .success(.previewPage(let listed)):
             if case .links(let previewPage) = job {
-                linksDidLoad(found, previewPage: previewPage)
+                previewPageDidLoad(listed, previewPage: previewPage)
             }
         case .success(.mpvKeys(let keys)):
             mpvKeysDidLoad(keys)
@@ -22,21 +22,36 @@ extension ReaderPageResolver {
         }
     }
 
-    private func linksDidLoad(_ found: [Int: URL], previewPage: Int) {
+    /// Takes over the viewer links of a preview page somebody else fetched (the slider reads
+    /// preview pages for their thumbnails), so the pages it lists need no request for them.
+    func adopt(_ listed: PreviewPage, previewPage: Int) {
+        take(listed, previewPage: previewPage)
+        schedulePump()
+    }
+
+    /// Whether the page size was corrected, or `nil` for a gallery that opens in the
+    /// multi-page viewer.
+    @discardableResult
+    private func take(_ listed: PreviewPage, previewPage: Int) -> Bool? {
         let job = Job.links(previewPage: previewPage)
-        let waiting = pages(waitingFor: job)
+        let found = listed.pageURLs
         if let mpvLink = found.keys.sorted().lazy.compactMap({ found[$0] }).first(where: { EhURL.isMPVURL($0) }) {
             // The gallery opens in the multi-page viewer: no viewer pages, the keys are next.
             mpvURL = mpvLink
             recoverPages(failedBy: job)
-            return
+            return nil
         }
-        let learned = paging.learn(listed: found.keys, onPreviewPage: previewPage, pageCount: pageCount)
+        let learned = paging.learn(listed: listed.indices, onPreviewPage: previewPage, pageCount: pageCount)
         links.merge(found) { _, new in new }
-        if !found.isEmpty {
-            onEvent?(.links(found))
-        }
         recoverPages(failedBy: job)
+        return learned
+    }
+
+    /// The answer to the resolver's own request for a preview page.
+    private func previewPageDidLoad(_ listed: PreviewPage, previewPage: Int) {
+        let job = Job.links(previewPage: previewPage)
+        let waiting = pages(waitingFor: job)
+        guard let learned = take(listed, previewPage: previewPage) else { return }
         for page in waiting where links[page] == nil {
             // Not listed. If the page size turned out different, the page is on another
             // preview page and stays in the queue; otherwise it does not exist (legacy:

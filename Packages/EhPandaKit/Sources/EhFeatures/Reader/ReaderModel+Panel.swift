@@ -1,4 +1,5 @@
 import EhDatabase
+import EhModels
 import Foundation
 
 // The control panel: slider and preview strip, auto-play, and the "reload" commands.
@@ -69,11 +70,16 @@ extension ReaderModel {
         }
     }
 
-    func previewsDidLoad(_ found: [Int: URL], previewPage: Int) {
-        resolver.learnPaging(listed: found.keys, onPreviewPage: previewPage)
-        previewURLs.merge(found) { _, new in new }
-        for (page, url) in found {
-            writer.add(GalleryPage(gid: gallery.gid, index: page, previewURL: url))
+    /// A preview page was fetched, for the pages being read or for the strip. Whoever asked,
+    /// both halves are kept: the viewer links go to the resolver, the thumbnails to the strip,
+    /// and both to the database, so neither is fetched again in this session or the next.
+    func previewPageDidLoad(_ listed: PreviewPage, previewPage: Int) {
+        resolver.adopt(listed, previewPage: previewPage)
+        if !listed.previewURLs.isEmpty {
+            previewURLs.merge(listed.previewURLs) { _, new in new }
+        }
+        for page in GalleryPage.pages(gid: gallery.gid, listedOn: listed) {
+            writer.add(page)
         }
         if showsSliderPreview {
             // The strip may reach onto a preview page that turned out to be another one.

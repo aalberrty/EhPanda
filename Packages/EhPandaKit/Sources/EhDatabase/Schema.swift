@@ -62,7 +62,8 @@ enum Schema {
             table.column("torrentCount", .integer).notNull()
         }
 
-        // Each JSON column is written on its own, so updating one never rewrites the others.
+        // One row per gallery. A fetched detail page writes the three JSON columns together and
+        // leaves `readingProgress`, which the reader writes on its own.
         try db.create(table: galleryState) { table in
             table.primaryKey("gid", .text)
             table.column("readingProgress", .integer).notNull().defaults(to: 0)

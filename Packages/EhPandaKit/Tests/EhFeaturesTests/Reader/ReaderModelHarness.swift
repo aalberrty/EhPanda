@@ -29,10 +29,14 @@ final class ReaderModelHarness {
     let savesSucceed = LockIsolated(true)
     /// Whether the image cache can produce bytes.
     let imageDataFails = LockIsolated(false)
+    /// The logger of the models made from now on; the test default when nil.
+    var logger: AppLogger?
 
-    init(site: ReaderTestSite = ReaderTestSite()) throws {
+    /// - Parameter database: The database another feature's model already wrote to; a new,
+    ///   empty one by default.
+    init(site: ReaderTestSite = ReaderTestSite(), database: AppDatabase? = nil) throws {
         self.site = site
-        database = try AppDatabase.makeInMemory()
+        self.database = try database ?? AppDatabase.makeInMemory()
     }
 
     var gid: String { site.gid }
@@ -49,6 +53,9 @@ final class ReaderModelHarness {
             $0.continuousClock = clock
             $0.settings = settings
             $0.applicationClient = applicationClient
+            if let logger {
+                $0.appLogger = logger
+            }
             $0.clipboardClient.copyImage = { [copied] data in copied.withValue { $0.append(data) } }
             $0.photoLibraryClient.saveImage = { [saved, savesSucceed] data in
                 guard savesSucceed.value else { return false }
@@ -106,6 +113,17 @@ final class ReaderModelHarness {
     func storedPages() async throws -> [Int: GalleryPage] {
         let pages = try await database.pages(gid: gid)
         return Dictionary(uniqueKeysWithValues: pages.map { ($0.index, $0) })
+    }
+
+    /// Stores a detail page of the gallery that showed this preview layout.
+    func storeDetail(previewConfig: PreviewConfig) async throws {
+        let detail = GalleryDetail(
+            gid: gid, title: "Title", isFavorited: false, visibility: .yes, rating: 4, userRating: 0,
+            ratingCount: 1, category: .doujinshi, language: .japanese, uploader: "Uploader",
+            postedDate: Date(timeIntervalSince1970: 0), coverURL: nil, favoritedCount: 0,
+            pageCount: site.pageCount, sizeCount: 1, sizeType: "MiB", torrentCount: 0
+        )
+        try await database.saveDetail(detail, state: GalleryState(gid: gid, previewConfig: previewConfig))
     }
 
     func storedProgress() async throws -> Int? {

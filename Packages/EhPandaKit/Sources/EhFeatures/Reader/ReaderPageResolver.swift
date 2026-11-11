@@ -10,7 +10,9 @@ import Foundation
 /// Here a page takes two steps, and each is reported the moment it is done:
 ///
 /// 1. its viewer-page link, read from the preview page that lists it. One request serves
-///    every page on that preview page, however many of them are waiting;
+///    every page on that preview page, however many of them are waiting. A link the detail
+///    screen, the previews grid or the slider already read is taken over (`restore`, `adopt`)
+///    and this step is skipped;
 /// 2. its image, read from the viewer page (or, for a gallery that uses the multi-page
 ///    viewer, from the `imagedispatch` API once the gallery's keys are known).
 ///
@@ -27,8 +29,6 @@ import Foundation
 /// requests and parsing run inside `EhClient`, off the main actor.
 final class ReaderPageResolver {
     nonisolated enum Event: Sendable, Equatable {
-        /// Viewer-page links were read from a preview page.
-        case links([Int: URL])
         /// A page has an image, for the first time or a different one after a refetch.
         case resolved(PageImage)
         case failed(page: Int, error: AppError)
@@ -55,7 +55,7 @@ final class ReaderPageResolver {
     }
 
     nonisolated enum Output: Sendable {
-        case links([Int: URL])
+        case previewPage(PreviewPage)
         case mpvKeys(MPVKeys)
         case image(PageImage, skipServerIdentifier: String?)
     }
@@ -72,9 +72,12 @@ final class ReaderPageResolver {
     let gid: String
     let galleryURL: URL?
     let client: EhClient
+    /// Fetches a preview page. The reader passes its `ReaderPreviewLoader`, which the slider
+    /// reads preview pages through as well, so a page both want is requested once.
+    let fetchPreviewPage: @MainActor (Int) async throws -> PreviewPage
     private let limit: Int
 
-    var paging: ReaderPreviewPaging
+    var paging: PreviewPaging
     var links: [Int: URL] = [:]
     var images: [Int: PageImage] = [:]
     var statuses: [Int: Status] = [:]
@@ -94,16 +97,23 @@ final class ReaderPageResolver {
     private var lastJobID = 0
     private var isPumpScheduled = false
 
+    /// - Parameter previewPage: How a preview page is fetched; the client's request by default.
     init(
         gallery: Gallery, client: EhClient, previewConfig: PreviewConfig? = nil,
-        maximumConcurrentRequests: Int = 4
+        maximumConcurrentRequests: Int = 4,
+        previewPage: (@MainActor (Int) async throws -> PreviewPage)? = nil
     ) {
         gid = gallery.gid
-        galleryURL = gallery.galleryURL
+        let galleryURL = gallery.galleryURL
+        self.galleryURL = galleryURL
         pageCount = max(gallery.pageCount, 0)
         self.client = client
+        fetchPreviewPage = previewPage ?? { number in
+            guard let galleryURL else { throw AppError.notFound }
+            return try await client.previewPage(galleryURL: galleryURL, pageNumber: number)
+        }
         limit = max(maximumConcurrentRequests, 1)
-        paging = ReaderPreviewPaging(config: previewConfig)
+        paging = PreviewPaging(config: previewConfig)
     }
 
     // MARK: Reading
@@ -139,7 +149,7 @@ final class ReaderPageResolver {
 
     /// Takes over what an earlier session stored. Call it before any page is needed.
     func restore(previewConfig: PreviewConfig?, links: [Int: URL], images: [Int: PageImage]) {
-        paging = ReaderPreviewPaging(config: previewConfig)
+        paging = PreviewPaging(config: previewConfig)
         for (page, link) in links where isValid(page) {
             if EhURL.isMPVURL(link) {
                 // Not a viewer page. It does say where the keys are, which saves a request.
@@ -151,13 +161,6 @@ final class ReaderPageResolver {
         for (page, image) in images where isValid(page) {
             self.images[page] = image
             statuses[page] = .resolved
-        }
-    }
-
-    /// Lets another reader of preview pages (the slider's thumbnails) correct the page size.
-    func learnPaging(listed: some Collection<Int>, onPreviewPage number: Int) {
-        if paging.learn(listed: listed, onPreviewPage: number, pageCount: pageCount) {
-            schedulePump()
         }
     }
 
@@ -206,7 +209,6 @@ final class ReaderPageResolver {
         case .refetching:
             return
         case .unresolved:
-            needed.insert(page)
             schedulePump()
         case .resolved, .failed:
             statuses[page] = images[page] == nil ? .unresolved : .refetching
@@ -216,6 +218,8 @@ final class ReaderPageResolver {
 
     /// Forgets the page's image and resolves it afresh from its viewer page, without asking
     /// for another server. For an image URL that has expired, not one whose server is broken.
+    /// The failure of a prefetched image can be reported after its page has left the reader's
+    /// reach; such a page is resolved when it is needed again, not now.
     func resolveAgain(_ page: Int) {
         guard isValid(page) else { return }
         cancel(.page(page))
@@ -262,8 +266,11 @@ final class ReaderPageResolver {
         page >= 1 && page <= pageCount
     }
 
+    /// The page's status changed and it wants a request. It gets one if the reader needs the
+    /// page, which is what makes it a candidate; a page outside the reader's reach waits until
+    /// it is needed. Adding it to `needed` here would keep it there for good, since only the
+    /// reader takes pages out and it has already taken this one out.
     private func requestNow(_ page: Int) {
-        needed.insert(page)
         onEvent?(.updated(page: page))
         schedulePump()
     }

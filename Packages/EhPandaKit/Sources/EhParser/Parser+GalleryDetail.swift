@@ -12,7 +12,9 @@ extension Parser {
         return galleryURL
     }
 
-    /// Parses a gallery detail page.
+    /// Parses a gallery detail page. The detail page is also the gallery's first preview page:
+    /// the state carries its thumbnails (`previewURLs`) and its viewer links (`thumbnailURLs`,
+    /// legacy's name for them).
     ///
     /// - Throws: `AppError.copyrightClaim` or `.expunged` when the site shows a removal
     ///   notice, `.ipBanned` for a ban page, otherwise `.parseFailed`.
@@ -22,9 +24,10 @@ extension Parser {
             let state = GalleryState(
                 gid: gid,
                 tags: detail.tags,
-                previewURLs: detail.previewURLs,
+                previewURLs: detail.previewPage.previewURLs,
                 previewConfig: try? DetailParser.parsePreviewConfig(doc: doc),
-                comments: parseComments(doc: doc)
+                comments: parseComments(doc: doc),
+                thumbnailURLs: detail.previewPage.pageURLs
             )
             return (detail.detail, state)
         }
@@ -91,7 +94,7 @@ enum DetailParser {
     struct Parsed {
         let detail: GalleryDetail
         let tags: [GalleryTag]
-        let previewURLs: [Int: URL]
+        let previewPage: PreviewPage
     }
 
     // Mirrors the legacy guard chain: any missing piece skips this `div.gm`.
@@ -104,7 +107,7 @@ enum DetailParser {
               let gdfNode = gd3Node.at_xpath("//div [@id='gdf']"),
               let coverURL = try? parseCoverURL(node: link),
               let tags = try? parseGalleryTags(node: gd4Node),
-              let previewURLs = try? Parser.parsePreviewURLs(doc: doc),
+              let previewPage = try? Parser.parsePreviewPage(doc: doc),
               let arcAndTor = try? parseArcAndTor(node: gd5Node),
               let infoPanel = try? parseInfoPanel(node: gddNode),
               let visibility = try? parseVisibility(value: infoPanel[2]),
@@ -149,7 +152,7 @@ enum DetailParser {
             sizeType: infoPanel[5],
             torrentCount: arcAndTor.1
         )
-        return Parsed(detail: detail, tags: tags, previewURLs: previewURLs)
+        return Parsed(detail: detail, tags: tags, previewPage: previewPage)
     }
 
     static func parsePreviewConfig(doc: HTMLDocument) throws -> PreviewConfig {

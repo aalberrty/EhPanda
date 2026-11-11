@@ -1,5 +1,6 @@
 import EhFeatures
 import Kingfisher
+import Synchronization
 import UIKit
 
 nonisolated enum ImagePipelineError: Error {
@@ -18,7 +19,7 @@ nonisolated enum ImagePipelineError: Error {
 ///
 /// What ends up where:
 /// - Disk: the original bytes, untouched, under the URL as key (Kingfisher's default key). The
-///   host reads them back with `originalData(for:)` to save or share the full image.
+///   host reads them back with `originalData(for:)` to copy, save or share the full image.
 /// - Memory: bitmaps decoded for a particular `ImageDecodeTarget`, in Kingfisher's memory
 ///   cache, so the cost limit and the memory warning handling are shared with everything else.
 nonisolated enum ImagePipeline {
@@ -27,17 +28,23 @@ nonisolated enum ImagePipeline {
     /// fronting on it (`ImageDownloaderConfiguration`), so reader pages follow both settings.
     static var downloader: ImageDownloader { .default }
 
-    /// The default cache, with its memory budget cut down from Kingfisher's quarter of the
-    /// device's RAM to an eighth, and never more than 512 MB of bitmaps.
-    static let cache: ImageCache = {
-        let cache = ImageCache.default
-        let budget = min(ProcessInfo.processInfo.physicalMemory / 8, 512 * 1024 * 1024)
-        cache.memoryStorage.config.totalCostLimit = Int(budget)
-        return cache
-    }()
+    /// The default cache, the one list covers use as well. The launch sequence gives it its
+    /// memory budget and disk limit (`ImageCacheConfiguration`), whether or not the reader is
+    /// ever opened.
+    static var cache: ImageCache { .default }
 
     /// Decoding is CPU and memory heavy, so only a few run at once.
     private static let decodeLimiter = ConcurrencyLimiter(limit: 3)
+
+    /// Disk writes that are on their way, by cache key. A download hands its bytes to whoever
+    /// asked for them at once and is written to disk meanwhile; anyone who looks for the file
+    /// in that moment waits for the write instead of downloading the image again.
+    private static let pendingStores = Mutex(PendingStores())
+
+    private struct PendingStores {
+        var lastID = 0
+        var byKey: [String: (id: Int, task: Task<Void, Never>)] = [:]
+    }
 
     /// Priority for downloads nobody is waiting for yet.
     static let prefetchPriority = URLSessionTask.lowPriority
@@ -63,7 +70,8 @@ nonisolated enum ImagePipeline {
     ) async throws -> UIImage {
         let isRemote = !url.isFileURL
         var downloaded: Data?
-        if isRemote, !cache.diskStorage.isCached(forKey: url.cacheKey) {
+        if isRemote, await !isOnDisk(url.cacheKey) {
+            // Decoded straight from the downloaded bytes; the disk write does not hold it up.
             downloaded = try await download(url, priority: URLSessionTask.defaultPriority, progress: progress)
         }
         var image = try await decode(downloaded, from: url, target: target, displayScale: displayScale)
@@ -94,20 +102,37 @@ nonisolated enum ImagePipeline {
     static func prefetch(_ url: URL) async throws -> CGSize? {
         guard !url.isFileURL else { return ImageDecoder.pixelSize(ofFileAt: url) }
         let key = url.cacheKey
-        if cache.diskStorage.isCached(forKey: key) {
+        if await isOnDisk(key) {
             return ImageDecoder.pixelSize(ofFileAt: cache.diskStorage.cacheFileURL(forKey: key))
         }
         let data = try await download(url, priority: prefetchPriority, progress: nil)
+        // Being on disk is what prefetching is for, and nobody is waiting to look at it.
+        await pendingStore(of: key)?.value
         return ImageDecoder.pixelSize(of: data)
     }
 
-    /// The untouched bytes of an image that has been loaded or prefetched, for saving and sharing.
+    /// The untouched bytes of an image, for copying, saving and sharing. From disk when the
+    /// image was shown or prefetched. Anything else (a full-size original, mostly) is
+    /// downloaded with the downloader every image uses, which sends the site's cookies and
+    /// follows the domain-fronting setting, and is kept on disk.
     @concurrent
-    static func originalData(for url: URL) async -> Data? {
+    static func originalData(for url: URL) async throws -> Data {
         if url.isFileURL {
-            return try? Data(contentsOf: url)
+            return try Data(contentsOf: url)
         }
-        return try? cache.diskStorage.value(forKey: url.cacheKey)
+        if let data = await storedOriginalData(for: url) {
+            return data
+        }
+        return try await download(url, priority: URLSessionTask.defaultPriority, progress: nil)
+    }
+
+    /// The untouched bytes of an image that has been loaded or prefetched; `nil` if it has not.
+    @concurrent
+    static func storedOriginalData(for url: URL) async -> Data? {
+        if !url.isFileURL {
+            await pendingStore(of: url.cacheKey)?.value
+        }
+        return storedData(for: url)
     }
 
     // MARK: Private
@@ -139,8 +164,36 @@ nonisolated enum ImagePipeline {
         return try? cache.diskStorage.value(forKey: url.cacheKey)
     }
 
-    /// Downloads the original and writes it to the disk cache. Requests for a URL that is
-    /// already downloading share that download.
+    /// Whether the original is in the disk cache, counting a write that is still on its way.
+    private static func isOnDisk(_ key: String) async -> Bool {
+        await pendingStore(of: key)?.value
+        return cache.diskStorage.isCached(forKey: key)
+    }
+
+    private static func pendingStore(of key: String) -> Task<Void, Never>? {
+        pendingStores.withLock { $0.byKey[key]?.task }
+    }
+
+    /// Writes downloaded bytes to the disk cache without making the caller wait for it.
+    private static func store(_ data: Data, forKey key: String) {
+        pendingStores.withLock { stores in
+            stores.lastID += 1
+            let id = stores.lastID
+            // Started under the lock, so its own clean-up below cannot run before it is registered.
+            let task = Task.detached(priority: .utility) {
+                try? await cache.storeToDisk(data, forKey: key)
+                pendingStores.withLock { stores in
+                    if stores.byKey[key]?.id == id {
+                        stores.byKey[key] = nil
+                    }
+                }
+            }
+            stores.byKey[key] = (id, task)
+        }
+    }
+
+    /// Downloads the original and starts writing it to the disk cache. Requests for a URL that
+    /// is already downloading share that download.
     @concurrent
     private static func download(
         _ url: URL, priority: Float, progress: (@MainActor @Sendable (Double) -> Void)?
@@ -161,7 +214,7 @@ nonisolated enum ImagePipeline {
         let result = try await downloader.downloadImage(
             with: url, options: [.downloadPriority(priority)], progressBlock: progressBlock
         )
-        try? await cache.storeToDisk(result.originalData, forKey: url.cacheKey)
+        store(result.originalData, forKey: url.cacheKey)
         return result.originalData
     }
 }

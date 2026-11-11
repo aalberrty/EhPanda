@@ -14,8 +14,7 @@ extension EhRequestBuilder {
         RequestEncoding.get(thumbnailURL)
     }
 
-    /// Refetching an image that failed to load takes up to three steps:
-    /// `thumbnailURLs(galleryURL:pageNum:)` when the image page link is unknown, then
+    /// Refetching an image that failed to load takes two steps:
     /// `galleryNormalImageURL(thumbnailURL:)` to read the skip-server identifier, then this,
     /// which reloads the image page with `nl=<identifier>` so the site picks another server.
     public func galleryNormalImageURLRefetch(thumbnailURL: URL, skipServerIdentifier: String) -> URLRequest {

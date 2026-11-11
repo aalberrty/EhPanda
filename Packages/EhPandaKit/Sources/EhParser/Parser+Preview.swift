@@ -5,12 +5,17 @@ import Kanna
 // MARK: Preview
 
 extension Parser {
+    /// Everything a page of a gallery's preview grid lists: each page's thumbnail and the link
+    /// to its viewer page. The detail page is the first preview page, so this reads it too.
+    public static func parsePreviewPage(doc: HTMLDocument) throws -> PreviewPage {
+        PreviewPage(previewURLs: try parsePreviewURLs(doc: doc), pageURLs: try parsePageURLs(doc: doc))
+    }
+
     /// Preview thumbnails on a detail page, keyed by 1-based page index.
     ///
-    /// Sprite-sheet previews come back as the sheet URL with the crop encoded in
-    /// `ehpandaWidth` / `ehpandaHeight` / `ehpandaOffset` query items (see
-    /// `parsePreviewConfigs(url:)`).
-    public static func parsePreviewURLs(doc: HTMLDocument) throws -> [Int: URL] {
+    /// Sprite-sheet previews come back as the sheet URL with the crop encoded in its query
+    /// (`CombinedPreviewURL`).
+    static func parsePreviewURLs(doc: HTMLDocument) throws -> [Int: URL] {
         guard let gdtNode = doc.at_xpath("//div [@id='gdt']")
         else { throw AppError.parseFailed }
 
@@ -44,7 +49,7 @@ extension Parser {
                 let height = String(style[rangeB.upperBound..<rangeC.lowerBound])
                 let offset = String(style[rangeE.upperBound..<rangeF.lowerBound])
 
-                previewURLs[index] = combinedPreviewURL(plainURL: url, width: width, height: height, offset: offset)
+                previewURLs[index] = CombinedPreviewURL.url(plainURL: url, width: width, height: height, offset: offset)
             }
         }
         return previewURLs
@@ -95,62 +100,31 @@ extension Parser {
             throw AppError.parseFailed
         }
     }
-
-    /// Splits a sprite-sheet preview URL from `parsePreviewURLs(doc:)` into the plain sheet
-    /// URL, the crop size and the horizontal offset (as the width of the last size).
-    public static func parsePreviewConfigs(url: URL) -> (URL, CGSize, CGSize)? {
-        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let queryItems = components.queryItems
-        else { return nil }
-
-        let keys = [QueryKey.ehpandaWidth, QueryKey.ehpandaHeight, QueryKey.ehpandaOffset]
-        let configs = keys.compactMap { key in
-            queryItems.filter({ $0.name == key }).first?.value
-        }
-        .compactMap(Int.init)
-
-        components.queryItems = nil
-        guard configs.count == keys.count,
-              let plainURL = components.url
-        else { return nil }
-
-        let size = CGSize(width: Double(configs[0]), height: Double(configs[1]))
-        return (plainURL, size, CGSize(width: Double(configs[2]), height: 0))
-    }
-
-    /// Legacy `URLUtil.combinedPreviewURL`. Items are appended in a fixed order; legacy
-    /// built them from a dictionary, so its order varied between launches.
-    static func combinedPreviewURL(plainURL: URL, width: String, height: String, offset: String) -> URL {
-        plainURL.appendingQueryItems([
-            URLQueryItem(name: QueryKey.ehpandaWidth, value: width),
-            URLQueryItem(name: QueryKey.ehpandaHeight, value: height),
-            URLQueryItem(name: QueryKey.ehpandaOffset, value: offset)
-        ])
-    }
 }
 
 // MARK: Image page
 
 extension Parser {
-    /// Links to the single image pages (`/s/…`) on a detail page, keyed by 1-based index.
-    public static func parseThumbnailURLs(doc: HTMLDocument) throws -> [Int: URL] {
-        var thumbnailURLs = [Int: URL]()
+    /// Links to the viewer pages (`/s/…`, legacy "thumbnail URLs") on a detail page, keyed by
+    /// 1-based index.
+    static func parsePageURLs(doc: HTMLDocument) throws -> [Int: URL] {
+        var pageURLs = [Int: URL]()
 
         guard let gdtNode = doc.at_xpath("//div [@id='gdt']")
         else { throw AppError.parseFailed }
 
         for aLink in gdtNode.xpath("a") {
             guard let href = aLink["href"],
-                  let thumbnailURL = URL(string: href),
+                  let pageURL = URL(string: href),
                   let divNode = aLink.at_xpath(".//div[@title and @style]"),
                   let title = divNode["title"],
                   let index = parseGTX00IndexFromTitle(from: title)
             else { continue }
 
-            thumbnailURLs[index] = thumbnailURL
+            pageURLs[index] = pageURL
         }
 
-        return thumbnailURLs
+        return pageURLs
     }
 
     /// The `nl` value of an image page's "Reload broken image" link.

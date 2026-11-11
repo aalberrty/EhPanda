@@ -1,4 +1,3 @@
-import Dependencies
 import EhCore
 import EhFeatures
 import EhModels
@@ -11,30 +10,42 @@ import SwiftUI
 /// The engine view reads the reading settings and nothing of the panel, so showing the panel,
 /// dragging the slider or turning a page never re-renders it.
 struct ReaderScreen: View {
-    @State private var model: ReaderModel
-    @State private var bridge: ReaderEngineBridge
+    @State private var session: ReaderSession
 
     init(gallery: Gallery, initialPage: Int? = nil) {
-        let model = withDependencies {
-            // Copy, save and share take the bytes the reader already has on disk.
-            $0.imageCacheClient.imageData = { url in try await ReaderImageData.load(url) }
-        } operation: {
-            ReaderModel(gallery: gallery, initialPage: initialPage)
-        }
-        _model = State(initialValue: model)
-        _bridge = State(initialValue: ReaderEngineBridge(model: model))
+        // Only the holder is made here. A view's `init` runs again every time the presenting
+        // screen is re-evaluated (when the detail page finishes loading behind the open reader,
+        // for one) and SwiftUI keeps the first value: a model made here would be built, with
+        // its resolver, writer and loader, and thrown away each time.
+        _session = State(initialValue: ReaderSession(gallery: gallery, initialPage: initialPage))
     }
 
     var body: some View {
+        let model = session.model
         ZStack {
             // What the engine paints behind its pages, here while the stored pages are read.
             Color(uiColor: .readerBackground).ignoresSafeArea()
-            ReaderEngineHost(model: model, bridge: bridge)
+            ReaderEngineHost(model: model, bridge: session.bridge)
             ReaderControlPanel(model: model)
         }
         .modifier(ReaderChrome(model: model))
         .task { await model.start() }
         .onDisappear { model.close() }
+    }
+}
+
+/// The reader's model and its bridge to the engine, made the first time the screen's body
+/// asks for them: once per presented reader.
+private final class ReaderSession {
+    private let gallery: Gallery
+    private let initialPage: Int?
+
+    private(set) lazy var model = ReaderModel(gallery: gallery, initialPage: initialPage)
+    private(set) lazy var bridge = ReaderEngineBridge(model: model)
+
+    init(gallery: Gallery, initialPage: Int?) {
+        self.gallery = gallery
+        self.initialPage = initialPage
     }
 }
 

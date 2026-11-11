@@ -17,8 +17,6 @@ import Testing
     @Test func switchesToTheMultiPageViewerWhenALinkPointsThere() async {
         let site = ReaderTestSite(usesMPV: true)
         let resolver = makeResolver(site)
-        var events: [ReaderPageResolver.Event] = []
-        resolver.onEvent = { events.append($0) }
         resolver.setFocus(50)
         resolver.need([49, 50, 51])
 
@@ -35,9 +33,8 @@ import Testing
         #expect(resolver.state(of: 1) == .image(site.mpvImage(1)))
         #expect(resolver.mpvKeys?.mpvKey == "mpvkey0")
         #expect(resolver.mpvKeys?.imageKeys[50] == "imgkey50")
-        // Multi-page-viewer links are not viewer pages: none is kept or reported for storing.
+        // Multi-page-viewer links are not viewer pages: none is kept.
         #expect(resolver.link(of: 50) == nil)
-        #expect(!events.contains { if case .links = $0 { true } else { false } })
     }
 
     @Test func onceTheKeysAreKnownNoPreviewPageIsNeeded() async {

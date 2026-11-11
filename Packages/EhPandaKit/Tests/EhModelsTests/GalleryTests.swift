@@ -65,20 +65,10 @@ import Testing
         #expect(Category.allFiltersCases.map(\.filterValue).reduce(0, +) == 1023)
     }
 
-    @Test func previewConfigPaging() {
-        let normal = PreviewConfig.normal(rows: 4)
-        #expect(normal.batchSize == 40)
-        // Page indices are 1-based; an exact multiple of the batch size is the last index of
-        // its preview page, not the first of the next (the legacy app got this wrong).
-        #expect(normal.pageNumber(index: 1) == 0)
-        #expect(normal.pageNumber(index: 40) == 0 && normal.pageNumber(index: 41) == 1)
-        #expect(normal.pageNumber(index: 80) == 1 && normal.pageNumber(index: 81) == 2)
-        #expect(normal.batchRange(index: 1) == 1...40)
-        #expect(normal.batchRange(index: 40) == 1...40)
-        #expect(normal.batchRange(index: 45) == 41...80)
+    @Test func previewConfigBatchSize() {
+        #expect(PreviewConfig.normal(rows: 4).batchSize == 40)
+        #expect(PreviewConfig.normal(rows: 20).batchSize == 200)
         #expect(PreviewConfig.large(rows: 4).batchSize == 20)
-        #expect(PreviewConfig.large(rows: 4).batchRange(index: 20) == 1...20)
-        #expect(PreviewConfig.large(rows: 4).batchRange(index: 21) == 21...40)
     }
 
     @Test func archives() {

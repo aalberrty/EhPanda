@@ -117,8 +117,13 @@ import Testing
         #expect(harness.site.started.last == "reload:2")
 
         // On a page that has no image yet, "Reload" resolves it (legacy did nothing).
+        harness.site.hold("page:8")
+        model.pagesNeeded([8])
+        await readerEventually { harness.site.inFlight.contains("page:8") }
         model.perform(.reload, page: 8)
+        harness.site.release("page:8")
         await readerEventually { model.pageState(at: 8) == .image(harness.site.image(8)) }
+        #expect(harness.site.count(of: "reload:8") == 0)
     }
 
     @Test func shareFileNamesFollowTheImageType() {
