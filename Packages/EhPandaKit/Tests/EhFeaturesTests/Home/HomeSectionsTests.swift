@@ -8,9 +8,9 @@ import Testing
 
     @Test func cardsTakeTheTenLongestTitlesDeduplicatedAndAtMostSix() {
         // Titles of length 1...12; "dup" titles share a trimmed title with a longer one.
-        var galleries = (1...12).map { makeGallery(gid: "\($0)", title: String(repeating: "a", count: $0)) }
-        galleries.append(makeGallery(gid: "dup12", title: String(repeating: "a", count: 12)))
-        galleries.append(makeGallery(gid: "dup11", title: "[Group] " + String(repeating: "a", count: 11)))
+        var galleries = (1...12).map { makeHomeGallery(gid: "\($0)", title: String(repeating: "a", count: $0)) }
+        galleries.append(makeHomeGallery(gid: "dup12", title: String(repeating: "a", count: 12)))
+        galleries.append(makeHomeGallery(gid: "dup11", title: "[Group] " + String(repeating: "a", count: 11)))
         var generator = SplitMix64(seed: 1)
 
         let cards = HomeSections.cards(from: galleries, using: &generator)
@@ -23,9 +23,9 @@ import Testing
 
     @Test func cardsKeepFewerThanSixAndDropDuplicates() {
         let galleries = [
-            makeGallery(gid: "1", title: "Alpha"),
-            makeGallery(gid: "2", title: "Alpha"),
-            makeGallery(gid: "3", title: "Beta")
+            makeHomeGallery(gid: "1", title: "Alpha"),
+            makeHomeGallery(gid: "2", title: "Alpha"),
+            makeHomeGallery(gid: "3", title: "Beta")
         ]
         var generator = SplitMix64(seed: 7)
 
@@ -35,7 +35,7 @@ import Testing
     }
 
     @Test func cardShuffleIsDrivenByTheGenerator() {
-        let galleries = (1...6).map { makeGallery(gid: "\($0)", title: String(repeating: "a", count: $0)) }
+        let galleries = (1...6).map { makeHomeGallery(gid: "\($0)", title: String(repeating: "a", count: $0)) }
         var first = SplitMix64(seed: 42)
         var second = SplitMix64(seed: 42)
 
@@ -58,8 +58,8 @@ import Testing
     }
 
     @Test func compactCardsShortenLongTitles() {
-        let long = makeGallery(gid: "1", title: "[Circle (Artist)] A Rather Long Gallery Title | Translated Title")
-        let short = makeGallery(gid: "2", title: "[Circle] Short Title | Another")
+        let long = makeHomeGallery(gid: "1", title: "[Circle (Artist)] A Rather Long Gallery Title | Translated Title")
+        let short = makeHomeGallery(gid: "2", title: "[Circle] Short Title | Another")
 
         #expect(HomeSections.cardTitle(of: long, isCompact: true) == "A Rather Long Gallery Title")
         #expect(HomeSections.cardTitle(of: long, isCompact: false) == long.title)
@@ -69,8 +69,8 @@ import Testing
     // MARK: Frontpage
 
     @Test func frontpageKeepsTheFirstTwentyFiveUniqueTitles() {
-        var galleries = (0..<30).map { makeGallery(gid: "\($0)", title: "Title \($0)") }
-        galleries[3] = makeGallery(gid: "3", title: "Title 1 | Alternative")
+        var galleries = (0..<30).map { makeHomeGallery(gid: "\($0)", title: "Title \($0)") }
+        galleries[3] = makeHomeGallery(gid: "3", title: "Title 1 | Alternative")
 
         let frontpage = HomeSections.frontpage(from: galleries)
 
@@ -79,7 +79,7 @@ import Testing
     }
 
     @Test func coverColumnsPairGalleriesAndDropAnOddLastOne() {
-        let galleries = (0..<5).map { makeGallery(gid: "\($0)", title: "Title \($0)") }
+        let galleries = (0..<5).map { makeHomeGallery(gid: "\($0)", title: "Title \($0)") }
 
         let columns = HomeSections.coverColumns(from: galleries)
 
@@ -98,7 +98,7 @@ import Testing
     // MARK: Toplists
 
     @Test func rankingNumbersRowsFromTheRequestedRank() {
-        let galleries = (0..<5).map { makeGallery(gid: "\($0)", title: "Title \($0)") }
+        let galleries = (0..<5).map { makeHomeGallery(gid: "\($0)", title: "Title \($0)") }
 
         let first = HomeSections.ranking(galleries, ranks: 1...3)
         let second = HomeSections.ranking(galleries, ranks: 4...6)
@@ -117,7 +117,7 @@ import Testing
     }
 }
 
-private func makeGallery(gid: String, title: String) -> Gallery {
+private func makeHomeGallery(gid: String, title: String) -> Gallery {
     Gallery(
         gid: gid, token: "t", title: title, rating: 4, tags: [], category: .doujinshi,
         uploader: nil, pageCount: 1, postedDate: Date(timeIntervalSince1970: 0),

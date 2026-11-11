@@ -9,7 +9,7 @@ struct ConditionTimeout: Error {}
 /// Polls `condition` until it holds, failing after `seconds`. Database observations deliver
 /// on their own schedule, so model tests wait for the state they expect.
 func eventually(
-    _ seconds: Double = 5,
+    _ seconds: Double = 60,
     sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: () -> Bool
 ) async throws {

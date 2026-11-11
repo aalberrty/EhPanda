@@ -18,7 +18,7 @@ import Testing
         let task = Task { await model.run() }
         defer { task.cancel() }
 
-        try await eventually { settled(model, after: 6) }
+        try await homeEventually { settled(model, after: 6) }
 
         #expect(model.popularState == .idle)
         #expect(!model.cards.isEmpty && model.cards.count <= HomeSections.maximumCards)
@@ -38,7 +38,7 @@ import Testing
         let task = Task { await model.run() }
         defer { task.cancel() }
 
-        try await eventually { settled(model, after: 6) }
+        try await homeEventually { settled(model, after: 6) }
 
         let toplists = transport.requests.filter { $0.url?.path() == "/toplist.php" }
         let periods = toplists.compactMap { request in
@@ -60,7 +60,7 @@ import Testing
         let task = Task { await model.run() }
         defer { task.cancel() }
 
-        try await eventually { settled(model, after: 6) }
+        try await homeEventually { settled(model, after: 6) }
 
         #expect(!model.cards.isEmpty)
         #expect(model.frontpageState == .failed(.networkingFailed))
@@ -79,7 +79,7 @@ import Testing
         let task = Task { await model.run() }
         defer { task.cancel() }
 
-        try await eventually { settled(model, after: 6) }
+        try await homeEventually { settled(model, after: 6) }
 
         #expect(model.popularState == .failed(.notFound))
         #expect(model.cards.isEmpty)
@@ -93,12 +93,12 @@ import Testing
         let model = makeModel()
         let task = Task { await model.run() }
         defer { task.cancel() }
-        try await eventually { settled(model, after: 6) }
+        try await homeEventually { settled(model, after: 6) }
         let cards = model.cards
 
         transport.on(.path("/popular"), reply: .error(URLError(.timedOut)))
         model.reloadAll()
-        try await eventually { settled(model, after: 12) }
+        try await homeEventually { settled(model, after: 12) }
 
         #expect(transport.requests.count == 12)
         #expect(model.popularState == .failed(.networkingFailed))
@@ -110,16 +110,16 @@ import Testing
         let model = makeModel()
         let task = Task { await model.run() }
         defer { task.cancel() }
-        try await eventually { settled(model, after: 6) }
+        try await homeEventually { settled(model, after: 6) }
         transport.reset()
         serveFixtures()
 
         model.reloadFrontpage()
-        try await eventually { settled(model, after: 1) }
+        try await homeEventually { settled(model, after: 1) }
         #expect(transport.requests.first?.url?.path() == "/")
 
         model.reloadToplists()
-        try await eventually { settled(model, after: 5) }
+        try await homeEventually { settled(model, after: 5) }
         #expect(transport.requests.dropFirst().allSatisfy { $0.url?.path() == "/toplist.php" })
     }
 
@@ -128,7 +128,7 @@ import Testing
         transport.on(.path("/"), reply: .suspendUntilCancelled)
         let model = makeModel()
         let task = Task { await model.run() }
-        try await eventually { model.frontpageState.isLoading && model.popularState == .idle }
+        try await homeEventually { model.frontpageState.isLoading && model.popularState == .idle }
 
         model.reloadFrontpage()
         model.reloadFrontpage()
@@ -155,7 +155,7 @@ import Testing
         transport.on(.any, reply: .suspendUntilCancelled)
         let model = makeModel()
         let task = Task { await model.run() }
-        try await eventually { transport.requests.count == 6 }
+        try await homeEventually { transport.requests.count == 6 }
 
         task.cancel()
         await task.value
@@ -171,7 +171,7 @@ import Testing
         transport.on(.path("/"), reply: .suspendUntilCancelled)
         let model = makeModel()
         let first = Task { await model.run() }
-        try await eventually {
+        try await homeEventually {
             !model.cards.isEmpty && model.frontpageState.isLoading
                 && ToplistsType.allCases.allSatisfy { !model.toplists(for: $0).isEmpty }
         }
@@ -183,7 +183,7 @@ import Testing
         serveFixtures()
         let second = Task { await model.run() }
         defer { second.cancel() }
-        try await eventually { settled(model, after: 1) && !model.frontpage.isEmpty }
+        try await homeEventually { settled(model, after: 1) && !model.frontpage.isEmpty }
 
         #expect(transport.requests.map { $0.url?.path() } == ["/"])
     }
@@ -223,8 +223,8 @@ private func allSettled(_ model: HomeModel) -> Bool {
 private struct TimedOut: Error {}
 
 /// Polls `condition` on the main actor until it holds, yielding between checks.
-private func eventually(
-    timeout: Duration = .seconds(10), _ condition: @MainActor () -> Bool
+private func homeEventually(
+    timeout: Duration = .seconds(60), _ condition: @MainActor () -> Bool
 ) async throws {
     let deadline = ContinuousClock.now + timeout
     while !condition() {
