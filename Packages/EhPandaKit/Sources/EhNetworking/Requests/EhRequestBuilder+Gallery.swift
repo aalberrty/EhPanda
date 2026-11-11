@@ -32,17 +32,9 @@ extension EhRequestBuilder {
         RequestEncoding.get(galleryTorrentsURL(gid: gid, token: token))
     }
 
-    /// A page of the gallery's previews. `pageNum` is the site's 0-based `p`.
-    public func galleryPreviewURLs(galleryURL: URL, pageNum: Int) -> URLRequest {
-        detailPage(galleryURL: galleryURL, pageNum: pageNum)
-    }
-
-    /// The same detail page as `galleryPreviewURLs`, parsed for image-page links instead.
-    public func thumbnailURLs(galleryURL: URL, pageNum: Int) -> URLRequest {
-        detailPage(galleryURL: galleryURL, pageNum: pageNum)
-    }
-
-    private func detailPage(galleryURL: URL, pageNum: Int) -> URLRequest {
+    /// A page of the gallery's preview grid, which lists each page's thumbnail and the link to
+    /// its viewer page (legacy requested it once for each). `pageNum` is the site's 0-based `p`.
+    public func galleryPreviewPage(galleryURL: URL, pageNum: Int) -> URLRequest {
         RequestEncoding.get(appending([RequestEncoding.item(.letterP, String(pageNum))], to: galleryURL))
     }
 

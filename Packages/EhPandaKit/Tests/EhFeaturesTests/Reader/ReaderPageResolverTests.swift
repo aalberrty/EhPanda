@@ -166,7 +166,7 @@ private final class ResolverHarness {
         for page in 1...6 {
             #expect(harness.site.count(of: "page:\(page)") == 1)
         }
-        #expect(harness.events.contains(.links(harness.site.links(1...40))))
+        #expect(harness.resolver.link(of: 40) == harness.site.link(40))
     }
 
     // MARK: Cancellation

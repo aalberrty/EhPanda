@@ -170,12 +170,15 @@ public final class GalleryDetailModel {
             userStore.updateAPIKey(response.apiKey)
             setDetail(response.detail)
             previewConfig = response.state.previewConfig ?? previewConfig
-            setPreviewURLs(response.state.previewURLs)
+            setPreviewURLs(response.previewPage.previewURLs)
             loadingState = .idle
-            persist(response)
+            let saved = persist(response)
             handleGreeting(response.greeting)
             setComments(await CommentItem.make(from: response.state.comments))
             await setTags(response.state.tags)
+            // The reader and the previews grid start from what is stored, so a load that has
+            // returned has stored it.
+            await saved.value
         }
     }
 
@@ -234,13 +237,17 @@ public final class GalleryDetailModel {
 
     /// Stores the fresh page through the database's focused updates. Not tied to the screen:
     /// what was fetched is kept even if the screen closes meanwhile.
-    private func persist(_ response: GalleryDetailResponse) {
+    ///
+    /// The detail page is the gallery's first preview page, so its pages are stored with their
+    /// viewer links as well as their thumbnails: the reader then starts at the viewer page
+    /// instead of fetching this page again for the links.
+    private func persist(_ response: GalleryDetailResponse) -> Task<Void, Never> {
         let database = database
         let logger = logger
         let gid = gallery.gid
         let state = response.state
-        let pages = state.previewURLs.map { GalleryPage(gid: gid, index: $0.key, previewURL: $0.value) }
-        Task {
+        let pages = GalleryPage.pages(gid: gid, listedOn: response.previewPage)
+        return Task {
             do {
                 try await database.saveDetail(response.detail)
                 try await database.updateTags(gid: gid, tags: state.tags)

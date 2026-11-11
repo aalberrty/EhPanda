@@ -133,11 +133,16 @@ public final class ReaderModel {
         self.gallery = gallery
         pageCount = max(gallery.pageCount, 0)
         requestedPage = initialPage
-        resolver = ReaderPageResolver(gallery: gallery, client: client)
+        let previews = ReaderPreviewLoader(galleryURL: gallery.galleryURL, client: client)
+        self.previews = previews
+        // The resolver reads preview pages through the loader the slider uses, so a preview
+        // page is requested once whichever of them wants it first.
+        resolver = ReaderPageResolver(gallery: gallery, client: client) { [previews] number in
+            try await previews.page(number)
+        }
         writer = ReaderPageWriter(gid: gallery.gid, database: database, clock: clock, logger: logger)
-        previews = ReaderPreviewLoader(galleryURL: gallery.galleryURL, client: client)
         resolver.onEvent = { [weak self] in self?.handle($0) }
-        previews.onLoad = { [weak self] in self?.previewsDidLoad($0, previewPage: $1) }
+        previews.onLoad = { [weak self] in self?.previewPageDidLoad($0, previewPage: $1) }
     }
 
     // MARK: Lifecycle
@@ -307,10 +312,6 @@ public final class ReaderModel {
 
     private func handle(_ event: ReaderPageResolver.Event) {
         switch event {
-        case .links(let links):
-            for (page, link) in links {
-                writer.add(GalleryPage(gid: gallery.gid, index: page, pageURL: link))
-            }
         case .resolved(let image):
             failedImagePages.remove(image.index)
             staleCandidates.remove(image.index)

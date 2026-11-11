@@ -61,24 +61,22 @@ struct GalleryPreviewParserTests {
             == "https://sunvxqrqcj.hath.network/cm/azlrrht402sk9g3kpk/3103480-0.jpg?ehpandaWidth=100&ehpandaHeight=145&ehpandaOffset=0")
     }
 
-    @Test func previewConfigsRoundTrip() throws {
-        let url = try #require(try Parser.parsePreviewURLs(doc: parserFixture("Gallery/GalleryDetail.html"))[1])
-        let (plainURL, size, offset) = try #require(Parser.parsePreviewConfigs(url: url))
-        #expect(plainURL.absoluteString == "https://sunvxqrqcj.hath.network/cm/azlrrht402sk9g3kpk/3103480-0.jpg")
-        #expect(size.width == 100 && size.height == 145)
-        #expect(offset.width == 0 && offset.height == 0)
+    @Test func spriteSheetPreviewsDecodeToTheirTile() throws {
+        let previews = try Parser.parsePreviewURLs(doc: parserFixture("Gallery/GalleryDetail.html"))
+        let sheet = try #require(URL(string: "https://sunvxqrqcj.hath.network/cm/azlrrht402sk9g3kpk/3103480-0.jpg"))
+        #expect(CombinedPreviewURL.parse(try #require(previews[1]))
+            == CombinedPreviewURL(plainURL: sheet, width: 100, height: 145, offset: 0))
+        #expect(CombinedPreviewURL.parse(try #require(previews[2]))
+            == CombinedPreviewURL(plainURL: sheet, width: 100, height: 145, offset: 100))
     }
 
-    @Test func previewConfigsNeedAllThreeItems() throws {
-        let url = try #require(URL(string: "https://x.example/a.jpg?ehpandaWidth=1&ehpandaHeight=2"))
-        #expect(Parser.parsePreviewConfigs(url: url) == nil)
-        let combined = Parser.combinedPreviewURL(
-            plainURL: try #require(URL(string: "https://x.example/a.jpg")), width: "100", height: "145", offset: "-200"
-        )
-        #expect(combined.absoluteString == "https://x.example/a.jpg?ehpandaWidth=100&ehpandaHeight=145&ehpandaOffset=-200")
-        let (_, size, offset) = try #require(Parser.parsePreviewConfigs(url: combined))
-        #expect(size.width == 100 && size.height == 145)
-        #expect(offset.width == -200 && offset.height == 0)
+    @Test func previewPageHoldsBothHalvesOfTheSamePage() throws {
+        let doc = try parserFixture("Gallery/GalleryDetail.html")
+        let listed = try Parser.parsePreviewPage(doc: doc)
+        #expect(listed.previewURLs == (try Parser.parsePreviewURLs(doc: doc)))
+        #expect(listed.pageURLs == (try Parser.parsePageURLs(doc: doc)))
+        #expect(listed.indices == Set(1...40))
+        #expect(throws: AppError.parseFailed) { try Parser.parsePreviewPage(doc: html("<p></p>")) }
     }
 
     @Test func standalonePreviewURLs() throws {
@@ -88,15 +86,16 @@ struct GalleryPreviewParserTests {
         )
         let previews = try Parser.parsePreviewURLs(doc: doc)
         #expect(previews.mapValues(\.absoluteString) == [1: "https://p.example/1.jpg", 2: "https://p.example/2.jpg"])
-        let thumbnails = try Parser.parseThumbnailURLs(doc: doc)
-        #expect(thumbnails.mapValues(\.absoluteString) == [1: "https://e-hentai.org/s/a/1-1", 2: "https://e-hentai.org/s/b/1-2"])
+        let pageURLs = try Parser.parsePageURLs(doc: doc)
+        #expect(pageURLs.mapValues(\.absoluteString) == [1: "https://e-hentai.org/s/a/1-1", 2: "https://e-hentai.org/s/b/1-2"])
+        #expect(try Parser.parsePreviewPage(doc: doc) == PreviewPage(previewURLs: previews, pageURLs: pageURLs))
     }
 
-    @Test func thumbnailURLs() throws {
-        let thumbnails = try Parser.parseThumbnailURLs(doc: parserFixture("Gallery/GalleryDetail.html"))
-        #expect(thumbnails.count == 40)
-        #expect(thumbnails[1]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page1")
-        #expect(thumbnails[40]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page40")
+    @Test func pageURLs() throws {
+        let pageURLs = try Parser.parsePageURLs(doc: parserFixture("Gallery/GalleryDetail.html"))
+        #expect(pageURLs.count == 40)
+        #expect(pageURLs[1]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page1")
+        #expect(pageURLs[40]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page40")
     }
 
     @Test func previewMode() throws {

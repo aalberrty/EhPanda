@@ -1,6 +1,6 @@
 import EhCore
 import EhFeatures
-import EhNetworking
+import EhModels
 import SwiftUI
 
 /// The lower half of the control panel: a second close button within reach of the thumb

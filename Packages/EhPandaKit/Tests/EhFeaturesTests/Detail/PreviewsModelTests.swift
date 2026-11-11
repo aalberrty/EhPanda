@@ -5,28 +5,7 @@ import EhNetworking
 import Foundation
 import Testing
 
-@Suite struct PreviewPagingTests {
-    @Test(arguments: [
-        (1, 0), (39, 0), (40, 0), (41, 1), (80, 1), (81, 2), (120, 2), (121, 3)
-    ])
-    func normalLayoutPages(index: Int, page: Int) {
-        #expect(PreviewPaging.pageNumber(forIndex: index, config: .normal(rows: 4)) == page)
-    }
-
-    @Test(arguments: [(1, 0), (20, 0), (21, 1), (40, 1), (41, 2)])
-    func largeLayoutPages(index: Int, page: Int) {
-        #expect(PreviewPaging.pageNumber(forIndex: index, config: .large(rows: 4)) == page)
-    }
-
-    /// Legacy was off by one at exact multiples of the batch size.
-    @Test func exactMultiplesStayOnTheirPage() {
-        let config = PreviewConfig.normal(rows: 4)
-        #expect(config.pageNumber(index: 40) == 0)
-        #expect(PreviewPaging.pageNumber(forIndex: 40, config: config) == 0)
-        #expect(PreviewPaging.indices(onPage: 0, config: config) == 1...40)
-        #expect(PreviewPaging.indices(onPage: 1, config: config) == 41...80)
-    }
-
+@Suite struct PreviewThumbnailTests {
     @Test func spriteURLsDecodeToTheirCrop() throws {
         let url = CombinedPreviewURL.url(
             plainURL: URL(string: "https://ehgt.org/a/sheet.webp")!, width: "100", height: "142", offset: "200"
@@ -82,10 +61,36 @@ import Testing
         model.thumbnailAppeared(2)
         await pollUntil { model.preview(at: 2) != nil }
 
+        // On screen a known preview is never replaced.
         #expect(model.preview(at: 1)?.source == .image(known))
+        // Everything the preview page lists is stored, with the link to its viewer page.
         await pollUntil {
-            (try? await env.database.pages(gid: DetailEnvironment.gid))?.count == 39
+            (try? await env.database.pages(gid: DetailEnvironment.gid))?.count == 40
         }
+        let stored = try await env.database.pages(gid: DetailEnvironment.gid)
+        #expect(stored.allSatisfy { $0.previewURL != nil && $0.pageURL != nil })
+        #expect(stored.first { $0.index == 2 }?.pageURL?.absoluteString
+            == "https://e-hentai.org/mpv/3103480/0000000000/#page2")
+    }
+
+    /// The layout the detail page stored can be out of date. The grid then asks for the wrong
+    /// preview page; what that page lists says where the cell's preview really is.
+    @Test func aWrongPageSizeIsCorrectedFromWhatThePreviewPageLists() async throws {
+        let site = ReaderTestSite(pageCount: 156, batchSize: 20)
+        let env = try await DetailEnvironment()
+        env.transport.on(.any, reply: .handler { [site] request in try await site.transport.send(request) })
+        let model = env.with {
+            PreviewsModel(gallery: site.gallery, pageCount: 156, config: .normal(rows: 4), previewURLs: [:])
+        }
+        await model.load()
+
+        // With 40 to a page, page 25 would be on the first preview page; the site shows 20.
+        model.thumbnailAppeared(25)
+        await pollUntil { model.preview(at: 25) != nil }
+
+        #expect(site.started == ["links:0", "links:1"])
+        #expect(!model.hasFailed(at: 25))
+        #expect(model.preview(at: 1) != nil)
     }
 
     @Test func storedPreviewsNeedNoRequest() async throws {

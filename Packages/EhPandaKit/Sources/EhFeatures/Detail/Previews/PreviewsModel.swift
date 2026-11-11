@@ -23,7 +23,8 @@ public final class PreviewsModel {
     /// The reader, when a preview was tapped.
     public var readerDestination: DetailDestination?
 
-    @ObservationIgnored private let config: PreviewConfig
+    /// Starts from the detail page's layout and corrects itself from what preview pages list.
+    @ObservationIgnored private var paging: PreviewPaging
     @ObservationIgnored private var isReady = false
     @ObservationIgnored private var loadingPages: Set<Int> = []
     @ObservationIgnored private var visibleIndices: Set<Int> = []
@@ -38,7 +39,7 @@ public final class PreviewsModel {
     public init(gallery: Gallery, pageCount: Int, config: PreviewConfig?, previewURLs: [Int: URL]) {
         self.gallery = gallery
         self.pageCount = pageCount
-        self.config = config ?? PreviewPaging.defaultConfig
+        paging = PreviewPaging(config: config)
         thumbnails = previewURLs.reduce(into: [:]) { $0[$1.key] = PreviewThumbnail(index: $1.key, url: $1.value) }
     }
 
@@ -92,7 +93,7 @@ public final class PreviewsModel {
     // MARK: Paging
 
     private func page(of index: Int) -> Int {
-        PreviewPaging.pageNumber(forIndex: index, config: config)
+        paging.previewPage(for: index)
     }
 
     private func loadPageIfNeeded(for index: Int) {
@@ -104,37 +105,47 @@ public final class PreviewsModel {
         failedPages.remove(page)
         let client = client
         tasks.run(Self.taskKey(page)) { [weak self] in
-            let outcome = await Outcome.of { try await client.previewURLs(galleryURL: galleryURL, pageNumber: page) }
+            let outcome = await Outcome.of { try await client.previewPage(galleryURL: galleryURL, pageNumber: page) }
             self?.finishPage(page, outcome)
         }
     }
 
-    private func finishPage(_ page: Int, _ outcome: Outcome<[Int: URL]>) {
+    private func finishPage(_ page: Int, _ outcome: Outcome<PreviewPage>) {
         switch outcome {
         case .cancelled:
             return
         case .failure:
             failedPages.insert(page)
-        case .success(let urls) where urls.isEmpty:
+        case .success(let listed) where listed.previewURLs.isEmpty:
             failedPages.insert(page)
-        case .success(let urls):
-            merge(urls)
+        case .success(let listed):
+            merge(listed)
         }
         loadingPages.remove(page)
+        if case .success(let listed) = outcome,
+           paging.learn(listed: listed.indices, onPreviewPage: page, pageCount: pageCount)
+        {
+            // The page size was not what the layout said: cells still without a preview are
+            // listed on another preview page than the one that was asked for them.
+            for index in visibleIndices.sorted() {
+                loadPageIfNeeded(for: index)
+            }
+        }
     }
 
-    /// New previews never replace known ones, as in legacy.
-    private func merge(_ urls: [Int: URL]) {
+    /// New previews never replace known ones on screen, as in legacy. Everything the page
+    /// lists is stored, viewer links included: the reader opened from here starts from them.
+    private func merge(_ listed: PreviewPage) {
         var merged = thumbnails
-        var added = [GalleryPage]()
-        for (index, url) in urls where merged[index] == nil {
+        for (index, url) in listed.previewURLs where merged[index] == nil {
             merged[index] = PreviewThumbnail(index: index, url: url)
-            added.append(GalleryPage(gid: gallery.gid, index: index, previewURL: url))
         }
-        guard !added.isEmpty else { return }
-        thumbnails = merged
+        if merged != thumbnails {
+            thumbnails = merged
+        }
         let database = database
-        Task { try? await database.upsertPages(added) }
+        let pages = GalleryPage.pages(gid: gallery.gid, listedOn: listed)
+        Task { try? await database.upsertPages(pages) }
     }
 
     private static func taskKey(_ page: Int) -> String {

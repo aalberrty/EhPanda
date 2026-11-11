@@ -38,9 +38,6 @@ enum RequestQueryKey: String {
     case fSfl = "f_sfl"
     case fSfu = "f_sfu"
     case fSft = "f_sft"
-
-    // App-private keys carried on preview URLs, never sent to the site.
-    case ehpandaWidth, ehpandaHeight, ehpandaOffset
 }
 
 /// Fixed query values (legacy `Defaults.URL.Component.Value`).

@@ -157,11 +157,24 @@ import Testing
         #expect(model.imageActions(for: 20).contains(.saveOriginal))
         await harness.flushWrites(of: model)
         let stored = try await harness.storedPages()
-        // The pages asked for and the three legacy fetched eagerly; no viewer links.
-        #expect(Set(stored.keys) == [1, 2, 3, 20, 21])
+        // Everything the preview page listed is kept, and the images of the pages asked for
+        // and of the three legacy fetched eagerly.
+        #expect(Set(stored.keys) == Set(1...40))
+        #expect(Set(stored.values.filter { $0.imageURL != nil }.map(\.index)) == [1, 2, 3, 20, 21])
         #expect(stored[20]?.imageURL == harness.site.mpvImage(20))
         #expect(stored[20]?.originalImageURL == harness.site.mpvOriginal(20))
-        #expect(stored[20]?.pageURL == nil)
+        #expect(stored[40]?.previewURL == harness.site.preview(40))
+        #expect(EhURL.isMPVURL(stored[20]?.pageURL))
+
+        // The stored link says where the keys are: the next session, on a preview page nobody
+        // has fetched, goes straight to them.
+        model.close()
+        let requests = harness.site.started.count
+        let reopened = await harness.startedModel(initialPage: 45)
+        reopened.pagesNeeded([45])
+        await readerEventually { reopened.pageState(at: 45) == .image(harness.site.mpvImage(45)) }
+        #expect(Array(harness.site.started.dropFirst(requests).prefix(2)) == ["mpv", "dispatch:45"])
+        #expect(harness.site.count(of: "links:1") == 0)
     }
 
     @Test func releasedPagesStopResolving() async throws {

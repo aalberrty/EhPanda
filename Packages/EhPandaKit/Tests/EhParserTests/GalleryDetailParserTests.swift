@@ -33,6 +33,18 @@ struct GalleryDetailParserTests {
         #expect(state.comments.count == 10)
     }
 
+    /// The detail page is the gallery's first preview page: the response carries the viewer
+    /// links it lists next to the thumbnails, so nobody has to request the page again for them.
+    @Test func detailResponseCarriesTheFirstPreviewPage() throws {
+        let doc = try parserFixture("Gallery/GalleryDetail.html")
+        let response = try Parser.parseGalleryDetailResponse(doc: doc, gid: "2725078")
+        #expect(response.previewPage == (try Parser.parsePreviewPage(doc: doc)))
+        #expect(response.state.thumbnailURLs.count == 40)
+        #expect(response.state.thumbnailURLs[1]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page1")
+        #expect(response.previewPage.pageURLs == response.state.thumbnailURLs)
+        #expect(response.previewPage.previewURLs == response.state.previewURLs)
+    }
+
     @Test func postedDateAndTags() throws {
         let (detail, state) = try Parser.parseGalleryDetail(doc: parserFixture("Gallery/GalleryDetail.html"), gid: "2725078")
         // "Posted: 2024-10-27 06:20", in UTC.

@@ -30,6 +30,11 @@ struct GalleryClientTests {
         #expect(response.detail.title == "[Artist] mks")
         #expect(response.state.comments.count == 10)
         #expect(response.state.previewURLs.count == 40)
+        // The detail page is the first preview page: its viewer links come with it.
+        #expect(Set(response.previewPage.previewURLs.keys) == Set(1...40))
+        #expect(Set(response.previewPage.pageURLs.keys) == Set(1...40))
+        #expect(response.previewPage.pageURLs[40]?.absoluteString
+            == "https://e-hentai.org/mpv/3103480/0000000000/#page40")
         #expect(!response.apiKey.isEmpty)
         #expect(response.greeting == nil)
     }
@@ -203,14 +208,29 @@ struct GalleryClientTests {
         #expect(torrents.map(\.hash) == ["abcdef0123456789"])
     }
 
-    @Test func previewURLs() async throws {
+    @Test func previewPageReturnsThumbnailsAndViewerLinksFromOneRequest() async throws {
         let harness = ClientHarness()
         harness.transport.on(.any, reply: .fixture(ClientFixture.detail))
 
-        let previews = try await harness.client.previewURLs(galleryURL: galleryURL, pageNumber: 2)
+        let listed = try await harness.client.previewPage(galleryURL: galleryURL, pageNumber: 2)
 
         #expect(line(try harness.onlyRequest()) == "GET https://e-hentai.org/g/3103480/0000000000/?p=2")
-        #expect(Set(previews.keys) == Set(1...40))
+        #expect(Set(listed.previewURLs.keys) == Set(1...40))
+        #expect(Set(listed.pageURLs.keys) == Set(1...40))
+        #expect(listed.pageURLs[40]?.absoluteString == "https://e-hentai.org/mpv/3103480/0000000000/#page40")
+        #expect(EhURL.isMPVURL(listed.pageURLs[1]))
+        #expect(CombinedPreviewURL.parse(try #require(listed.previewURLs[2]))?.offset == 100)
+    }
+
+    @Test func previewPageWithoutPreviewsIsAParseFailure() async throws {
+        let harness = ClientHarness()
+        harness.transport.on(.any, reply: .html("<html><body>Nope</body></html>"))
+
+        let error = await thrownError {
+            try await harness.client.previewPage(galleryURL: galleryURL, pageNumber: 0)
+        }
+
+        #expect(error as? AppError == .parseFailed)
     }
 
     @Test func dataReturnsTheBodyAsIs() async throws {

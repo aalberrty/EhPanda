@@ -5,12 +5,12 @@ import Foundation
 import Synchronization
 import Testing
 
-/// A made-up gallery served through a `StubTransport`: preview pages, viewer pages, the
-/// multi-page viewer and its `imagedispatch` API.
+/// A made-up gallery served through a `StubTransport`: the detail page, preview pages, viewer
+/// pages, the multi-page viewer and its `imagedispatch` API.
 ///
-/// Every request is recorded under a short key in the order it arrived:
-/// `links:<preview page>`, `page:<n>`, `reload:<n>` (a viewer page with `nl`), `mpv`,
-/// `dispatch:<n>` and `dispatch:<n>:nl=<id>`. A key can be held (the request waits until it
+/// Every request is recorded under a short key in the order it arrived: `detail` (the gallery
+/// page with `hc=1`), `links:<preview page>`, `page:<n>`, `reload:<n>` (a viewer page with
+/// `nl`), `mpv`, `dispatch:<n>` and `dispatch:<n>:nl=<id>`. A key can be held (the request waits until it
 /// is released or cancelled) and made to fail, which is how the tests see ordering, bounds and
 /// cancellation.
 nonisolated final class ReaderTestSite: Sendable {
@@ -152,6 +152,7 @@ nonisolated final class ReaderTestSite: Sendable {
         let components = url.pathComponents
         let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
         if components.count >= 2, components[1] == "g" {
+            if query.contains(where: { $0.name == "hc" }) { return "detail" }
             return "links:\(query.first { $0.name == "p" }?.value ?? "0")"
         }
         if components.count >= 4, components[1] == "s" {
@@ -174,6 +175,8 @@ nonisolated final class ReaderTestSite: Sendable {
         let parts = key.split(separator: ":").map(String.init)
         let number = parts.count > 1 ? Int(parts[1]) : nil
         switch parts[0] {
+        case "detail":
+            return detailHTML
         case "links":
             return number.map(previewPageHTML)
         case "page":
@@ -191,10 +194,23 @@ nonisolated final class ReaderTestSite: Sendable {
         }
     }
 
+    /// The detail fixture with this gallery's first preview page in place of its own.
+    private var detailHTML: String? {
+        guard let fixture = try? Fixture.string("Parser/Gallery/GalleryDetail.html"),
+              let start = fixture.range(of: #"<div id="gdt" class="gt100">"#),
+              let end = fixture.range(of: #"<div class="gtb">"#, range: start.upperBound..<fixture.endIndex)
+        else { return nil }
+        return fixture.replacingCharacters(in: start.lowerBound..<end.lowerBound, with: previewGrid(0))
+    }
+
     private func previewPageHTML(_ number: Int) -> String {
+        "<html><body>\(previewGrid(number))</body></html>"
+    }
+
+    private func previewGrid(_ number: Int) -> String {
         let first = number * batchSize + 1
         let last = min(first + batchSize - 1, pageCount)
-        guard first <= last else { return #"<html><body><div id="gdt" class="gt100"></div></body></html>"# }
+        guard first <= last else { return #"<div id="gdt" class="gt100"></div>"# }
         let entries = (first...last).map { page -> String in
             let href = usesMPV
                 ? "https://e-hentai.org/mpv/\(gid)/\(token)/#page\(page)"
@@ -204,7 +220,7 @@ nonisolated final class ReaderTestSite: Sendable {
                 + "url(https://ehgt.example/\(gid)-\(number).jpg) -\(offset)px 0 no-repeat"
             return #"<a href="\#(href)"><div title="Page \#(page): \#(page).jpg" style="\#(style)"></div></a>"#
         }
-        return #"<html><body><div id="gdt" class="gt100">\#(entries.joined())</div></body></html>"#
+        return #"<div id="gdt" class="gt100">\#(entries.joined())</div>"#
     }
 
     /// The preview thumbnail the site lists for a page, as the parser stores it.

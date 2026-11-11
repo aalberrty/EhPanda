@@ -30,9 +30,11 @@ final class ReaderModelHarness {
     /// Whether the image cache can produce bytes.
     let imageDataFails = LockIsolated(false)
 
-    init(site: ReaderTestSite = ReaderTestSite()) throws {
+    /// - Parameter database: The database another feature's model already wrote to; a new,
+    ///   empty one by default.
+    init(site: ReaderTestSite = ReaderTestSite(), database: AppDatabase? = nil) throws {
         self.site = site
-        database = try AppDatabase.makeInMemory()
+        self.database = try database ?? AppDatabase.makeInMemory()
     }
 
     var gid: String { site.gid }
