@@ -24,7 +24,7 @@ struct FiltersSheet: View {
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(role: .close) { dismiss() }
+                    SheetCloseButton { dismiss() }
                 }
             }
         }

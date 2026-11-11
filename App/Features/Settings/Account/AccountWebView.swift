@@ -17,6 +17,21 @@ struct AccountWebView: View {
     let url: URL
     var onLoginFinished: (([WebCookie]) -> Void)?
 
+    var body: some View {
+        if #available(iOS 26, *) {
+            WebPageAccountView(url: url, onLoginFinished: onLoginFinished)
+        } else {
+            LegacyAccountWebView(url: url, onLoginFinished: onLoginFinished)
+        }
+    }
+}
+
+/// `AccountWebView` on iOS 26, over the SwiftUI `WebView`.
+@available(iOS 26, *)
+private struct WebPageAccountView: View {
+    let url: URL
+    let onLoginFinished: (([WebCookie]) -> Void)?
+
     @State private var session = WebSession()
     @State private var didFinishLogin = false
     @Environment(\.dismiss) private var dismiss
@@ -30,7 +45,7 @@ struct AccountWebView: View {
                 .ignoresSafeArea(edges: .bottom)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button(role: .close) { dismiss() }
+                        SheetCloseButton { dismiss() }
                     }
                     ToolbarItem(placement: .principal) {
                         if page.isLoading {
@@ -64,6 +79,7 @@ struct AccountWebView: View {
 }
 
 /// A page over a data store of its own that is never written to disk.
+@available(iOS 26, *)
 @MainActor
 private final class WebSession {
     let dataStore = WKWebsiteDataStore.nonPersistent()

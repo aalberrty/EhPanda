@@ -2,7 +2,7 @@ import SwiftUI
 
 // Legacy `CustomToolbarItem` wrapped several buttons in one `HStack` item. On iOS 26 that defeats
 // the toolbar's own glass grouping, so it is not ported: use `ToolbarItemGroup` (and
-// `ToolbarSpacer` to split groups), with `.tint` / `.disabled` on the items themselves.
+// `ToolbarSpacer` to split groups, iOS 26 only), with `.tint` / `.disabled` on the items themselves.
 
 /// The "more" menu at the trailing edge of a toolbar (legacy `ToolbarFeaturesMenu`).
 struct ToolbarFeaturesMenu<Content: View>: View {
@@ -128,7 +128,9 @@ private struct ToolbarItemsPreview: View {
                         selection: sortOrder, optionTitle: { $0 }, onSelect: { sortOrder = $0 }
                     )
                 }
-                ToolbarSpacer(.fixed)
+                if #available(iOS 26, *) {
+                    ToolbarSpacer(.fixed)
+                }
                 ToolbarItem {
                     ToolbarFeaturesMenu {
                         FiltersButton {}

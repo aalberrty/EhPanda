@@ -52,7 +52,7 @@ private struct LockControl: View {
                 .foregroundStyle(.primary)
                 .frame(width: 96, height: 96)
         }
-        .buttonStyle(.glass)
+        .glassButtonStyle()
         .buttonBorderShape(.circle)
         // There is no "Unlock" string; the prompt's reason says why the app is locked.
         .accessibilityLabel(L10n.Localizable.LocalAuthorization.reason)

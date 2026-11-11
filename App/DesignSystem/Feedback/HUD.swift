@@ -65,7 +65,7 @@ private struct HUDCard: View {
         .padding(.horizontal, Tokens.Spacing.xxLarge)
         .padding(.vertical, Tokens.Spacing.xLarge)
         .frame(minWidth: 140, maxWidth: 280)
-        .glassEffect(.regular, in: .rect(cornerRadius: Tokens.Radius.card, style: .continuous))
+        .glassSurface(in: .rect(cornerRadius: Tokens.Radius.card, style: .continuous))
         .accessibilityElement(children: .combine)
         .onAppear { bounce += 1 }
         .onChange(of: configuration) { bounce += 1 }

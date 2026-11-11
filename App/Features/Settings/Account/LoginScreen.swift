@@ -117,7 +117,7 @@ private struct LoginField: View {
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
             .padding(Tokens.Spacing.medium)
-            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: Tokens.Radius.field))
+            .glassSurface(in: .rect(cornerRadius: Tokens.Radius.field), isInteractive: true)
         }
     }
 }
@@ -137,7 +137,7 @@ private struct LoginButton: View {
                     if isLoading { ProgressView() }
                 }
         }
-        .buttonStyle(.glass)
+        .glassButtonStyle()
         .buttonBorderShape(.circle)
         .disabled(isDisabled || isLoading)
         .accessibilityLabel(L10n.Localizable.LoginView.Title.login)

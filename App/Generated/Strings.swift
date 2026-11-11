@@ -1922,6 +1922,8 @@ internal enum L10n {
     }
     internal enum JumpPageView {
       internal enum Button {
+        /// Cancel
+        internal static let cancel = L10n.tr("Localizable", "jump_page_view.button.cancel", fallback: "Cancel")
         /// Confirm
         internal static let confirm = L10n.tr("Localizable", "jump_page_view.button.confirm", fallback: "Confirm")
       }

@@ -34,7 +34,7 @@ struct PaginationFooter: View {
                         .imageScale(.large)
                         .foregroundStyle(.red)
                 }
-                .buttonStyle(.glass)
+                .glassButtonStyle()
                 .buttonBorderShape(.circle)
                 .accessibilityLabel(L10n.Localizable.ErrorView.Button.retry)
             case .idle, .end:

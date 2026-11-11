@@ -160,7 +160,7 @@ private struct QuickSearchWordForm: View {
         .navigationTitle(title)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button(role: .confirm) {
+                SheetConfirmButton {
                     Task { await model.saveDraft() }
                 }
                 .disabled(!model.canSaveDraft)

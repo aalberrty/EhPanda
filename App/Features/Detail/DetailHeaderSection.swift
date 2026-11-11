@@ -78,7 +78,7 @@ struct DetailHeaderSection: View {
                 .lineLimit(1)
                 .padding(.horizontal, Tokens.Spacing.xxSmall)
         }
-        .buttonStyle(.glassProminent)
+        .glassProminentButtonStyle()
         .buttonBorderShape(.capsule)
     }
 }
@@ -111,7 +111,7 @@ private struct FavoriteControl: View {
             }
         }
         .imageScale(.large)
-        .buttonStyle(.glass)
+        .glassButtonStyle()
         .buttonBorderShape(.circle)
         .disabled(!model.isLoggedIn)
     }

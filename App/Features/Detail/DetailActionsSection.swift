@@ -37,7 +37,7 @@ struct DetailActionsSection: View {
             .font(.callout.bold())
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-            .buttonStyle(.glass)
+            .glassButtonStyle()
             .controlSize(.large)
 
             if model.showsRatingControl {

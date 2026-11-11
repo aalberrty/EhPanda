@@ -56,6 +56,7 @@
 // MARK: JumpPage
 "jump_page_view.title.jump_page" = "페이지 이동";
 "jump_page_view.button.confirm" = "확인";
+"jump_page_view.button.cancel" = "취소";
 
 // MARK: AlertView
 "loading_view.title.loading" = "로딩 중...";

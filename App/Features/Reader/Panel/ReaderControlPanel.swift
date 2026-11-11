@@ -56,7 +56,7 @@ struct ReaderCloseButton: View {
                 .contentShape(.circle)
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .circle)
+        .glassSurface(in: .circle, isInteractive: true)
     }
 }
 
@@ -68,7 +68,7 @@ private struct ReaderTopBar: View {
     let close: () -> Void
 
     var body: some View {
-        GlassEffectContainer(spacing: Tokens.Spacing.medium) {
+        GlassGroup(spacing: Tokens.Spacing.medium) {
             HStack(spacing: Tokens.Spacing.medium) {
                 ReaderCloseButton(action: close)
                 ReaderPageIndicator(model: model)
@@ -93,7 +93,7 @@ private struct ReaderPageIndicator: View {
             .padding(.horizontal, Tokens.Spacing.large)
             .frame(height: 44)
             .contentShape(.capsule)
-            .glassEffect(.regular, in: .capsule)
+            .glassSurface(in: .capsule)
     }
 }
 
@@ -157,7 +157,7 @@ private struct ReaderToolGroup: View {
         .padding(.horizontal, Tokens.Spacing.xLarge)
         .frame(height: 44)
         .contentShape(.capsule)
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .glassSurface(in: .capsule, isInteractive: true)
     }
 
     private var autoPlay: Binding<ReaderAutoPlayPolicy> {
