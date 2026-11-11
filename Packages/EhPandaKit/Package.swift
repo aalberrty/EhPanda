@@ -9,6 +9,11 @@ import PackageDescription
 //
 //   EhModels  →  EhParser  →  EhNetworking ┐
 //            └→  EhDatabase ───────────────┴→  EhCore  →  EhFeatures
+// Lets `unimplemented` dependency endpoints report issues to Swift Testing.
+let issueReportingTestSupport: Target.Dependency = .product(
+    name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay"
+)
+
 let package = Package(
     name: "EhPandaKit",
     platforms: [.iOS(.v26), .macOS(.v26)],
@@ -22,6 +27,7 @@ let package = Package(
         .package(url: "https://github.com/groue/GRDB.swift", from: "7.12.0"),
         .package(url: "https://github.com/tid-kijyun/Kanna", from: "6.1.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.17.2"),
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.13.1"),
         .package(url: "https://github.com/ddddxxx/SwiftyOpenCC", from: "2.0.0-beta")
     ],
     targets: [
@@ -56,7 +62,7 @@ let package = Package(
                 .product(name: "OpenCC", package: "SwiftyOpenCC")
             ]
         ),
-        .testTarget(name: "EhCoreTests", dependencies: ["EhCore", "EhTestSupport"]),
+        .testTarget(name: "EhCoreTests", dependencies: ["EhCore", "EhTestSupport", issueReportingTestSupport]),
 
         // `@Observable` feature models that the SwiftUI views in the app target render.
         .target(
@@ -66,7 +72,7 @@ let package = Package(
         ),
         .testTarget(
             name: "EhFeaturesTests",
-            dependencies: ["EhFeatures", "EhTestSupport"],
+            dependencies: ["EhFeatures", "EhTestSupport", issueReportingTestSupport],
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),
 
