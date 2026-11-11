@@ -20,7 +20,15 @@ struct RootView: View {
     }
 
     private var placeholder: some View {
-        ContentUnavailableView("EhPanda", systemImage: "hammer", description: Text(verbatim: "v2"))
+        ContentUnavailableView {
+            Label("EhPanda", systemImage: "hammer")
+        } description: {
+            Text(verbatim: "v2")
+        } actions: {
+            #if DEBUG
+            ReaderHarnessLauncher()
+            #endif
+        }
     }
 }
 
