@@ -10,7 +10,7 @@ import Testing
         _ env: DetailEnvironment, scrollTo commentID: String? = nil
     ) async -> (GalleryDetailModel, CommentsModel) {
         let detail = await env.loadedDetailModel()
-        let comments = env.with { CommentsModel(detail: detail, scrollTo: commentID, intents: env.intents) }
+        let comments = env.with { CommentsModel(detail: detail, scrollTo: commentID) }
         return (detail, comments)
     }
 
@@ -142,9 +142,10 @@ import Testing
     @Test func linksOutsideTheSiteOpenExternally() async throws {
         let env = try await DetailEnvironment()
         let (_, model) = await makeModel(env)
-        model.openLink(URL(string: "https://example.com/page")!)
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://example.com/page")!, on: stack)
         await pollUntil { env.openedURLs.all.count == 1 }
-        #expect(model.linkedGallery == nil)
+        #expect(stack.isAtRoot)
     }
 
     @Test func storedGalleryOpensWithoutARequest() async throws {
@@ -154,12 +155,12 @@ import Testing
         try await env.database.recordOpened(other)
         let requestsBefore = env.transport.requests.count
 
-        model.openLink(URL(string: "https://e-hentai.org/s/0123456789/999-5")!)
-        await pollUntil { model.linkedGallery != nil }
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://e-hentai.org/s/0123456789/999-5")!, on: stack)
+        await pollUntil { !stack.isAtRoot }
 
-        #expect(model.linkedGallery == other)
+        #expect(stack.path == [.detail(other, intent: .read(page: 5))])
         #expect(env.transport.requests.count == requestsBefore)
-        #expect(env.intents.take(for: "999") == .read(page: 5))
         await pollUntil { (try? await env.database.state(gid: "999"))?.readingProgress == 5 }
     }
 
@@ -170,15 +171,20 @@ import Testing
         // Any gallery page parses; the gallery takes its gid and token from the link.
         env.transport.on(.path("/g/31338/cafe/"), reply: .fixture("Parser/Gallery/GalleryDetail.html"))
 
-        model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/#c5143504")!)
-        await pollUntil { model.linkedGallery != nil }
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://e-hentai.org/g/31338/cafe/#c5143504")!, on: stack)
+        await pollUntil { !stack.isAtRoot }
 
-        let gallery = try #require(model.linkedGallery)
+        guard case .detail(let gallery, let intent) = try #require(stack.path.first) else {
+            Issue.record("Expected a detail route, got \(stack.path)")
+            return
+        }
+        #expect(stack.path.count == 1)
         #expect(gallery.gid == "31338")
         #expect(gallery.token == "cafe")
         #expect(gallery.title == "[Artist] mks")
+        #expect(intent == .comments(scrollTo: "5143504"))
         #expect(model.linkState == nil)
-        #expect(env.intents.take(for: "31338") == .comments(scrollTo: "5143504"))
         #expect(env.requests("GET", path: "/g/31338/cafe/").count == 1)
     }
 
@@ -187,10 +193,11 @@ import Testing
         let (_, model) = await makeModel(env)
         env.transport.on(.path("/g/31337/beef/"), reply: .error(URLError(.timedOut)))
 
-        model.openLink(URL(string: "https://e-hentai.org/g/31337/beef/")!)
+        let stack = StackRouter()
+        model.openLink(URL(string: "https://e-hentai.org/g/31337/beef/")!, on: stack)
         await pollUntil { model.linkState == .failed(.networkingFailed) }
 
-        #expect(model.linkedGallery == nil)
+        #expect(stack.isAtRoot)
         model.dismissLinkState()
         #expect(model.linkState == nil)
     }

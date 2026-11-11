@@ -54,7 +54,8 @@ public final class GalleryDetailModel {
     @ObservationIgnored var tags: [GalleryTag] = []
     @ObservationIgnored var feedbackCounter = FeedbackCounter()
     @ObservationIgnored let tasks = ModelTasks()
-    @ObservationIgnored private let intents: DetailIntents
+    /// What the opener asked for; run once, after the first load.
+    @ObservationIgnored private var pendingIntent: DetailIntent?
     @ObservationIgnored private var initialLoad: Task<Void, Never>?
 
     @ObservationIgnored @Dependency(\.ehClient) var client
@@ -66,9 +67,10 @@ public final class GalleryDetailModel {
     @ObservationIgnored @Dependency(\.appLogger) private var logger
 
     /// Cheap: nothing is read or fetched until `load()`.
-    public init(gallery: Gallery, intents: DetailIntents = .shared) {
+    /// - Parameter intent: What to do once the screen has opened, e.g. open the reader at a page.
+    public init(gallery: Gallery, intent: DetailIntent? = nil) {
         self.gallery = gallery
-        self.intents = intents
+        pendingIntent = intent
     }
 
     // MARK: Derived
@@ -273,7 +275,8 @@ public final class GalleryDetailModel {
 
     /// Runs what the opener asked for, after the push animation (legacy waited 0.75 s).
     private func scheduleIntent() {
-        guard let intent = intents.take(for: gallery.gid) else { return }
+        guard let intent = pendingIntent else { return }
+        pendingIntent = nil
         tasks.run("intent") { [weak self, clock] in
             try? await clock.sleep(for: .milliseconds(750))
             guard !Task.isCancelled, let self else { return }

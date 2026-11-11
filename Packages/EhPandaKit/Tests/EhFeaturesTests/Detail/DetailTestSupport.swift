@@ -23,7 +23,6 @@ struct DetailEnvironment {
     let cookies = CookieStore(storage: InMemoryCookieStorage())
     let settings = SettingsStore(defaults: DetailEnvironment.makeDefaults())
     let userStore = UserStore(defaults: DetailEnvironment.makeDefaults())
-    let intents = DetailIntents()
     let clipboard = Recorder<String>()
     let openedURLs = Recorder<URL>()
 
@@ -71,14 +70,18 @@ struct DetailEnvironment {
         }
     }
 
-    func makeDetailModel(gallery: Gallery = DetailEnvironment.gallery) -> GalleryDetailModel {
-        with { GalleryDetailModel(gallery: gallery, intents: intents) }
+    func makeDetailModel(
+        gallery: Gallery = DetailEnvironment.gallery, intent: DetailIntent? = nil
+    ) -> GalleryDetailModel {
+        with { GalleryDetailModel(gallery: gallery, intent: intent) }
     }
 
     /// A model that has loaded the detail fixture.
-    func loadedDetailModel(fixture: String = "Parser/Gallery/GalleryDetail.html") async -> GalleryDetailModel {
+    func loadedDetailModel(
+        fixture: String = "Parser/Gallery/GalleryDetail.html", intent: DetailIntent? = nil
+    ) async -> GalleryDetailModel {
         serveDetail(fixture: fixture)
-        let model = makeDetailModel()
+        let model = makeDetailModel(intent: intent)
         await model.load()
         return model
     }

@@ -28,7 +28,12 @@ struct MainTabView: View {
             }
         }
         .sheet(item: presentedGallery) { gallery in
-            RoutedStack(router: router.presented) { GalleryDetailDestination(gallery: gallery) }
+            RoutedStack(router: router.presented) {
+                // The link's target (an image page or a comment) is honoured once.
+                GalleryDetailDestination(
+                    gallery: gallery, intent: router.takePresentedGalleryTarget(for: gallery.gid).map(DetailIntent.init)
+                )
+            }
                 // The detail screen in this sheet may receive the greeting; only the topmost
                 // presenter can show it.
                 .newDawnSheet(router: router, isTopmost: true)
