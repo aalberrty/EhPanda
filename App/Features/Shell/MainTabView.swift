@@ -1,3 +1,5 @@
+import Dependencies
+import EhCore
 import EhFeatures
 import EhModels
 import SwiftUI
@@ -10,6 +12,14 @@ import SwiftUI
 /// route to the owning feature's entry view. Settings is an ordinary tab on iPad too.
 struct MainTabView: View {
     let model: AppModel
+
+    // Shared services, created by the launch off the main actor. They are injected into the
+    // environment so views read the individual properties they render; models reach the same
+    // instances through `@Dependency`.
+    @Dependency(\.filterStore) private var filterStore
+    @Dependency(\.userStore) private var userStore
+    @Dependency(\.tagTranslationService) private var tagTranslationService
+    @Dependency(\.accountSession) private var accountSession
 
     var body: some View {
         let router = model.router
@@ -44,6 +54,10 @@ struct MainTabView: View {
         .sensoryFeedback(.impact(weight: .light), trigger: router.presentedGallery?.gid) { _, new in new != nil }
         .task(id: model.links.request) { await model.links.handleRequest() }
         .task(id: model.activationRequest) { await model.performActivationWork() }
+        .environment(filterStore)
+        .environment(userStore)
+        .environment(tagTranslationService)
+        .environment(accountSession)
     }
 
     /// Routed through the model so that re-selecting a tab pops or reloads it, with haptics.
