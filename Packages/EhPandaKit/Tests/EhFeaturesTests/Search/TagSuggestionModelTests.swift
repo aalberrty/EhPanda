@@ -62,13 +62,13 @@ import Testing
         model.textDidChange("ab")
         model.textDidChange("abc")
         // Only the last keystroke's lookup is still waiting.
-        try await waitUntil { clock.sleeperCount == 1 }
+        try await eventually { clock.sleeperCount == 1 }
         clock.advance(by: TagSuggestionModel.debounce / 2)
         #expect(clock.sleeperCount == 1)
         #expect(fake.lookups.withLock { $0 }.isEmpty)
 
         clock.advance(by: TagSuggestionModel.debounce)
-        try await waitUntil { !model.suggestions.isEmpty }
+        try await eventually { !model.suggestions.isEmpty }
 
         // Earlier keystrokes were cancelled before their lookup ran.
         #expect(fake.lookups.withLock { $0 } == ["abc"])
@@ -96,7 +96,7 @@ import Testing
         model.textDidChange("slow")
         #expect(await startedTexts.next() == "slow")
         model.textDidChange("fast")
-        try await waitUntil { model.suggestions.first?.suggestion.tag.key == "fast" }
+        try await eventually { model.suggestions.first?.suggestion.tag.key == "fast" }
 
         gate.continuation.yield()
         try await Task.sleep(for: .milliseconds(50))
@@ -107,7 +107,7 @@ import Testing
         let fake = FakeSource()
         let model = makeModel(source: fake.source, clock: NoWaitClock())
         model.textDidChange("a")
-        try await waitUntil { !model.suggestions.isEmpty }
+        try await eventually { !model.suggestions.isEmpty }
 
         model.textDidChange("  ")
 
@@ -147,7 +147,7 @@ import Testing
         let fake = FakeSource()
         let model = makeModel(source: fake.source, clock: NoWaitClock())
         model.textDidChange("a")
-        try await waitUntil { !model.suggestions.isEmpty }
+        try await eventually { !model.suggestions.isEmpty }
         #expect(model.suggestions.first?.imageURL == nil)
         #expect(model.suggestions.first?.displayValue == "a 0 ")
 
@@ -157,7 +157,7 @@ import Testing
             $0.showsImagesInTags = true
         }
         withImages.textDidChange("a")
-        try await waitUntil { !withImages.suggestions.isEmpty }
+        try await eventually { !withImages.suggestions.isEmpty }
         #expect(withImages.suggestions.first?.imageURL != nil)
         #expect(withImages.suggestions.first?.displayValue == "a 0 😀")
     }

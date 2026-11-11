@@ -24,7 +24,7 @@ import Testing
         let task = Task { await model.observe() }
         defer { task.cancel() }
 
-        try await waitUntil {
+        try await eventually {
             !model.historyKeywords.isEmpty && !model.quickSearchWords.isEmpty && !model.recentGalleries.isEmpty
         }
 
@@ -41,7 +41,7 @@ import Testing
         defer { task.cancel() }
 
         try await database.recordSearchKeyword("tag")
-        try await waitUntil { model.historyKeywords == ["tag"] }
+        try await eventually { model.historyKeywords == ["tag"] }
     }
 
     @Test func removingAHistoryKeywordDeletesIt() async throws {
@@ -50,11 +50,11 @@ import Testing
         let model = makeModel(database)
         let task = Task { await model.observe() }
         defer { task.cancel() }
-        try await waitUntil { model.historyKeywords.count == 2 }
+        try await eventually { model.historyKeywords.count == 2 }
 
         await model.removeHistoryKeyword("a")
 
-        try await waitUntil { model.historyKeywords == ["b"] }
+        try await eventually { model.historyKeywords == ["b"] }
         #expect(try await storedHistory(database) == ["b"])
     }
 
@@ -66,7 +66,7 @@ import Testing
         let model = makeModel(database)
         let task = Task { await model.observe() }
         defer { task.cancel() }
-        try await waitUntil { model.quickSearchWords.count == 3 }
+        try await eventually { model.quickSearchWords.count == 3 }
 
         #expect(model.quickSearchKeywords == [
             SearchKeyword(keyword: "a", title: "a"),
@@ -129,7 +129,7 @@ import Testing
         try await database.recordSearchKeyword("a")
         let model = makeModel(database)
         var task = Task { await model.observe() }
-        try await waitUntil { model.historyKeywords == ["a"] }
+        try await eventually { model.historyKeywords == ["a"] }
 
         // The view restarts `observe()` whenever `reloadID` changes.
         let reloadID = model.reloadID
@@ -140,7 +140,7 @@ import Testing
         task = Task { await model.observe() }
         defer { task.cancel() }
 
-        try await waitUntil { model.historyKeywords == ["b", "a"] }
+        try await eventually { model.historyKeywords == ["b", "a"] }
     }
 
     @Test func keywordColumnsFollowTheWidth() {

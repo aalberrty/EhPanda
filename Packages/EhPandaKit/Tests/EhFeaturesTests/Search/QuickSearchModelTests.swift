@@ -15,7 +15,7 @@ import Testing
     private func observedModel(_ database: AppDatabase) async throws -> (QuickSearchModel, Task<Void, Never>) {
         let model = makeModel(database)
         let task = Task { await model.observe() }
-        try await waitUntil { !model.isLoading }
+        try await eventually { !model.isLoading }
         return (model, task)
     }
 
@@ -26,7 +26,7 @@ import Testing
 
         let task = Task { await model.observe() }
         defer { task.cancel() }
-        try await waitUntil { !model.isLoading }
+        try await eventually { !model.isLoading }
         #expect(model.words.isEmpty)
     }
 
@@ -46,7 +46,7 @@ import Testing
         let stored = try await storedWords(database)
         #expect(stored.map(\.content) == ["first", "f:glasses$"])
         #expect(stored.last?.name == "Glasses")
-        try await waitUntil { model.words.count == 2 }
+        try await eventually { model.words.count == 2 }
     }
 
     @Test func emptyContentCannotBeSaved() async throws {
@@ -106,7 +106,7 @@ import Testing
         for word in words { try await database.insertQuickSearchWord(word) }
         let (model, task) = try await observedModel(database)
         defer { task.cancel() }
-        try await waitUntil { model.words.count == 3 }
+        try await eventually { model.words.count == 3 }
 
         await model.delete(atOffsets: IndexSet(integer: 1))
 
@@ -120,7 +120,7 @@ import Testing
         for word in words { try await database.insertQuickSearchWord(word) }
         let (model, task) = try await observedModel(database)
         defer { task.cancel() }
-        try await waitUntil { model.words.count == 3 }
+        try await eventually { model.words.count == 3 }
 
         // Drag "a" below "c".
         await model.move(fromOffsets: IndexSet(integer: 0), toOffset: 3)

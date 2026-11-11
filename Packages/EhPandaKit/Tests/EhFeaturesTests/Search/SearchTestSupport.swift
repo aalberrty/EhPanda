@@ -8,7 +8,7 @@ struct ConditionTimeout: Error {}
 
 /// Polls `condition` until it holds, failing after `seconds`. Database observations deliver
 /// on their own schedule, so model tests wait for the state they expect.
-func waitUntil(
+func eventually(
     _ seconds: Double = 5,
     sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: () -> Bool
