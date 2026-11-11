@@ -11,6 +11,11 @@ import Observation
 /// A preview page (the site's `p`) is fetched when one of its cells appears without a preview,
 /// and cancelled if all of its cells leave the screen first, so the number of requests in flight
 /// is bounded by what is visible however fast the grid is flung.
+///
+/// A preview page is asked for once. One that failed stays failed until the user taps one of
+/// its cells: the site bans addresses for request volume, so a page that cannot be had (an
+/// outage, a ban page) must not be requested again for each of its 20 to 40 cells that scrolls
+/// into view.
 @Observable
 public final class PreviewsModel {
     public let gallery: Gallery
@@ -18,13 +23,16 @@ public final class PreviewsModel {
 
     /// Known previews by 1-based page.
     public private(set) var thumbnails: [Int: PreviewThumbnail] = [:]
-    /// Preview pages whose last fetch failed; their cells show the failure and retry when shown again.
-    public private(set) var failedPages: Set<Int> = []
     /// The reader, when a preview was tapped.
     public var readerDestination: DetailDestination?
 
+    /// Preview pages whose request failed. Their cells show the failure until one is tapped.
+    private var failedPages: Set<Int> = []
+    /// Preview pages that were fetched. A cell of one that still has no preview was not on it.
+    private var fetchedPages: Set<Int> = []
     /// Starts from the detail page's layout and corrects itself from what preview pages list.
-    @ObservationIgnored private var paging: PreviewPaging
+    /// Observed with the two sets above: together they decide whether a cell has failed.
+    private var paging: PreviewPaging
     @ObservationIgnored private var isReady = false
     @ObservationIgnored private var loadingPages: Set<Int> = []
     @ObservationIgnored private var visibleIndices: Set<Int> = []
@@ -47,8 +55,12 @@ public final class PreviewsModel {
         thumbnails[index]
     }
 
+    /// Whether the cell has no preview and none on the way: the request for its preview page
+    /// failed, or the page arrived without listing it.
     public func hasFailed(at index: Int) -> Bool {
-        failedPages.contains(page(of: index))
+        guard thumbnails[index] == nil else { return false }
+        let page = page(of: index)
+        return failedPages.contains(page) || fetchedPages.contains(page)
     }
 
     /// Adds the stored previews, then fetches whatever visible cell still has none.
@@ -82,8 +94,21 @@ public final class PreviewsModel {
         tasks.cancel(Self.taskKey(page))
     }
 
+    /// A tap on a cell. One whose preview failed asks for its preview page again, which is the
+    /// only way a failed page is retried; any other opens the reader there.
+    public func select(_ index: Int) {
+        if hasFailed(at: index) {
+            let page = page(of: index)
+            failedPages.remove(page)
+            fetchedPages.remove(page)
+            loadPageIfNeeded(for: index)
+        } else {
+            openReader(at: index)
+        }
+    }
+
     /// Opens the reader at `index`, which also becomes the reading progress.
-    public func openReader(at index: Int) {
+    private func openReader(at index: Int) {
         let database = database
         let gid = gallery.gid
         Task { try? await database.updateReadingProgress(gid: gid, progress: index) }
@@ -99,10 +124,10 @@ public final class PreviewsModel {
     private func loadPageIfNeeded(for index: Int) {
         let page = page(of: index)
         guard isReady, thumbnails[index] == nil, !loadingPages.contains(page),
+              !failedPages.contains(page), !fetchedPages.contains(page),
               let galleryURL = gallery.galleryURL
         else { return }
         loadingPages.insert(page)
-        failedPages.remove(page)
         let client = client
         tasks.run(Self.taskKey(page)) { [weak self] in
             let outcome = await Outcome.of { try await client.previewPage(galleryURL: galleryURL, pageNumber: page) }
@@ -113,18 +138,20 @@ public final class PreviewsModel {
     private func finishPage(_ page: Int, _ outcome: Outcome<PreviewPage>) {
         switch outcome {
         case .cancelled:
+            // Its cells left the screen, which also took it out of `loadingPages`.
             return
         case .failure:
+            loadingPages.remove(page)
             failedPages.insert(page)
         case .success(let listed) where listed.previewURLs.isEmpty:
+            // Legacy: an empty list is "not found".
+            loadingPages.remove(page)
             failedPages.insert(page)
         case .success(let listed):
+            loadingPages.remove(page)
+            fetchedPages.insert(page)
             merge(listed)
-        }
-        loadingPages.remove(page)
-        if case .success(let listed) = outcome,
-           paging.learn(listed: listed.indices, onPreviewPage: page, pageCount: pageCount)
-        {
+            guard paging.learn(listed: listed.indices, onPreviewPage: page, pageCount: pageCount) else { return }
             // The page size was not what the layout said: cells still without a preview are
             // listed on another preview page than the one that was asked for them.
             for index in visibleIndices.sorted() {

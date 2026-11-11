@@ -116,23 +116,74 @@ import Testing
         #expect(previewRequests(env) == ["0"])
     }
 
-    @Test func failedPageIsReportedAndRetriedWhenShownAgain() async throws {
+    /// The site bans addresses for request volume: a preview page that fails must not be asked
+    /// for again by each of its cells that scrolls into view.
+    @Test func aFailedPageIsRequestedOnceHoweverManyOfItsCellsAppear() async throws {
+        let env = try await DetailEnvironment()
+        env.transport.on(.path(DetailEnvironment.detailPath), reply: .error(URLError(.timedOut)))
+        let model = makeModel(env)
+        await model.load()
+        model.thumbnailAppeared(41)
+        await pollUntil { model.hasFailed(at: 41) }
+        #expect(model.hasFailed(at: 80))
+        #expect(!model.hasFailed(at: 81))
+
+        // Ten more cells of the page come into view, then the page is scrolled away and back.
+        for index in 42...51 {
+            model.thumbnailAppeared(index)
+            await Task.yield()
+        }
+        for index in 41...51 {
+            model.thumbnailDisappeared(index)
+        }
+        model.thumbnailAppeared(41)
+        await readerSettle()
+
+        #expect(previewRequests(env) == ["1"])
+        #expect(model.hasFailed(at: 41))
+    }
+
+    @Test func tappingAFailedCellRetriesItsPageInsteadOfOpeningTheReader() async throws {
         let env = try await DetailEnvironment()
         env.transport.on(.path(DetailEnvironment.detailPath), reply: .error(URLError(.timedOut)))
         let model = makeModel(env)
         await model.load()
         model.thumbnailAppeared(10)
         await pollUntil { model.hasFailed(at: 10) }
-        #expect(model.hasFailed(at: 40))
-        #expect(!model.hasFailed(at: 41))
 
         // The fixture is the gallery's first preview page.
         env.serveDetail()
-        model.thumbnailDisappeared(10)
-        model.thumbnailAppeared(10)
+        model.select(10)
+
         #expect(!model.hasFailed(at: 10))
+        #expect(model.readerDestination == nil)
         await pollUntil { model.preview(at: 10) != nil }
         #expect(previewRequests(env) == ["0", "0"])
+        // With its preview back, a tap opens the reader again.
+        model.select(10)
+        #expect(model.readerDestination == .reader(page: 10))
+    }
+
+    @Test func anIndexItsPreviewPageDoesNotListIsFailedAndNotAskedForAgain() async throws {
+        let env = try await DetailEnvironment()
+        // Whatever `p` says, the fixture lists pages 1 to 40.
+        env.serveDetail()
+        let model = makeModel(env)
+        await model.load()
+        model.thumbnailAppeared(90)
+        await pollUntil { model.hasFailed(at: 90) }
+        // What the page did list is kept.
+        #expect(model.preview(at: 1) != nil)
+
+        model.thumbnailAppeared(91)
+        model.thumbnailDisappeared(90)
+        model.thumbnailAppeared(90)
+        await readerSettle()
+        #expect(previewRequests(env) == ["2"])
+
+        model.select(90)
+        await pollUntil { previewRequests(env) == ["2", "2"] }
+        #expect(model.readerDestination == nil)
     }
 
     @Test func leavingThePageCancelsItsRequest() async throws {
@@ -143,17 +194,19 @@ import Testing
         model.thumbnailAppeared(90)
         await pollUntil { previewRequests(env) == ["2"] }
         model.thumbnailDisappeared(90)
+        await readerSettle()
+        // A request that was taken back is not a failure: the page loads when it is shown again.
+        #expect(!model.hasFailed(at: 90))
 
         env.serveDetail()
         model.thumbnailAppeared(90)
         await pollUntil { previewRequests(env).count == 2 }
-        #expect(!model.hasFailed(at: 90))
     }
 
     @Test func tappingAPreviewOpensTheReaderThere() async throws {
         let env = try await DetailEnvironment()
         let model = makeModel(env)
-        model.openReader(at: 33)
+        model.select(33)
         #expect(model.readerDestination == .reader(page: 33))
         await pollUntil { (try? await env.database.state(gid: DetailEnvironment.gid))?.readingProgress == 33 }
     }
