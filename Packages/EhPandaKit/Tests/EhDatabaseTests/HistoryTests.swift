@@ -98,4 +98,23 @@ import Testing
         try await database.recordOpened(SampleData.gallery("2"))
         #expect(try await database.rowCount("gallery") == 1)
     }
+
+    @Test func clearHistoryLeavesNoTraceInTheDatabaseFiles() async throws {
+        let (database, directory) = try await TestDatabase.onDisk()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let marker = "UNIQUE-TITLE-MARKER-7F3A"
+        for index in 0..<20 {
+            try await database.recordOpened(SampleData.gallery("\(index)", title: "\(marker) \(index)"))
+        }
+
+        try await database.clearHistory()
+
+        // The deleted rows must be gone from the main file and from the write-ahead log.
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+        #expect(!files.isEmpty)
+        for file in files {
+            let data = try Data(contentsOf: file)
+            #expect(data.range(of: Data(marker.utf8)) == nil, "\(file.lastPathComponent) still holds a cleared title")
+        }
+    }
 }

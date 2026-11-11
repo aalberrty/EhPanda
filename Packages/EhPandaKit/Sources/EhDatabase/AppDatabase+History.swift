@@ -35,8 +35,9 @@ extension AppDatabase {
 
     /// Deletes every gallery, detail, state and page row.
     ///
-    /// This is a privacy feature: rows are deleted, not flagged, and the freed pages are
-    /// overwritten by SQLite's `secure_delete` for this transaction.
+    /// This is a privacy feature, so the content must not stay recoverable on disk:
+    /// `secure_delete` zeroes the freed pages in the database file, and the write-ahead log,
+    /// which still holds the rows' earlier content, is checkpointed and truncated afterwards.
     public func clearHistory() async throws {
         try await writer.write { db in
             try db.execute(sql: "PRAGMA secure_delete = ON")
@@ -44,6 +45,10 @@ extension AppDatabase {
             for table in [Schema.gallery, Schema.galleryDetail, Schema.galleryState, Schema.galleryPage] {
                 try db.execute(sql: "DELETE FROM \(table)")
             }
+        }
+        // A checkpoint cannot run inside a transaction. It is a no-op for an in-memory database.
+        try await writer.writeWithoutTransaction { db in
+            try db.execute(sql: "PRAGMA wal_checkpoint(TRUNCATE)")
         }
     }
 }
