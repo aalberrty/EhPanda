@@ -17,6 +17,10 @@ public final class AppRouter {
     public private(set) var presentedGallery: Gallery?
     public let presented = StackRouter()
 
+    /// The daily "New Dawn" greeting to announce, shown as a sheet over everything else.
+    /// Any feature that receives a greeting worth showing sets it; the shell presents it.
+    public var presentedGreeting: Greeting?
+
     /// How many times each tab was re-selected while already showing its root screen.
     /// Tab roots observe their counter and reload when it changes.
     public private(set) var rootReselections: [AppTab: Int] = [:]
