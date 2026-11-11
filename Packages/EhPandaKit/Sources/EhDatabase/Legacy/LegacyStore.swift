@@ -44,7 +44,7 @@ public struct LegacyStore: Sendable {
         configuration.label = "EhPanda.LegacyStore"
         let queue = try DatabaseQueue(path: url.path, configuration: configuration)
         defer { try? queue.close() }
-        return try queue.read { db in
+        return try await queue.read { db in
             let history = try LegacyStoreReader.history(db)
             return LegacySnapshot(
                 appEnvironment: try LegacyStoreReader.appEnvironment(db),

@@ -11,10 +11,6 @@ enum JSONColumn {
         return String(decoding: data, as: UTF8.self)
     }
 
-    static func encodeIfPresent<Value: Encodable>(_ value: Value?) throws -> String? {
-        try value.map(encode)
-    }
-
     static func decode<Value: Decodable>(_ type: Value.Type, from text: String?) -> Value? {
         guard let text else { return nil }
         return try? JSONDecoder().decode(type, from: Data(text.utf8))

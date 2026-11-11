@@ -67,7 +67,7 @@ extension AppDatabase {
     /// inside the write so JSON encoding happens on GRDB's queue, not the caller's actor.
     private func updateStateColumn(
         _ column: String, gid: String,
-        value: @escaping @Sendable () throws -> some DatabaseValueConvertible
+        value: @escaping @Sendable () throws -> any DatabaseValueConvertible
     ) async throws {
         try await writer.write { db in
             let value = try value()
