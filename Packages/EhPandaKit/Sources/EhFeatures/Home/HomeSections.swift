@@ -51,6 +51,13 @@ nonisolated public enum HomeSections {
         count == 0 ? nil : min(1, count - 1)
     }
 
+    /// The title a card shows. Narrow layouts (legacy: iPhone) use the trimmed title when it
+    /// is longer than 20 characters; otherwise the full title.
+    public static func cardTitle(of gallery: Gallery, isCompact: Bool) -> String {
+        let trimmed = gallery.trimmedTitle
+        return isCompact && trimmed.count > 20 ? trimmed : gallery.title
+    }
+
     /// Frontpage galleries kept for the cover strip: the first 25, de-duplicated by trimmed title.
     public static func frontpage(from galleries: [Gallery]) -> [Gallery] {
         uniqueByTrimmedTitle(Array(galleries.prefix(maximumFrontpage)))

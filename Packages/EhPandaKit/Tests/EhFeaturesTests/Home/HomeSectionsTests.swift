@@ -57,6 +57,15 @@ import Testing
         #expect(HomeSections.initialCardIndex(count: 6) == 1)
     }
 
+    @Test func compactCardsShortenLongTitles() {
+        let long = makeGallery(gid: "1", title: "[Circle (Artist)] A Rather Long Gallery Title | Translated Title")
+        let short = makeGallery(gid: "2", title: "[Circle] Short Title | Another")
+
+        #expect(HomeSections.cardTitle(of: long, isCompact: true) == "A Rather Long Gallery Title")
+        #expect(HomeSections.cardTitle(of: long, isCompact: false) == long.title)
+        #expect(HomeSections.cardTitle(of: short, isCompact: true) == short.title)
+    }
+
     // MARK: Frontpage
 
     @Test func frontpageKeepsTheFirstTwentyFiveUniqueTitles() {
