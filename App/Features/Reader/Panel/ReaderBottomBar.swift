@@ -31,7 +31,7 @@ struct ReaderBottomBar: View {
                 ReaderPageSlider(model: model, isReversed: isReversed)
             }
             .contentShape(.rect(cornerRadius: Tokens.Radius.card, style: .continuous))
-            .glassEffect(.regular, in: .rect(cornerRadius: Tokens.Radius.card, style: .continuous))
+            .glassSurface(in: .rect(cornerRadius: Tokens.Radius.card, style: .continuous))
             .padding(.horizontal, Tokens.Spacing.small)
             .animation(.default, value: model.showsSliderPreview)
         }

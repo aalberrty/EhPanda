@@ -68,8 +68,7 @@ extension AppModel {
     /// Applies "Bypasses SNI filtering" whenever it changes. Call from a `.task` on the root
     /// view; it runs until cancelled. The launch applies the initial value itself.
     public func followDomainFrontingSetting() async {
-        let changes = Observations { [settings] in settings.bypassesSNIFiltering }
-        for await enabled in changes {
+        await forEachObservedValue(of: { [settings] in settings.bypassesSNIFiltering }) { enabled in
             applyDomainFronting(enabled)
         }
     }

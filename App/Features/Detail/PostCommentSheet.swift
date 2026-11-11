@@ -27,10 +27,10 @@ struct PostCommentSheet: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button(role: .close) { dismiss() }
+                        SheetCloseButton { dismiss() }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button(role: .confirm) {
+                        SheetConfirmButton {
                             onPost(text)
                             dismiss()
                         }

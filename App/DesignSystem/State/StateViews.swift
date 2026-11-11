@@ -100,7 +100,7 @@ private struct StatusView<Actions: View>: View {
             Text(message)
         } actions: {
             actions
-                .buttonStyle(.glass)
+                .glassButtonStyle()
                 .buttonBorderShape(.capsule)
         }
     }

@@ -56,6 +56,7 @@
 // MARK: JumpPage
 "jump_page_view.title.jump_page" = "Jump page";
 "jump_page_view.button.confirm" = "Confirm";
+"jump_page_view.button.cancel" = "Cancel";
 
 // MARK: AlertView
 "loading_view.title.loading" = "Loading...";

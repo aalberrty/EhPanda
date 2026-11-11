@@ -38,7 +38,7 @@ private struct ActivityViewPreview: View {
                 Label { Text(verbatim: "Share image") } icon: { Image(systemName: "photo") }
             }
         }
-        .buttonStyle(.glass)
+        .glassButtonStyle()
         .sheet(isPresented: $isPresented) {
             ActivityView(items: [UIImage(systemName: "photo") as Any])
                 .presentationDetents([.medium, .large])

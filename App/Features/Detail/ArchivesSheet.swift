@@ -37,7 +37,7 @@ struct ArchivesSheet: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
+                .glassProminentButtonStyle()
                 .controlSize(.extraLarge)
                 .disabled(model.selection == nil)
                 .padding([.horizontal, .bottom])
@@ -121,7 +121,7 @@ private struct ArchiveOptionCell: View {
         .foregroundStyle(archive.isValid ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
         .frame(width: width, height: width / 1.5)
         .contentShape(shape)
-        .glassEffect(.regular.interactive(archive.isValid), in: shape)
+        .glassSurface(in: shape, isInteractive: archive.isValid)
         .overlay {
             shape.strokeBorder(isSelected ? Color.accentColor : .clear, lineWidth: 2)
         }

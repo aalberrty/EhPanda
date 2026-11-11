@@ -1,13 +1,15 @@
 # EhPanda v3
 
-EhPanda is an unofficial E-Hentai client for iOS / iPadOS 26. Branch `v3` is a ground-up rebuild
-of the app on `main` (SwiftUI + TCA). The old sources are not in this branch; when the old
-behaviour matters, read them from `main` (`git show main:EhPanda/<path>`).
+EhPanda is an unofficial E-Hentai client for iOS / iPadOS 18 and later, designed for iOS 26.
+Branch `v3` is a ground-up rebuild of the app on `main` (SwiftUI + TCA). The old sources are not
+in this branch; when the old behaviour matters, read them from `main`
+(`git show main:EhPanda/<path>`).
 
 ## Goals, in priority order
 
 1. **Performance.** Smooth scrolling and reading, fast launch, nothing heavy on the main thread.
-2. **Modern UI.** Native iOS 26 APIs and Liquid Glass; no third-party UI kits.
+2. **Modern UI.** Native iOS 26 APIs and Liquid Glass, with a native-looking iOS 18 fallback; no
+   third-party UI kits.
 3. **Maintainability.** Small files, clear module boundaries, logic covered by host tests.
 
 Scope is **feature parity with the old app first**. Do not add features it does not have.
@@ -20,6 +22,7 @@ App/                      App target (SwiftUI + UIKit views only). Folder is syn
                           Xcode: adding or removing files needs no project edits.
   Features/<Name>/        Views for one feature
   DesignSystem/           Shared components, styles, layout helpers
+    Availability/         iOS 26 APIs with their iOS 18 fallbacks (glass, sheet buttons)
   Platform/               iOS-only services (haptics, clipboard, photos, biometrics, image cache)
   Generated/Strings.swift SwiftGen output for `App/Resources/*.lproj` (the `L10n` enum)
   Resources/              Asset catalog, alternate icons, localized strings
@@ -47,7 +50,8 @@ EhModels → EhParser → EhNetworking ┐
 | `EhFeatures` | `@Observable` feature models (default isolation: `MainActor`). |
 | `EhTestSupport` | Test-only helpers and fixtures shared by the test targets. |
 
-The package supports macOS so that all of it builds and tests on the host without a simulator.
+The package's minimum is iOS 18; it also supports macOS (26) so that all of it builds and tests on
+the host without a simulator.
 Never import SwiftUI, UIKit or Kingfisher in the package.
 
 ## Architecture rules
@@ -68,6 +72,15 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
   keys; a new key must be added to every `App/Resources/*.lproj/Localizable.strings` and to `Strings.swift`.
 - **Images:** Kingfisher 8, app target only.
 - **Navigation:** `NavigationStack` with typed, `Hashable` route enums. No `NavigationView`.
+- **Availability:** the minimum is iOS 18. On iOS 26 the app uses the iOS 26 APIs and must look and
+  behave as designed for it; on iOS 18 it falls back to the closest native look. Every iOS-26-only
+  API needs an iOS 18 fallback, kept in one place rather than as `#available` checks at call
+  sites: Liquid Glass through `App/DesignSystem/Availability/Glass.swift` (`glassSurface(in:)`,
+  `glassButtonStyle()`, `glassProminentButtonStyle()`, `GlassGroup`), sheet and alert buttons
+  through `SheetButtons.swift`, `Observations` through `forEachObservedValue` in
+  `EhFeatures/Support/ObservedValues.swift`. Larger fallbacks get their own file (e.g.
+  `LegacyAccountWebView` for the SwiftUI `WebView`). New iOS 26 APIs get a helper there.
+  SF Symbols must exist in SF Symbols 6 (iOS 18).
 - **Logging:** `AppLogger` (os.Logger plus a file sink). Never log per action, per frame or per cell.
 
 ## Feature layer
@@ -144,6 +157,9 @@ swift test  --package-path Packages/EhPandaKit
 # App
 xcodebuild build -project EhPanda.xcodeproj -scheme EhPanda \
   -destination 'platform=iOS Simulator,name=iPhone 17' -skipMacroValidation -quiet
+# The iOS 18 fallbacks: build (and smoke test) on an iOS 18.5 simulator as well
+xcodebuild build -project EhPanda.xcodeproj -scheme EhPanda \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max,OS=18.5' -skipMacroValidation -quiet
 
 # Device, signed with a personal team: the project's team and bundle id belong to the original
 # developer, so override both. Needs an Apple ID signed in under Xcode > Settings > Accounts.
@@ -155,4 +171,5 @@ xcodebuild build -project EhPanda.xcodeproj -scheme EhPanda -configuration Relea
 xcrun devicectl device install app --device <device id> <path to EhPanda.app>
 ```
 
-A change is done when the package tests pass and the app builds without new warnings.
+A change is done when the package tests pass and the app builds without new warnings for both
+an iOS 26 and an iOS 18 simulator.

@@ -16,7 +16,7 @@ let issueReportingTestSupport: Target.Dependency = .product(
 
 let package = Package(
     name: "EhPandaKit",
-    platforms: [.iOS(.v26), .macOS(.v26)],
+    platforms: [.iOS(.v18), .macOS(.v26)],
     products: [
         .library(
             name: "EhPandaKit",

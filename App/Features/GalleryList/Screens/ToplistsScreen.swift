@@ -32,7 +32,7 @@ struct ToplistsScreen: View {
                     if !model.confirmJumpPage() { invalidJumps += 1 }
                 }
                 .keyboardShortcut(.defaultAction)
-                Button(role: .cancel) {}
+                AlertCancelButton(title: L10n.Localizable.JumpPageView.Button.cancel)
             } message: {
                 Text(verbatim: "1 – \(model.list.maximumPage)")
             }

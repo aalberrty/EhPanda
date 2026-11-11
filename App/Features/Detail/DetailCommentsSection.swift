@@ -22,7 +22,7 @@ struct DetailCommentsSection: View {
                         .font(.body.bold())
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass)
+                .glassButtonStyle()
                 .controlSize(.large)
                 .disabled(!model.isLoggedIn)
                 .padding(.horizontal)

@@ -8,6 +8,11 @@ struct AboutScreen: View {
         Form {
             Section {
                 AboutLinkRows(links: AboutLink.contacts)
+            } header: {
+                // iOS 18 has no large-title subtitle, so the credits head the first section.
+                if #unavailable(iOS 26) {
+                    credits.textCase(nil)
+                }
             }
             Section(L10n.Localizable.AboutView.Section.Title.specialThanks) {
                 AboutLinkRows(links: AboutLink.specialThanks)
@@ -24,18 +29,24 @@ struct AboutScreen: View {
         }
         .navigationTitle(L10n.Localizable.AboutView.Title.ehPanda)
         .toolbar {
-            ToolbarItem(placement: .largeSubtitle) {
-                VStack(alignment: .leading) {
-                    Text(L10n.Constant.App.copyright)
-                    Text(Self.version)
+            if #available(iOS 26, *) {
+                ToolbarItem(placement: .largeSubtitle) {
+                    credits
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, Tokens.Spacing.xSmall)
                 }
-                .font(.caption2.bold())
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, Tokens.Spacing.xSmall)
-                .accessibilityElement(children: .combine)
             }
         }
+    }
+
+    private var credits: some View {
+        VStack(alignment: .leading) {
+            Text(L10n.Constant.App.copyright)
+            Text(Self.version)
+        }
+        .font(.caption2.bold())
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
     }
 
     /// "Version 3.0.0 (42)".
