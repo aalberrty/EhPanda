@@ -23,7 +23,10 @@ private final class LocalValidatingProtocol: DFURLProtocol, @unchecked Sendable 
 }
 
 /// Stands in for the session's own protocols: answers whatever reaches it.
-private final class FallbackProtocol: URLProtocol {
+private final class FallbackProtocol: URLProtocol, @unchecked Sendable {
+    // `@unchecked Sendable`: it has no state of its own and only runs on the URL loading thread.
+    // Leaving the conformance out makes the compiler derive an unavailable one for `URLProtocol`
+    // itself, and then warn about every other subclass in this module that declares it.
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
