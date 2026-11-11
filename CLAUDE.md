@@ -1,6 +1,6 @@
-# EhPanda v2
+# EhPanda v3
 
-EhPanda is an unofficial E-Hentai client for iOS / iPadOS 26. Branch `v2` is a ground-up rebuild
+EhPanda is an unofficial E-Hentai client for iOS / iPadOS 26. Branch `v3` is a ground-up rebuild
 of the app on `main` (SwiftUI + TCA). The old sources are not in this branch; when the old
 behaviour matters, read them from `main` (`git show main:EhPanda/<path>`).
 
