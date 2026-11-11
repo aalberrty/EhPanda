@@ -9,6 +9,8 @@ import Foundation
 ///   `undeliveredErrors`, which guarantee the request never reached the server. A `POST` that
 ///   may have been delivered is never replayed.
 /// - `URLError.cancelled` and cancellation of the calling task are never retried.
+/// - At most `maxTimeoutAttempts` attempts may time out. Each costs a full request timeout, so a
+///   server that does not answer would otherwise keep a spinner up for `maxAttempts` timeouts.
 /// - Before attempt *n* + 1 the transport waits `baseDelay * 2^(n-1)`, plus a random jitter of
 ///   up to `jitterFraction` of that delay so that clients that failed together do not retry in step.
 public struct RetryPolicy: Sendable {
@@ -16,11 +18,17 @@ public struct RetryPolicy: Sendable {
     public var maxAttempts: Int
     public var baseDelay: Duration
     public var jitterFraction: Double
+    /// Attempts that may end in `URLError.timedOut`, counting the first.
+    public var maxTimeoutAttempts: Int
 
-    public init(maxAttempts: Int = 3, baseDelay: Duration = .milliseconds(500), jitterFraction: Double = 0.25) {
+    public init(
+        maxAttempts: Int = 3, baseDelay: Duration = .milliseconds(500), jitterFraction: Double = 0.25,
+        maxTimeoutAttempts: Int = 2
+    ) {
         self.maxAttempts = maxAttempts
         self.baseDelay = baseDelay
         self.jitterFraction = jitterFraction
+        self.maxTimeoutAttempts = maxTimeoutAttempts
     }
 
     public static let `default` = RetryPolicy()
@@ -44,6 +52,14 @@ public struct RetryPolicy: Sendable {
         case "GET", "HEAD": Self.transientErrors.contains(error.code)
         default: Self.undeliveredErrors.contains(error.code)
         }
+    }
+
+    /// Whether to try again after failed attempt number `attempt` (1-based), when `timeouts` of
+    /// the attempts so far, this one included, timed out.
+    public func shouldRetry(method: String?, error: URLError, attempt: Int, timeouts: Int) -> Bool {
+        guard attempt < maxAttempts, error.code != .cancelled else { return false }
+        if error.code == .timedOut, timeouts >= maxTimeoutAttempts { return false }
+        return shouldRetry(method: method, error: error)
     }
 
     /// The wait before the attempt that follows failed attempt number `attempt` (1-based).

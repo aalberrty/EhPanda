@@ -5,6 +5,7 @@ import EhModels
 import EhNetworking
 import EhTestSupport
 import Foundation
+import Synchronization
 import Testing
 
 @Suite struct HomeModelTests {
@@ -15,8 +16,7 @@ import Testing
     @Test func runLoadsEverySectionConcurrently() async throws {
         serveFixtures()
         let model = makeModel()
-        let task = Task { await model.run() }
-        defer { task.cancel() }
+        model.loadIfNeeded()
 
         try await homeEventually { settled(model, after: 6) }
 
@@ -35,8 +35,7 @@ import Testing
     @Test func toplistsAreRequestedOncePerPeriodWithoutAFilter() async throws {
         serveFixtures()
         let model = makeModel()
-        let task = Task { await model.run() }
-        defer { task.cancel() }
+        model.loadIfNeeded()
 
         try await homeEventually { settled(model, after: 6) }
 
@@ -57,8 +56,7 @@ import Testing
         transport.on(.path("/"), reply: .error(URLError(.timedOut)))
         transport.on(.path("/toplist.php") && .query("tl", "12"), reply: .error(URLError(.notConnectedToInternet)))
         let model = makeModel()
-        let task = Task { await model.run() }
-        defer { task.cancel() }
+        model.loadIfNeeded()
 
         try await homeEventually { settled(model, after: 6) }
 
@@ -76,8 +74,7 @@ import Testing
         serveFixtures()
         transport.on(.path("/popular"), reply: .html("<html><body></body></html>"))
         let model = makeModel()
-        let task = Task { await model.run() }
-        defer { task.cancel() }
+        model.loadIfNeeded()
 
         try await homeEventually { settled(model, after: 6) }
 
@@ -91,8 +88,7 @@ import Testing
     @Test func reloadAllRequestsEverySectionAgainAndKeepsDataOnFailure() async throws {
         serveFixtures()
         let model = makeModel()
-        let task = Task { await model.run() }
-        defer { task.cancel() }
+        model.loadIfNeeded()
         try await homeEventually { settled(model, after: 6) }
         let cards = model.cards
 
@@ -108,8 +104,7 @@ import Testing
     @Test func sectionReloadsRequestOnlyTheirSection() async throws {
         serveFixtures()
         let model = makeModel()
-        let task = Task { await model.run() }
-        defer { task.cancel() }
+        model.loadIfNeeded()
         try await homeEventually { settled(model, after: 6) }
         transport.reset()
         serveFixtures()
@@ -127,62 +122,75 @@ import Testing
         serveFixtures()
         transport.on(.path("/"), reply: .suspendUntilCancelled)
         let model = makeModel()
-        let task = Task { await model.run() }
+        model.loadIfNeeded()
         try await homeEventually { model.frontpageState.isLoading && model.popularState == .idle }
 
         model.reloadFrontpage()
         model.reloadFrontpage()
+        model.loadIfNeeded()
         try await Task.sleep(for: .milliseconds(50))
 
         #expect(transport.requests.filter { $0.url?.path() == "/" }.count == 1)
-        task.cancel()
-        await task.value
     }
 
-    @Test func reloadWithoutARunningScreenDoesNothing() {
+    // MARK: Leaving the screen
+
+    /// Pushing a gallery while sections load must not abandon them: the screen coming back
+    /// finds them filled in, without requesting anything again.
+    @Test func loadsInFlightOutliveTheScreenAndAreNotRequestedAgain() async throws {
         serveFixtures()
+        let gate = Gate()
+        transport.on(.path("/toplist.php"), reply: .handler { request in
+            await gate.wait()
+            return try Fixture.response("Parser/List/ToplistsCompactList.html", for: request)
+        })
         let model = makeModel()
+        model.loadIfNeeded()
+        try await homeEventually { !model.cards.isEmpty && !model.frontpage.isEmpty && model.isLoadingToplists }
 
-        model.reloadAll()
+        // The screen goes away and comes back while the toplists are still loading.
+        model.loadIfNeeded()
+        gate.open()
+        try await homeEventually { settled(model, after: 6) }
 
-        #expect(transport.requests.isEmpty)
-        #expect(model.popularState == .idle)
-    }
-
-    // MARK: Cancellation
-
-    @Test func cancellingTheRunCancelsEveryLoadWithoutFailing() async throws {
-        transport.on(.any, reply: .suspendUntilCancelled)
-        let model = makeModel()
-        let task = Task { await model.run() }
-        try await homeEventually { transport.requests.count == 6 }
-
-        task.cancel()
-        await task.value
-
-        #expect(model.popularState == .idle)
-        #expect(model.frontpageState == .idle)
-        #expect(model.toplistsStates.values.allSatisfy { $0 == .idle })
-        #expect(model.cards.isEmpty)
-    }
-
-    @Test func aNewRunLoadsOnlyWhatIsMissing() async throws {
-        serveFixtures()
-        transport.on(.path("/"), reply: .suspendUntilCancelled)
-        let model = makeModel()
-        let first = Task { await model.run() }
-        try await homeEventually {
-            !model.cards.isEmpty && model.frontpageState.isLoading
-                && ToplistsType.allCases.allSatisfy { !model.toplists(for: $0).isEmpty }
+        #expect(transport.requests.count == 6)
+        for type in ToplistsType.allCases {
+            #expect(!model.toplists(for: type).isEmpty)
         }
-        first.cancel()
-        await first.value
-        #expect(model.frontpageState == .idle)
+    }
+
+    @Test func releasingTheModelCancelsEveryLoadWithoutFailing() async throws {
+        let cancellations = Counter()
+        transport.on(.any, reply: .handler { _ in
+            do {
+                while true { try await Task.sleep(for: .seconds(3600)) }
+            } catch {
+                cancellations.increment()
+                throw URLError(.cancelled)
+            }
+        })
+        var model: HomeModel? = makeModel()
+        model?.loadIfNeeded()
+        try await homeEventually { transport.requests.count == 6 }
+        weak let released = model
+
+        model = nil
+
+        #expect(released == nil)
+        try await homeEventually { cancellations.value == 6 }
+    }
+
+    @Test func appearingAgainLoadsOnlyWhatIsMissing() async throws {
+        serveFixtures()
+        transport.on(.path("/"), reply: .error(URLError(.notConnectedToInternet)))
+        let model = makeModel()
+        model.loadIfNeeded()
+        try await homeEventually { settled(model, after: 6) }
+        #expect(model.frontpageState == .failed(.networkingFailed))
 
         transport.reset()
         serveFixtures()
-        let second = Task { await model.run() }
-        defer { second.cancel() }
+        model.loadIfNeeded()
         try await homeEventually { settled(model, after: 1) && !model.frontpage.isEmpty }
 
         #expect(transport.requests.map { $0.url?.path() } == ["/"])
@@ -221,6 +229,12 @@ private func allSettled(_ model: HomeModel) -> Bool {
 }
 
 private struct TimedOut: Error {}
+
+nonisolated private final class Counter: Sendable {
+    private let count = Mutex(0)
+    var value: Int { count.withLock { $0 } }
+    func increment() { count.withLock { $0 += 1 } }
+}
 
 /// Polls `condition` on the main actor until it holds, yielding between checks.
 private func homeEventually(

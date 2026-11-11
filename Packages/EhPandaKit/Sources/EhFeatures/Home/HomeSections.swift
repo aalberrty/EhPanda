@@ -10,6 +10,15 @@ nonisolated public enum HomeSection: Hashable, Sendable {
     public static let all: [HomeSection] = [.popular, .frontpage] + toplists
 
     public static let toplists: [HomeSection] = ToplistsType.allCases.map(HomeSection.toplists)
+
+    /// The key of the section's load in `ModelTasks`.
+    var taskKey: String {
+        switch self {
+        case .popular: "popular"
+        case .frontpage: "frontpage"
+        case .toplists(let type): "toplists.\(type.rawValue)"
+        }
+    }
 }
 
 /// Two frontpage covers stacked in one column of the cover strip.

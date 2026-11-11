@@ -10,22 +10,25 @@ import Testing
     private let clock = ShellTestClock()
     private let settings = SettingsStore(storage: .ephemeral())
 
-    private func makeLock(biometrics: BiometricsClient = AppFixture.biometrics()) -> AppLockModel {
-        withDependencies {
+    /// A lock whose passcode check has run, as the launch runs it before the lock is used.
+    private func makeLock(biometrics: BiometricsClient = AppFixture.biometrics()) async -> AppLockModel {
+        let lock = withDependencies {
             $0.settings = settings
             $0.date = clock.generator
             $0.biometricsClient = biometrics
         } operation: {
             AppLockModel()
         }
+        await lock.checkPasscode()
+        return lock
     }
 
     // MARK: Thresholds
 
     @Test(arguments: AutoLockPolicy.allCases.filter { $0 != .never })
-    func locksExactlyAtTheThreshold(policy: AutoLockPolicy) {
+    func locksExactlyAtTheThreshold(policy: AutoLockPolicy) async {
         settings.autoLockPolicy = policy
-        let lock = makeLock()
+        let lock = await makeLock()
         let threshold = TimeInterval(policy.rawValue)
 
         if threshold > 0 {
@@ -43,8 +46,8 @@ import Testing
         #expect(lock.blurRadius == settings.backgroundBlurRadius)
     }
 
-    @Test func neverLocksWithAutoLockOff() {
-        let lock = makeLock()
+    @Test func neverLocksWithAutoLockOff() async {
+        let lock = await makeLock()
         lock.sceneBecameInactive()
         clock.advance(by: 24 * 60 * 60)
 
@@ -52,18 +55,18 @@ import Testing
         #expect(!lock.isLocked)
     }
 
-    @Test func instantlyLocksOnAnyReturn() {
+    @Test func instantlyLocksOnAnyReturn() async {
         settings.autoLockPolicy = .instantly
-        let lock = makeLock()
+        let lock = await makeLock()
 
         lock.sceneBecameInactive()
 
         #expect(lock.sceneBecameActive() == .locked)
     }
 
-    @Test func returningThroughInactiveKeepsTheFirstResignationTime() {
+    @Test func returningThroughInactiveKeepsTheFirstResignationTime() async {
         settings.autoLockPolicy = .min1
-        let lock = makeLock()
+        let lock = await makeLock()
 
         lock.sceneBecameInactive()
         clock.advance(by: 30)
@@ -77,9 +80,9 @@ import Testing
 
     // MARK: Blur
 
-    @Test func blursWhileInactiveAndClearsOnReturn() {
+    @Test func blursWhileInactiveAndClearsOnReturn() async {
         settings.backgroundBlurRadius = 25
-        let lock = makeLock()
+        let lock = await makeLock()
 
         lock.sceneBecameInactive()
         #expect(lock.blurRadius == 25)
@@ -89,9 +92,9 @@ import Testing
         #expect(lock.blurRadius == 0)
     }
 
-    @Test func zeroRadiusMeansNoBlur() {
+    @Test func zeroRadiusMeansNoBlur() async {
         settings.backgroundBlurRadius = 0
-        let lock = makeLock()
+        let lock = await makeLock()
 
         lock.sceneBecameInactive()
 
@@ -103,7 +106,7 @@ import Testing
     @Test func successfulAuthenticationUnlocks() async {
         settings.autoLockPolicy = .instantly
         let reason = LockIsolated("")
-        let lock = makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { text in
+        let lock = await makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { text in
             reason.setValue(text)
             return true
         }))
@@ -122,7 +125,7 @@ import Testing
     @Test func failedAuthenticationStaysLockedWithoutPromptingAgain() async {
         settings.autoLockPolicy = .instantly
         let gate = ShellGate()
-        let lock = makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
+        let lock = await makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
             await gate.wait()
             return false
         }))
@@ -147,7 +150,7 @@ import Testing
     @Test func promptActivationBeforeTheResultIsIgnored() async {
         settings.autoLockPolicy = .instantly
         let gate = ShellGate()
-        let lock = makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
+        let lock = await makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
             await gate.wait()
             return true
         }))
@@ -166,7 +169,7 @@ import Testing
     }
 
     @Test func authenticateDoesNothingWhenUnlocked() async {
-        let lock = makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
+        let lock = await makeLock(biometrics: BiometricsClient(isAvailable: { true }, authenticate: { _ in
             Issue.record("Not locked")
             return true
         }))
@@ -174,9 +177,9 @@ import Testing
         #expect(await lock.authenticate() == false)
     }
 
-    @Test func withoutAPasscodeTheAppIsNeverLocked() {
+    @Test func withoutAPasscodeTheAppIsNeverLocked() async {
         settings.autoLockPolicy = .instantly
-        let lock = makeLock(biometrics: AppFixture.biometrics(available: false))
+        let lock = await makeLock(biometrics: AppFixture.biometrics(available: false))
 
         lock.sceneBecameInactive()
 
@@ -186,13 +189,40 @@ import Testing
 
     // MARK: Launch
 
-    @Test func lockAtLaunchFollowsThePolicy() {
-        #expect(makeLock().lockAtLaunch() == false)
+    @Test func lockAtLaunchFollowsThePolicy() async {
+        #expect(await makeLock().lockAtLaunch() == false)
 
         settings.autoLockPolicy = .min30
-        let lock = makeLock()
+        let lock = await makeLock()
         #expect(lock.lockAtLaunch())
         #expect(lock.isLocked)
         #expect(lock.blurRadius == settings.backgroundBlurRadius)
+    }
+}
+
+@MainActor @Suite struct AppLockPasscodeTests {
+    /// `LAContext` may block, so the passcode is checked off the main actor ahead of time and a
+    /// returning scene only reads the result.
+    @Test func thePasscodeIsCheckedOffTheMainActorAndNotOnActivation() async {
+        let settings = SettingsStore(storage: .ephemeral())
+        settings.autoLockPolicy = .instantly
+        let checks = LockIsolated<[Bool]>([])
+        let lock = withDependencies {
+            $0.settings = settings
+            $0.date = ShellTestClock().generator
+            $0.biometricsClient = BiometricsClient(isAvailable: {
+                checks.withValue { $0.append(Thread.isMainThread) }
+                return true
+            }, authenticate: { _ in true })
+        } operation: {
+            AppLockModel()
+        }
+
+        await lock.checkPasscode()
+        #expect(checks.value == [false])
+
+        lock.sceneBecameInactive()
+        #expect(lock.sceneBecameActive() == .locked)
+        #expect(checks.value == [false])
     }
 }

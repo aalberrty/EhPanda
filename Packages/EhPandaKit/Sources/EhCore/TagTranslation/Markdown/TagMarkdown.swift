@@ -1,3 +1,4 @@
+import EhModels
 import Foundation
 
 /// Legacy's `MarkdownUtil`: the text, image and link inlines directly inside the top-level
@@ -23,25 +24,25 @@ enum TagMarkdown {
 
     /// `MarkdownUtil.parseImages`: the image URL if it is a valid link, otherwise the title if
     /// that is one (the database hides some URLs as `![alt](# "https://…")`).
-    static func images(_ markdown: String, validator: URLValidator) -> [URL] {
-        images(in: inlines(markdown), validator: validator)
+    static func images(_ markdown: String) -> [URL] {
+        images(in: inlines(markdown))
     }
 
-    static func images(in inlines: [MarkdownInline], validator: URLValidator) -> [URL] {
+    static func images(in inlines: [MarkdownInline]) -> [URL] {
         inlines.compactMap { inline in
             guard case .image(let urlString, let title) = inline else { return nil }
-            if let url = URL(string: urlString), validator.isValid(url.absoluteString) { return url }
-            if !title.isEmpty, validator.isValid(title) { return URL(string: title) }
+            if let url = URL(string: urlString), url.absoluteString.isValidURL { return url }
+            if !title.isEmpty, title.isValidURL { return URL(string: title) }
             return nil
         }
     }
 
     /// Legacy `displayValue` (`valuePlainText ?? value`) and `valueImageURL` of a tag value.
-    static func display(of value: String, validator: URLValidator) -> (text: String, imageURL: URL?) {
+    static func display(of value: String) -> (text: String, imageURL: URL?) {
         if let text = plainParagraphText(value) { return (text, nil) }
         let inlines = inlines(value)
         let text = inlines.lazy.compactMap { if case .text(let text) = $0 { text } else { nil } }.first
-        return (text ?? value, images(in: inlines, validator: validator).first)
+        return (text ?? value, images(in: inlines).first)
     }
 
     /// The paragraph text of a one-line value that cannot contain any Markdown construct, or
@@ -76,17 +77,3 @@ enum TagMarkdown {
     }
 }
 
-/// Legacy's `String.isValidURL`: the whole string is one link as `NSDataDetector` sees it.
-///
-/// Not `Sendable`; create one per preparation run or detail request.
-struct URLValidator {
-    private let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-
-    func isValid(_ string: String) -> Bool {
-        let length = string.utf16.count
-        guard let detector,
-              let match = detector.firstMatch(in: string, options: [], range: NSRange(location: 0, length: length))
-        else { return false }
-        return match.range.length == length
-    }
-}

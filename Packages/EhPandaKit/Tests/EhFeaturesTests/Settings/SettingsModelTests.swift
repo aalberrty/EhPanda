@@ -128,28 +128,6 @@ import Testing
     }
 }
 
-@Suite struct LaboratorySettingsModelTests {
-    @Test func togglingSNIBypassStoresTheSettingAndSwitchesTheTransport() {
-        let settings = SettingsStore.ephemeral()
-        let enabled = SettingsTestLock(false)
-        let model = withDependencies {
-            $0.settings = settings
-            $0.domainFronting = DomainFrontingClient(
-                isEnabled: { enabled.withLock { $0 } },
-                setEnabled: { value in enabled.withLock { $0 = value } }
-            )
-        } operation: { LaboratorySettingsModel() }
-
-        model.setBypassesSNIFiltering(true)
-        #expect(settings.bypassesSNIFiltering)
-        #expect(enabled.withLock { $0 })
-
-        model.setBypassesSNIFiltering(false)
-        #expect(!settings.bypassesSNIFiltering)
-        #expect(!enabled.withLock { $0 })
-    }
-}
-
 @Suite struct ReadingSettingsModelTests {
     private func makeModel(isPad: Bool, settings: SettingsStore, locks: SettingsTestLock<[OrientationLock]>) -> ReadingSettingsModel {
         withDependencies {

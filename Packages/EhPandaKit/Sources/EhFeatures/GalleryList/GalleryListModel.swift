@@ -7,8 +7,10 @@ import Observation
 /// A paginated list of galleries from one `GalleryListSource` (legacy `GenericList` and the
 /// list half of every list reducer).
 ///
-/// **Driving it from a view.** Every load runs in a task the view owns, so leaving the screen
-/// cancels it, and a cancelled load leaves the state as it was:
+/// **Driving it from a view.** Loads run in tasks the model owns, so pushing a gallery on top
+/// of the list does not abandon them; they are cancelled when the model goes away (the screen
+/// left for good) or when the list is replaced. The view's tasks only start them and wait for
+/// them; a cancelled view task stops waiting at once, so it does not keep the model alive:
 /// - `.task(id: model.loadTrigger) { await model.loadIfNeeded() }` performs the first load, and
 ///   loads again after `retry()`, `reload()`, `reset(to:)` or `jumpToPage(_:)`, and when the screen
 ///   swaps in another list (a Toplists period, a Favorites folder);
@@ -82,6 +84,11 @@ public final class GalleryListModel {
     /// Bumped by every load that replaces the list; results of older loads are dropped.
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var galleryIDs = Set<String>()
+    @ObservationIgnored private let tasks = ModelTasks()
+    /// The first-page and next-page loads in flight. Each is cleared by its own completion, or
+    /// by whatever bumps `generation` and so supersedes it.
+    @ObservationIgnored private var firstPageLoad: Task<Void, Never>?
+    @ObservationIgnored private var nextPageLoad: Task<Void, Never>?
 
     @ObservationIgnored @Dependency(\.ehClient) private var client
     @ObservationIgnored @Dependency(\.filterStore) private var filterStore
@@ -168,24 +175,28 @@ public final class GalleryListModel {
         return true
     }
 
-    /// Loads the next page, skipping pages that come back empty.
+    /// Loads the next page, skipping pages that come back empty, and waits for it.
+    ///
+    /// A caller cancelled before the load starts (a footer row that scrolled away as the
+    /// previous page landed) starts nothing; once started, the load outlives the caller.
     public func loadMore() async {
-        guard !needsLogin, !loadingState.isLoading, !footerState.isLoading, !galleries.isEmpty,
+        if let nextPageLoad {
+            await nextPageLoad.waitUnlessCancelled()
+            return
+        }
+        guard !Task.isCancelled, !needsLogin, !loadingState.isLoading, !galleries.isEmpty,
               let request = nextRequest
         else { return }
         let token = generation
         let previous = footerState
         footerState = .loading
-        do {
-            let (page, next) = try await fetchSkippingEmptyPages(from: request)
-            guard token == generation else { return }
-            try Task.checkCancellation()
-            append(page, next: next)
-            footerState = .idle
-        } catch {
-            guard token == generation else { return }
-            footerState = Self.isCancellation(error) ? previous : .failed(Self.appError(error))
+        let fetch = pageFetch(from: request)
+        let load = tasks.run(TaskKey.nextPage) { [weak self] in
+            let outcome = await Outcome.of { try await fetch() }
+            self?.finishNextPage(outcome, token: token, previous: previous)
         }
+        nextPageLoad = load
+        await load.waitUnlessCancelled()
     }
 
     /// Retries the failed next page.
@@ -197,40 +208,81 @@ public final class GalleryListModel {
 
     // MARK: Loading
 
+    /// Starts loading `request` as the first page and waits for it (until the caller is
+    /// cancelled). While a first page is already loading, waits for that one instead.
     private func loadFirstPage(_ request: PageRequest) async {
-        guard !loadingState.isLoading else { return }
+        if let firstPageLoad {
+            await firstPageLoad.waitUnlessCancelled()
+            return
+        }
         generation += 1
         let token = generation
         let previous = loadingState
         firstRequest = request
         loadingState = .loading
-        // A next page still in flight belongs to the list being replaced; its result is dropped.
-        footerState = .idle
-        do {
-            let (page, next) = try await fetchSkippingEmptyPages(from: request)
-            guard token == generation else { return }
-            try Task.checkCancellation()
-            replace(with: page, next: next)
+        // A next page still in flight belongs to the list being replaced.
+        cancelNextPage()
+        let fetch = pageFetch(from: request)
+        let load = tasks.run(TaskKey.firstPage) { [weak self] in
+            let outcome = await Outcome.of { try await fetch() }
+            self?.finishFirstPage(outcome, token: token, previous: previous)
+        }
+        firstPageLoad = load
+        await load.waitUnlessCancelled()
+    }
+
+    private func finishFirstPage(_ outcome: Outcome<PageResult>, token: Int, previous: LoadingState) {
+        guard token == generation else { return }
+        firstPageLoad = nil
+        switch outcome {
+        case .success(let result):
+            replace(with: result.page, next: result.next)
             needsLoad = false
-        } catch {
-            guard token == generation else { return }
-            if Self.isCancellation(error) {
-                loadingState = previous
-            } else {
-                loadingState = .failed(Self.appError(error))
-            }
+        case .failure(let error):
+            loadingState = .failed(error)
+        case .cancelled:
+            loadingState = previous
         }
     }
 
-    /// Legacy: an empty page with a next page asks for the next one straight away.
-    private func fetchSkippingEmptyPages(from request: PageRequest) async throws -> (FetchedPage, PageRequest?) {
+    private func finishNextPage(_ outcome: Outcome<PageResult>, token: Int, previous: LoadingState) {
+        guard token == generation else { return }
+        nextPageLoad = nil
+        switch outcome {
+        case .success(let result):
+            append(result.page, next: result.next)
+            footerState = .idle
+        case .failure(let error):
+            footerState = .failed(error)
+        case .cancelled:
+            footerState = previous
+        }
+    }
+
+    private func cancelNextPage() {
+        tasks.cancel(TaskKey.nextPage)
+        nextPageLoad = nil
+        footerState = .idle
+    }
+
+    /// The request for `request`'s page, holding what it needs but not the model, so a load in
+    /// flight does not keep a released model alive.
+    private func pageFetch(from request: PageRequest) -> @Sendable () async throws -> PageResult {
         let source = source
         let filter = source.filterRange.map { filterStore[$0] } ?? Filter()
+        let client = client
+        return { try await Self.fetchSkippingEmptyPages(from: request, of: source, filter: filter, client: client) }
+    }
+
+    /// Legacy: an empty page with a next page asks for the next one straight away.
+    nonisolated private static func fetchSkippingEmptyPages(
+        from request: PageRequest, of source: GalleryListSource, filter: Filter, client: EhClient
+    ) async throws -> PageResult {
         var request = request
         while true {
-            let page = try await Self.fetch(request, of: source, filter: filter, client: client)
+            let page = try await fetch(request, of: source, filter: filter, client: client)
             let next = GalleryListPaging.nextRequest(after: page, of: source, requested: request)
-            guard page.galleries.isEmpty, let next else { return (page, next) }
+            guard page.galleries.isEmpty, let next else { return PageResult(page: page, next: next) }
             request = next
         }
     }
@@ -267,6 +319,9 @@ public final class GalleryListModel {
     /// Forgets everything loaded and asks the view to load `request`.
     private func startOver(from request: PageRequest) {
         generation += 1
+        tasks.cancel(TaskKey.firstPage)
+        firstPageLoad = nil
+        cancelNextPage()
         galleryIDs = []
         galleries = []
         pageNumber = PageNumber()
@@ -290,11 +345,14 @@ public final class GalleryListModel {
         visibleGalleries = GalleryListPaging.filtered(galleries, byTitle: titleFilter)
     }
 
-    nonisolated private static func isCancellation(_ error: any Error) -> Bool {
-        error is CancellationError || Task.isCancelled
+    private enum TaskKey {
+        static let firstPage = "firstPage"
+        static let nextPage = "nextPage"
     }
+}
 
-    nonisolated private static func appError(_ error: any Error) -> AppError {
-        error as? AppError ?? .unknown
-    }
+/// A fetched page and the request for the page after it.
+nonisolated struct PageResult: Sendable {
+    let page: FetchedPage
+    let next: PageRequest?
 }

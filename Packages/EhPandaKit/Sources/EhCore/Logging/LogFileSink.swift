@@ -62,6 +62,16 @@ final class LogFileSink: @unchecked Sendable {
         }
     }
 
+    /// Every log file, newest first, with its line count and dates, read on the queue.
+    func summaries() async -> [LogSummary] {
+        await onQueue {
+            LogFileNaming.list(in: self.directory, formatter: self.state.nameFormatter).map { file in
+                let data = (try? Data(contentsOf: file.url, options: .mappedIfSafe)) ?? Data()
+                return LogSummary(file: file, data: data)
+            }
+        }
+    }
+
     func delete(_ file: LogFile) async {
         await onQueue {
             if file.url.standardizedFileURL == self.state.currentURL?.standardizedFileURL {

@@ -2,6 +2,8 @@
 import EhModels
 import EhTestSupport
 import Foundation
+import Observation
+import Synchronization
 import Testing
 
 @Suite struct GalleryListModelTests {
@@ -137,41 +139,120 @@ import Testing
         #expect(model.footerPhase == .end)
     }
 
-    @Test func cancelledFirstLoadLeavesStateUntouched() async throws {
+    /// Pushing a gallery ends the view's task; the first page it started must still land, and
+    /// the screen coming back must not request it again.
+    @Test func cancellingTheCallerDoesNotCancelTheFirstPage() async throws {
         let env = try ListTestEnvironment()
-        env.transport.on(.any, reply: .suspendUntilCancelled)
+        let gate = Gate()
+        env.transport.on(.any, reply: .handler { request in
+            await gate.wait()
+            return try Fixture.response(ListFixture.frontpage, for: request)
+        })
         let model = env.make { GalleryListModel(source: .frontpage) }
 
         let task = Task { await model.loadIfNeeded() }
         await waitUntil { model.loadingState == .loading }
         task.cancel()
+        let reappeared = Task { await model.loadIfNeeded() }
+        gate.open()
         await task.value
+        await reappeared.value
 
-        #expect(model.loadingState == .idle)
-        #expect(model.galleries.isEmpty)
-
-        // The next appearance loads again.
-        env.transport.on(.any, reply: .fixture(ListFixture.frontpage))
-        await model.loadIfNeeded()
         #expect(model.phase == .content)
+        #expect(env.transport.requests.count == 1)
     }
 
-    @Test func cancelledLoadMoreLeavesStateUntouched() async throws {
+    @Test func cancellingTheCallerDoesNotCancelTheNextPage() async throws {
+        let env = try ListTestEnvironment()
+        let gate = Gate()
+        env.transport.on(.any, reply: .fixture(ListFixture.frontpage))
+        env.transport.on(.query("next", ListFixture.frontpageLastID), reply: .handler { request in
+            await gate.wait()
+            return try Fixture.response(ListFixture.popular, for: request)
+        })
+        let model = env.make { GalleryListModel(source: .frontpage) }
+        await model.loadIfNeeded()
+        let firstCount = model.galleries.count
+
+        let task = Task { await model.loadMore() }
+        await waitUntil { model.footerState == .loading }
+        task.cancel()
+        // The screen comes back while the page is still loading: it waits for the same load.
+        let reappeared = Task { await model.loadMore() }
+        try await Task.sleep(for: .milliseconds(20))
+        #expect(env.transport.requests.count == 2)
+        gate.open()
+        await task.value
+        await reappeared.value
+        await waitUntil { model.footerState == .idle }
+
+        #expect(model.galleries.count > firstCount)
+        #expect(model.footerPhase == .end)
+    }
+
+    @Test func aCallerCancelledBeforeLoadingMoreStartsNothing() async throws {
+        let env = try ListTestEnvironment()
+        env.transport.on(.any, reply: .fixture(ListFixture.frontpage))
+        let model = env.make { GalleryListModel(source: .frontpage) }
+        await model.loadIfNeeded()
+
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            await model.loadMore()
+        }
+        await task.value
+
+        #expect(env.transport.requests.count == 1)
+        #expect(model.footerState == .idle)
+    }
+
+    /// Replacing the list cancels the next page in flight and drops its result, leaving the
+    /// state of the new list.
+    @Test func replacingTheListCancelsTheNextPageInFlight() async throws {
         let env = try ListTestEnvironment()
         env.transport.on(.any, reply: .fixture(ListFixture.frontpage))
         env.transport.on(.query("next", ListFixture.frontpageLastID), reply: .suspendUntilCancelled)
         let model = env.make { GalleryListModel(source: .frontpage) }
         await model.loadIfNeeded()
-        let galleries = model.galleries
 
         let task = Task { await model.loadMore() }
         await waitUntil { model.footerState == .loading }
-        task.cancel()
+        model.reload()
         await task.value
 
         #expect(model.footerState == .idle)
-        #expect(model.galleries == galleries)
+        #expect(model.galleries.isEmpty)
+        await model.loadIfNeeded()
+        #expect(model.phase == .content)
         #expect(model.hasNextPage)
+    }
+
+    /// Leaving the screen for good releases the model, which cancels its load.
+    @Test func releasingTheModelCancelsItsLoad() async throws {
+        let env = try ListTestEnvironment()
+        let cancelled = Gate()
+        env.transport.on(.any, reply: .handler { _ in
+            do {
+                while true { try await Task.sleep(for: .seconds(3600)) }
+            } catch {
+                cancelled.open()
+                throw URLError(.cancelled)
+            }
+        })
+        var model: GalleryListModel? = env.make { GalleryListModel(source: .frontpage) }
+        let task = Task { [model] in await model?.loadIfNeeded() }
+        await waitUntil { env.transport.requests.count == 1 }
+        // The view goes away: its task is cancelled and stops waiting, so nothing holds the model.
+        task.cancel()
+        await task.value
+        weak let released = model
+
+        model = nil
+        await waitUntil { released == nil }
+        await waitUntil { cancelled.isOpen }
+
+        #expect(released == nil)
+        #expect(cancelled.isOpen)
     }
 
     @Test func refreshReplacesTheList() async throws {
@@ -184,6 +265,34 @@ import Testing
 
         #expect(model.galleries.last?.gid != ListFixture.frontpageLastID)
         #expect(env.query("next", ofRequest: 1) == nil)
+    }
+
+    /// Same galleries, same order, one new title: the refresh must notify observers and reach
+    /// the visible list, or the screen keeps the old title.
+    @Test func refreshWithChangedFieldsNotifiesObservers() async throws {
+        let env = try ListTestEnvironment()
+        let html = try Fixture.string(ListFixture.frontpage)
+        let oldTitle = "[ROM宅 (ROM)] せめぱん3 (ドラゴンボールGT) [DL版]"
+        let newTitle = "[ROM宅 (ROM)] せめぱん4 (ドラゴンボールGT) [DL版]"
+        #expect(html.contains(oldTitle))
+        env.transport.on(.any, replies: .html(html), .html(html.replacingOccurrences(of: oldTitle, with: newTitle)))
+        let model = env.make { GalleryListModel(source: .frontpage) }
+        await model.loadIfNeeded()
+        let ids = model.visibleGalleries.map(\.gid)
+        #expect(model.visibleGalleries.contains { $0.title == oldTitle })
+
+        let notified = Mutex(false)
+        withObservationTracking {
+            _ = model.visibleGalleries
+        } onChange: {
+            notified.withLock { $0 = true }
+        }
+        await model.refresh()
+
+        #expect(notified.withLock { $0 })
+        #expect(model.visibleGalleries.map(\.gid) == ids)
+        #expect(model.visibleGalleries.contains { $0.title == newTitle })
+        #expect(!model.visibleGalleries.contains { $0.title == oldTitle })
     }
 
     @Test func requestsUseTheFilterOfTheirRange() async throws {

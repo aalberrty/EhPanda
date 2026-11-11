@@ -4,6 +4,8 @@ import SwiftUI
 /// `ColorfulView`). The mesh drifts slowly while `isAnimated` and holds still otherwise.
 struct CardBackground: View {
     let palette: CardPalette?
+    /// Drifts while true. The carousel turns it off for every card but the current one, and for
+    /// that one too while it cannot be seen or the page scrolls.
     let isAnimated: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -16,14 +18,11 @@ struct CardBackground: View {
         ZStack {
             Rectangle().fill(.gray.opacity(0.2))
             if let palette {
-                // 30 fps is plenty for a drift this slow and halves the work of the display rate.
-                TimelineView(.animation(minimumInterval: 1 / 30, paused: !animates)) { context in
+                // Built once per palette, not on every tick.
+                let colors = Self.colors(of: palette)
+                TimelineView(.animation(minimumInterval: 1 / Self.framesPerSecond, paused: !animates)) { context in
                     let phase = animates ? context.date.timeIntervalSince(start) : 0
-                    MeshGradient(
-                        width: 3, height: 3,
-                        points: Self.points(phase: phase),
-                        colors: Self.colors(of: palette)
-                    )
+                    MeshGradient(width: 3, height: 3, points: Self.points(at: phase), colors: colors)
                 }
                 .opacity(0.75)
                 .transition(.opacity)
@@ -34,6 +33,23 @@ struct CardBackground: View {
             if animates { start = .now }
         }
         .accessibilityHidden(true)
+    }
+
+    /// 30 fps is plenty for a drift this slow and halves the work of the display rate.
+    private static let framesPerSecond: Double = 30
+
+    /// `sin(0.7 t)` and `sin(0.5 t)` both repeat after 20π seconds.
+    private static let driftPeriod: Double = 20 * .pi
+
+    /// The mesh of every frame of one drift cycle, built on first use, so a tick picks an
+    /// existing array instead of allocating one.
+    private static let driftFrames: [[SIMD2<Float>]] = {
+        let count = Int((driftPeriod * framesPerSecond).rounded())
+        return (0..<count).map { points(phase: Double($0) / framesPerSecond) }
+    }()
+
+    private static func points(at phase: TimeInterval) -> [SIMD2<Float>] {
+        driftFrames[Int(phase * framesPerSecond) % driftFrames.count]
     }
 
     /// A 3 × 3 mesh whose inner points circle slowly; phase 0 is the resting grid.

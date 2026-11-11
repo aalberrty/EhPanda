@@ -7,6 +7,7 @@ import EhModels
 import EhNetworking
 import EhTestSupport
 import Foundation
+import Synchronization
 import Testing
 
 /// An `AppModel` whose launch steps are stubs that log what they see.
@@ -27,7 +28,7 @@ final class LaunchHarness {
         openFailures: Int = 0, dropFails: Bool = false, isPad: Bool = false,
         alternateIconName: String? = nil, biometrics: BiometricsClient = AppFixture.biometrics(),
         clipboard: ClipboardClient = AppFixture.clipboard(), expireGate: ShellGate? = nil,
-        tagTranslationRemote: TagTranslationRemote? = nil
+        tagTranslationRemote: TagTranslationRemote? = nil, cookieStorage: HTTPCookieStorage? = nil
     ) {
         let events = events
         let opens = LockIsolated(0)
@@ -71,6 +72,9 @@ final class LaunchHarness {
             if let tagTranslationRemote {
                 $0.tagTranslationRemote = tagTranslationRemote
             }
+            if let cookieStorage {
+                $0.cookieStore = CookieStore(storage: cookieStorage)
+            }
         } operation: {
             AppModel()
         }
@@ -84,6 +88,18 @@ final class LaunchHarness {
 }
 
 @MainActor @Suite struct AppModelLaunchTests {
+    /// The account session's first read of the cookie jar (and the stores created with it)
+    /// happens in the launch, off the main actor, not in the first `body` that reads them.
+    @Test func createsTheSharedStoresOffTheMainActor() async {
+        let storage = ThreadRecordingCookieStorage()
+        let harness = LaunchHarness(cookieStorage: storage)
+
+        await harness.launch()
+
+        #expect(harness.model.launchState == .ready)
+        #expect(storage.readsOnMainThread.first == false)
+    }
+
     @Test func installsTheDatabaseBeforeTheTabsCanReadIt() async throws {
         let harness = LaunchHarness()
         #expect(harness.model.launchState == .launching)
@@ -350,5 +366,28 @@ final class LaunchHarness {
         await shellWaitUntil { harness.events.all.contains("domainFronting true") }
         harness.settings.bypassesSNIFiltering = false
         await shellWaitUntil { harness.events.all.contains("domainFronting false") }
+    }
+}
+
+/// Records, for every lookup, whether it ran on the main thread. Holds no cookies.
+// `@unchecked Sendable`: the only stored state is the mutex below.
+nonisolated private final class ThreadRecordingCookieStorage: HTTPCookieStorage, @unchecked Sendable {
+    private let reads = Mutex<[Bool]>([])
+
+    var readsOnMainThread: [Bool] { reads.withLock { $0 } }
+
+    override var cookies: [HTTPCookie]? {
+        record()
+        return []
+    }
+
+    override func cookies(for url: URL) -> [HTTPCookie]? {
+        record()
+        return []
+    }
+
+    private func record() {
+        let isMain = Thread.isMainThread
+        reads.withLock { $0.append(isMain) }
     }
 }

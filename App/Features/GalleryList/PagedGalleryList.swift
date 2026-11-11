@@ -4,7 +4,8 @@ import SwiftUI
 
 /// A `GalleryListModel` on screen: the login prompt, loading, error and empty states, the
 /// galleries with pull to refresh, and the pagination footer that loads the next page when it
-/// scrolls into view. Every load runs in a task of this view, so leaving the screen cancels it.
+/// scrolls into view. The loads belong to the model: this view's tasks start them and wait for
+/// them, so pushing a gallery does not abandon a load and releasing the model cancels it.
 ///
 /// Put the screen's search field, toolbar and sheets around it; it has none of its own.
 struct PagedGalleryList: View {

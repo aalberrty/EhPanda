@@ -26,15 +26,15 @@ public struct RetryingTransport: HTTPTransport {
 
     public func send(_ request: URLRequest) async throws -> HTTPResponse {
         var attempt = 1
+        var timeouts = 0
         while true {
             do {
                 return try await base.send(request)
             } catch {
                 let urlError = URLError.normalized(error)
-                guard attempt < policy.maxAttempts,
-                      urlError.code != .cancelled,
-                      !Task.isCancelled,
-                      policy.shouldRetry(method: request.httpMethod, error: urlError)
+                if urlError.code == .timedOut { timeouts += 1 }
+                guard !Task.isCancelled,
+                      policy.shouldRetry(method: request.httpMethod, error: urlError, attempt: attempt, timeouts: timeouts)
                 else { throw urlError }
 
                 do {

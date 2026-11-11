@@ -1,3 +1,4 @@
+import EhModels
 import Foundation
 
 /// The query vocabulary the site understands (legacy `Defaults.URL.Component.Key`).
@@ -8,7 +9,6 @@ enum RequestQueryKey: String {
     case next
     case favcat
     case topcat = "tl"
-    case showUser = "showuser"
     case fSearch = "f_search"
     case code = "CODE"
     case act
@@ -57,15 +57,9 @@ enum RequestEncoding {
         URLQueryItem(name: key.rawValue, value: value)
     }
 
-    /// Appends query items the way the legacy `URL.appending(queryItems:)` did: through
-    /// `URLComponents.queryItems`, which escapes `&`, `=` and `#` in values but leaves `+`
-    /// as is. An empty list leaves the URL untouched (no trailing `?`).
+    /// `url` with `items` appended; see `URL.appendingQueryItems(_:)`.
     static func appending(_ items: [URLQueryItem], to url: URL) -> URL {
-        guard !items.isEmpty,
-              var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        else { return url }
-        components.queryItems = (components.queryItems ?? []) + items
-        return components.url ?? url
+        url.appendingQueryItems(items)
     }
 
     /// Encodes a form body: `key=value` pairs joined with `&`, each key and value

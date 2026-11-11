@@ -173,14 +173,4 @@ private typealias T = RequestTesting
             "https://e-hentai.org/toplist.php?tl=11&p=3"
         )
     }
-
-    @Test(arguments: [
-        (ToplistsType.yesterday, 15), (.pastMonth, 13), (.pastYear, 12), (.allTime, 11)
-    ])
-    func moreToplists(type: ToplistsType, tl: Int) {
-        T.expectGET(
-            T.ex.moreToplistsGalleries(type: type, pageNum: 2),
-            "https://e-hentai.org/toplist.php?tl=\(tl)&p=2"
-        )
-    }
 }

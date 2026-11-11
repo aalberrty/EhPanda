@@ -159,7 +159,13 @@ import Testing
         model.openLink(URL(string: "https://e-hentai.org/s/0123456789/999-5")!, on: stack)
         await pollUntil { !stack.isAtRoot }
 
-        #expect(stack.path == [.detail(other, intent: .read(page: 5))])
+        // The pushed gallery is the stored one, which also carries its last open date.
+        guard case .detail(let pushed, let intent) = stack.path.first, stack.path.count == 1 else {
+            Issue.record("Expected one detail route, got \(stack.path)")
+            return
+        }
+        #expect(pushed.gid == other.gid)
+        #expect(intent == .read(page: 5))
         #expect(env.transport.requests.count == requestsBefore)
         await pollUntil { (try? await env.database.state(gid: "999"))?.readingProgress == 5 }
     }

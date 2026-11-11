@@ -19,13 +19,9 @@ struct AppShellView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    // Shared services. They are injected into the environment so views read the individual
-    // properties they render; models reach the same instances through `@Dependency`.
+    // The settings decide the first frame's colours. The other shared services are injected
+    // by `MainTabView`: the launch creates them off the main actor before the tabs appear.
     @Dependency(\.settings) private var settings
-    @Dependency(\.filterStore) private var filterStore
-    @Dependency(\.userStore) private var userStore
-    @Dependency(\.tagTranslationService) private var tagTranslationService
-    @Dependency(\.accountSession) private var accountSession
 
     var body: some View {
         ZStack {
@@ -41,10 +37,6 @@ struct AppShellView: View {
         .tint(settings.accentColor.color)
         .environment(model.router)
         .environment(settings)
-        .environment(filterStore)
-        .environment(userStore)
-        .environment(tagTranslationService)
-        .environment(accountSession)
         .background {
             SceneWindowBridge(
                 colorScheme: settings.preferredColorScheme,

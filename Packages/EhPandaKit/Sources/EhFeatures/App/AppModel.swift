@@ -100,6 +100,9 @@ public final class AppModel {
             lock.sceneBecameInactive()
         case .background:
             lock.sceneEnteredBackground()
+            // The passcode can only be removed in the Settings app, so check it again on the
+            // way out; the result is in before the user comes back.
+            Task { await lock.checkPasscode() }
         case .active:
             switch lock.sceneBecameActive() {
             case .locked: requestActivation(.authenticate)
