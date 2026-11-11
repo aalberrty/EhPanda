@@ -25,8 +25,8 @@ import Foundation
 /// It lives on the main actor because the engine's data source reads page states
 /// synchronously there. Everything it does itself is bookkeeping over a few dozen pages;
 /// requests and parsing run inside `EhClient`, off the main actor.
-public final class ReaderPageResolver {
-    nonisolated public enum Event: Sendable, Equatable {
+final class ReaderPageResolver {
+    nonisolated enum Event: Sendable, Equatable {
         /// Viewer-page links were read from a preview page.
         case links([Int: URL])
         /// A page has an image, for the first time or a different one after a refetch.
@@ -65,16 +65,16 @@ public final class ReaderPageResolver {
         let task: Task<Void, Never>
     }
 
-    public let pageCount: Int
+    let pageCount: Int
     /// Called on the main actor, after the state it describes is in place.
-    public var onEvent: ((Event) -> Void)?
+    var onEvent: ((Event) -> Void)?
 
     let gid: String
     let galleryURL: URL?
     let client: EhClient
     private let limit: Int
 
-    public internal(set) var paging: ReaderPreviewPaging
+    var paging: ReaderPreviewPaging
     var links: [Int: URL] = [:]
     var images: [Int: PageImage] = [:]
     var statuses: [Int: Status] = [:]
@@ -82,7 +82,7 @@ public final class ReaderPageResolver {
     /// Set when a preview page links to the multi-page viewer; the keys come from this URL.
     var mpvURL: URL?
     /// Memory only, as in legacy: the keys belong to the session.
-    public internal(set) var mpvKeys: MPVKeys?
+    var mpvKeys: MPVKeys?
     var skipServerIdentifiers: [Int: String] = [:]
 
     private var needed: Set<Int> = []
@@ -94,7 +94,7 @@ public final class ReaderPageResolver {
     private var lastJobID = 0
     private var isPumpScheduled = false
 
-    public init(
+    init(
         gallery: Gallery, client: EhClient, previewConfig: PreviewConfig? = nil,
         maximumConcurrentRequests: Int = 4
     ) {
@@ -108,7 +108,7 @@ public final class ReaderPageResolver {
 
     // MARK: Reading
 
-    public func state(of page: Int) -> ReaderPageState {
+    func state(of page: Int) -> ReaderPageState {
         switch status(of: page) {
         case .resolved:
             images[page].map { .image($0.imageURL) } ?? .pending
@@ -119,15 +119,15 @@ public final class ReaderPageResolver {
         }
     }
 
-    public func image(of page: Int) -> PageImage? {
+    func image(of page: Int) -> PageImage? {
         images[page]
     }
 
-    public func link(of page: Int) -> URL? {
+    func link(of page: Int) -> URL? {
         links[page]
     }
 
-    public func failure(of page: Int) -> AppError? {
+    func failure(of page: Int) -> AppError? {
         if case .failed(let error, _) = status(of: page) { error } else { nil }
     }
 
@@ -138,7 +138,7 @@ public final class ReaderPageResolver {
     // MARK: Start-up
 
     /// Takes over what an earlier session stored. Call it before any page is needed.
-    public func restore(previewConfig: PreviewConfig?, links: [Int: URL], images: [Int: PageImage]) {
+    func restore(previewConfig: PreviewConfig?, links: [Int: URL], images: [Int: PageImage]) {
         paging = ReaderPreviewPaging(config: previewConfig)
         for (page, link) in links where isValid(page) {
             if EhURL.isMPVURL(link) {
@@ -155,7 +155,7 @@ public final class ReaderPageResolver {
     }
 
     /// Lets another reader of preview pages (the slider's thumbnails) correct the page size.
-    public func learnPaging(listed: some Collection<Int>, onPreviewPage number: Int) {
+    func learnPaging(listed: some Collection<Int>, onPreviewPage number: Int) {
         if paging.learn(listed: listed, onPreviewPage: number, pageCount: pageCount) {
             schedulePump()
         }
@@ -164,14 +164,14 @@ public final class ReaderPageResolver {
     // MARK: Demand
 
     /// These pages are on screen or about to be.
-    public func need(_ pages: [Int]) {
+    func need(_ pages: [Int]) {
         needed.formUnion(pages.filter(isValid))
         schedulePump()
     }
 
     /// These pages moved out of reach. Their requests are cancelled, except a refetch the
     /// user asked for, which is short and finishes.
-    public func release(_ pages: [Int]) {
+    func release(_ pages: [Int]) {
         for page in pages where needed.remove(page) != nil {
             if status(of: page) != .refetching, !eager.contains(page) {
                 cancel(.page(page))
@@ -182,7 +182,7 @@ public final class ReaderPageResolver {
     }
 
     /// The page the reader is on. Needed pages are resolved in order of distance from it.
-    public func setFocus(_ page: Int) {
+    func setFocus(_ page: Int) {
         guard page != focus else { return }
         focus = page
         schedulePump()
@@ -192,7 +192,7 @@ public final class ReaderPageResolver {
 
     /// Tries a failed page again: through another image server when it had an image (its
     /// refetch failed), from the start otherwise. Legacy did nothing in the second case.
-    public func retry(_ page: Int) {
+    func retry(_ page: Int) {
         guard isValid(page), case .failed = status(of: page) else { return }
         statuses[page] = images[page] == nil ? .unresolved : .refetching
         requestNow(page)
@@ -200,7 +200,7 @@ public final class ReaderPageResolver {
 
     /// Asks for the page's image through another image server (legacy "Reload", and the retry
     /// of an image that failed to load). A page without an image is simply resolved.
-    public func refetch(_ page: Int) {
+    func refetch(_ page: Int) {
         guard isValid(page) else { return }
         switch status(of: page) {
         case .refetching:
@@ -216,7 +216,7 @@ public final class ReaderPageResolver {
 
     /// Forgets the page's image and resolves it afresh from its viewer page, without asking
     /// for another server. For an image URL that has expired, not one whose server is broken.
-    public func resolveAgain(_ page: Int) {
+    func resolveAgain(_ page: Int) {
         guard isValid(page) else { return }
         cancel(.page(page))
         images[page] = nil
@@ -226,7 +226,7 @@ public final class ReaderPageResolver {
 
     /// Legacy "retry all failed images": every failed page goes back to idle. One that has an
     /// image shows it again; the others resolve when they are needed.
-    public func retryAllFailed() {
+    func retryAllFailed() {
         for (page, status) in statuses {
             guard case .failed = status else { continue }
             statuses[page] = images[page] == nil ? .unresolved : .resolved
@@ -237,7 +237,7 @@ public final class ReaderPageResolver {
 
     /// Legacy "reload all images": forgets every link, image and key. Needed pages stay
     /// needed and resolve again. Sends no events; the caller reloads the reader as a whole.
-    public func reset() {
+    func reset() {
         cancelAll()
         links = [:]
         images = [:]
@@ -250,7 +250,7 @@ public final class ReaderPageResolver {
     }
 
     /// Stops every request, for when the reader closes.
-    public func stop() {
+    func stop() {
         cancelAll()
         needed = []
         eager = []
