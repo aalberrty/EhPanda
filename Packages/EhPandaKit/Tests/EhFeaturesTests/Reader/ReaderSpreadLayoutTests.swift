@@ -67,7 +67,9 @@ private enum Legacy {
         for pageCount in Self.pageCounts {
             for isDualPage in Self.flags {
                 for exceptCover in Self.flags {
-                    let layout = ReaderSpreadLayout(pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover)
+                    let layout = ReaderSpreadLayout(
+                        pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover
+                    )
                     let legacy = Legacy.containerDataSource(
                         pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover
                     )
@@ -94,7 +96,7 @@ private enum Legacy {
                             #expect(
                                 layout.pagesOnScreen(inSpread: spread, rightToLeft: rightToLeft)
                                     == Legacy.pagesOnScreen(config),
-                                "pages \(pageCount) dual \(isDualPage) cover \(exceptCover) rtl \(rightToLeft) spread \(spread)"
+                                "pages \(pageCount) dual \(isDualPage) cover \(exceptCover) rtl \(rightToLeft)"
                             )
                         }
                     }
@@ -107,7 +109,9 @@ private enum Legacy {
         for pageCount in Self.pageCounts {
             for isDualPage in Self.flags {
                 for exceptCover in Self.flags {
-                    let layout = ReaderSpreadLayout(pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover)
+                    let layout = ReaderSpreadLayout(
+                        pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover
+                    )
                     for page in 1...pageCount {
                         #expect(
                             layout.spreadIndex(forPage: page)
@@ -123,7 +127,9 @@ private enum Legacy {
         for pageCount in Self.pageCounts {
             for isDualPage in Self.flags {
                 for exceptCover in Self.flags {
-                    let layout = ReaderSpreadLayout(pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover)
+                    let layout = ReaderSpreadLayout(
+                        pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover
+                    )
                     for spread in 0..<layout.spreadCount {
                         #expect(
                             layout.reportedPage(forSpread: spread) == Legacy.mapFromPager(
@@ -140,7 +146,9 @@ private enum Legacy {
         for pageCount in Self.pageCounts {
             for isDualPage in Self.flags {
                 for exceptCover in Self.flags {
-                    let layout = ReaderSpreadLayout(pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover)
+                    let layout = ReaderSpreadLayout(
+                        pageCount: pageCount, isDualPage: isDualPage, exceptCover: exceptCover
+                    )
                     let pages = (0..<layout.spreadCount).flatMap { Array(layout.pages(inSpread: $0)) }
                     #expect(pages == Array(1...pageCount))
                     for page in 1...pageCount {

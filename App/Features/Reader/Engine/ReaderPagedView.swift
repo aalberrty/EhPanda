@@ -103,7 +103,10 @@ final class ReaderPagedView: UIScrollView, UIScrollViewDelegate, ReaderContentVi
     // MARK: Layout
 
     /// Applies a new size, page layout or reading direction in one step and stays on `page`.
-    func setLayout(viewportSize size: CGSize, spreads newSpreads: ReaderSpreadLayout, rightToLeft newRightToLeft: Bool, showing page: Int) {
+    func setLayout(
+        viewportSize size: CGSize, spreads newSpreads: ReaderSpreadLayout, rightToLeft newRightToLeft: Bool,
+        showing page: Int
+    ) {
         let pagesMoved = newSpreads != spreads || newRightToLeft != rightToLeft
         guard pagesMoved || size != viewportSize else { return }
         isAdjusting = true
@@ -138,12 +141,7 @@ final class ReaderPagedView: UIScrollView, UIScrollViewDelegate, ReaderContentVi
     }
 
     private func tile() {
-        let count = spreads.spreadCount
-        let width = viewportSize.width
-        guard
-            let visible = ReaderGeometry.slots(fromX: bounds.minX, toX: bounds.maxX, pageWidth: width, slotCount: count, margin: 0),
-            let wanted = ReaderGeometry.slots(fromX: bounds.minX, toX: bounds.maxX, pageWidth: width, slotCount: count, margin: 1)
-        else {
+        guard let visible = slots(margin: 0), let wanted = slots(margin: 1) else {
             if !tiled.isEmpty {
                 recycleAll()
                 host?.contentDidChangeVisiblePages()
@@ -284,6 +282,14 @@ final class ReaderPagedView: UIScrollView, UIScrollViewDelegate, ReaderContentVi
     }
 
     // MARK: Geometry
+
+    /// The slots under the visible part of the scroll view, plus `margin` on each side.
+    private func slots(margin: Int) -> ClosedRange<Int>? {
+        ReaderGeometry.slots(
+            fromX: bounds.minX, toX: bounds.maxX, pageWidth: viewportSize.width,
+            slotCount: spreads.spreadCount, margin: margin
+        )
+    }
 
     private func slot(forSpread index: Int) -> Int {
         ReaderGeometry.slot(forSpread: index, spreadCount: spreads.spreadCount, rightToLeft: rightToLeft)

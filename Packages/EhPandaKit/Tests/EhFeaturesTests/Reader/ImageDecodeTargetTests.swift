@@ -36,11 +36,13 @@ import Testing
 
     @Test func theTextureLimitCapsVeryLongImages() {
         let target = ImageDecodeTarget(pixelWidth: 1_000, pixelBudget: .max)
-        #expect(target.longestSide(sourceWidth: 500, sourceHeight: 40_000) == ImageDecodeTarget.maximumPixelDimension)
+        let longest = target.longestSide(sourceWidth: 500, sourceHeight: 40_000)
+        #expect(longest == ImageDecodeTarget.maximumPixelDimension)
     }
 
     @Test func anUnknownSourceSizeFallsBackToTheBox() {
-        #expect(ImageDecodeTarget(pixelWidth: 900, pixelHeight: 1_600).longestSide(sourceWidth: 0, sourceHeight: 0) == 1_600)
+        let box = ImageDecodeTarget(pixelWidth: 900, pixelHeight: 1_600)
+        #expect(box.longestSide(sourceWidth: 0, sourceHeight: 0) == 1_600)
         #expect(ImageDecodeTarget(pixelWidth: 900).longestSide(sourceWidth: 0, sourceHeight: 0) == 900)
     }
 

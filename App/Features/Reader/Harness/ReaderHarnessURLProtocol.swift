@@ -14,7 +14,9 @@ import os
 nonisolated final class ReaderHarnessURLProtocol: URLProtocol, @unchecked Sendable {
     static let host = "reader-harness.invalid"
 
-    private static let queue = DispatchQueue(label: "app.ehpanda.reader-harness", qos: .utility, attributes: .concurrent)
+    private static let queue = DispatchQueue(
+        label: "app.ehpanda.reader-harness", qos: .utility, attributes: .concurrent
+    )
     private static let chunkCount = 10
 
     private let isStopped = OSAllocatedUnfairLock(initialState: false)
@@ -82,7 +84,9 @@ nonisolated final class ReaderHarnessURLProtocol: URLProtocol, @unchecked Sendab
 
     private func respond(to url: URL, status: Int, body: Data, latency: Double) {
         let headers = ["Content-Length": String(body.count)]
-        guard let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: "HTTP/1.1", headerFields: headers) else {
+        guard let response = HTTPURLResponse(
+            url: url, statusCode: status, httpVersion: "HTTP/1.1", headerFields: headers
+        ) else {
             finish { $0.urlProtocol(self, didFailWithError: URLError(.badServerResponse)) }
             return
         }

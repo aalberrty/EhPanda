@@ -69,7 +69,7 @@ private struct ReaderHarnessPanel: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .frame(maxWidth: 520)
-        .containerRelativeFrame(.vertical) { height, _ in height * 0.42 }
+        .containerRelativeFrame(.vertical) { height, _ in min(max(height * 0.42, 230), height - 70) }
         .background(.regularMaterial, in: .rect(cornerRadius: 20))
         .padding(.horizontal, 10)
         .font(.footnote)
@@ -147,7 +147,9 @@ private struct ReaderHarnessPanel: View {
                 Text(verbatim: "Latency \(model.latency.formatted()) s (resolve, then download)")
             }
             Toggle("Host knows aspect ratios", isOn: $model.knowsAspectRatios)
-            Toggle("Live Text", isOn: $model.configuration.isLiveTextEnabled)
+            Toggle(isOn: $model.configuration.isLiveTextEnabled) {
+                Text(verbatim: ReaderLiveText.isSupported ? "Live Text" : "Live Text (not supported here)")
+            }
         }
     }
 

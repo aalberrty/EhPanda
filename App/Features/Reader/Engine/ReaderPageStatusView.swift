@@ -103,7 +103,8 @@ final class ReaderPageStatusView: UIView {
         retryButton.center = indicatorCenter
 
         let progressWidth = min(bounds.width / 2, 280)
-        let progressHeight = progressView.sizeThatFits(CGSize(width: progressWidth, height: .greatestFiniteMagnitude)).height
+        let fitting = CGSize(width: progressWidth, height: .greatestFiniteMagnitude)
+        let progressHeight = progressView.sizeThatFits(fitting).height
         progressView.frame = CGRect(
             x: bounds.midX - progressWidth / 2, y: indicatorCenter.y - progressHeight / 2,
             width: progressWidth, height: progressHeight

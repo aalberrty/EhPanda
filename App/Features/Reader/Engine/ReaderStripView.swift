@@ -75,6 +75,9 @@ final class ReaderStripView: UIScrollView, UIScrollViewDelegate, ReaderContentVi
         maximumZoomScale = maximum
         if newConfiguration.pageGap != old.pageGap, viewportSize.width > 0 {
             let anchor = layout.anchor(atY: viewportMinY)
+            if requestedPage == nil {
+                requestedPage = reportedPage
+            }
             layout.setGap(newConfiguration.pageGap)
             applyLayoutChange(from: 1) { [self] in
                 if let anchor {
@@ -161,6 +164,11 @@ final class ReaderStripView: UIScrollView, UIScrollViewDelegate, ReaderContentVi
         guard size != viewportSize, size.width > 0, size.height > 0 else { return }
         let isFirstLayout = viewportSize.width <= 0
         let anchor = isFirstLayout ? nil : layout.anchor(atY: viewportMinY)
+        if !isFirstLayout, requestedPage == nil {
+            // The top of the view stays where it was, but its middle can land on a neighbouring
+            // page. Resizing is not reading on, so the current page stays the current page.
+            requestedPage = reportedPage
+        }
         isAdjusting = true
         if zoomScale != 1 {
             setZoomScale(1, animated: false)

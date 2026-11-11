@@ -53,8 +53,9 @@ import Testing
     // MARK: Fitting
 
     @Test func aspectFitUsesTheTighterDimension() {
-        #expect(ReaderGeometry.aspectFitSize(aspectRatio: 0.5, in: CGSize(width: 400, height: 400)) == CGSize(width: 200, height: 400))
-        #expect(ReaderGeometry.aspectFitSize(aspectRatio: 2, in: CGSize(width: 400, height: 400)) == CGSize(width: 400, height: 200))
+        let square = CGSize(width: 400, height: 400)
+        #expect(ReaderGeometry.aspectFitSize(aspectRatio: 0.5, in: square) == CGSize(width: 200, height: 400))
+        #expect(ReaderGeometry.aspectFitSize(aspectRatio: 2, in: square) == CGSize(width: 400, height: 200))
         #expect(ReaderGeometry.aspectFitSize(aspectRatio: 1, in: .zero) == .zero)
     }
 
@@ -93,7 +94,8 @@ import Testing
                 #expect(abs(value * 3 - (value * 3).rounded()) < 0.000_1)
             }
         }
-        #expect(ReaderGeometry.spreadPageFrames(aspectRatios: [], in: CGSize(width: 10, height: 10), displayScale: 2).isEmpty)
+        let none = ReaderGeometry.spreadPageFrames(aspectRatios: [], in: CGSize(width: 10, height: 10), displayScale: 2)
+        #expect(none.isEmpty)
     }
 
     // MARK: Paging
