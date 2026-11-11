@@ -62,10 +62,14 @@ private struct HomeSectionsView: View {
     let open: (Gallery) -> Void
     let openList: (GalleryListKind) -> Void
 
+    /// Written here, read only by the carousel, so a scroll starting or ending re-renders the
+    /// carousel and not the whole page.
+    @State private var scrolling = PageScrollState()
+
     var body: some View {
         ScrollView {
             VStack(spacing: Tokens.Spacing.xxLarge) {
-                HomeCardCarousel(cards: model.cards, open: open)
+                HomeCardCarousel(cards: model.cards, pageScrolling: scrolling, open: open)
                 FrontpageSection(model: model, open: open, openList: openList)
                 ToplistsSection(model: model, open: open, openList: openList)
                 SubSection(title: L10n.Localizable.HomeView.Section.Title.other, showsAll: false) {
@@ -75,6 +79,7 @@ private struct HomeSectionsView: View {
             .padding(.vertical, Tokens.Spacing.small)
         }
         .scrollIndicators(.hidden)
+        .onScrollPhaseChange { _, phase in scrolling.isScrolling = phase.isScrolling }
     }
 }
 
