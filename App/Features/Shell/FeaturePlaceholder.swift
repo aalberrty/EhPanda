@@ -16,6 +16,9 @@ struct FeaturePlaceholder: View {
                 ContentUnavailableView(name, systemImage: "hammer", description: Text(verbatim: "Not built yet"))
             }
             #if DEBUG
+            Section("Debug: reader engine") {
+                ReaderHarnessLauncher()
+            }
             if let stack {
                 Section("Debug: push a route") {
                     ForEach(Self.debugRoutes, id: \.self) { route in
