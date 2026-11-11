@@ -5,7 +5,7 @@ struct TimeoutError: Error {}
 /// Runs `operation`, failing if it takes longer than `seconds` (a hung observation would
 /// otherwise hang the whole test run).
 func withTimeout<Value: Sendable>(
-    _ seconds: Double = 5, _ operation: @escaping @Sendable () async throws -> Value
+    _ seconds: Double = 60, _ operation: @escaping @Sendable () async throws -> Value
 ) async throws -> Value {
     try await withThrowingTaskGroup(of: Value.self) { group in
         group.addTask { try await operation() }

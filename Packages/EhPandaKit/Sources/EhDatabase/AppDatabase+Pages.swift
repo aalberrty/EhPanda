@@ -60,6 +60,13 @@ extension AppDatabase {
         }
     }
 
+    /// Deletes every stored page of every gallery (logout, clearing the image caches).
+    public func deleteAllPages() async throws {
+        try await writer.write { db in
+            try db.execute(sql: "DELETE FROM \(Schema.galleryPage)")
+        }
+    }
+
     /// Deletes the pages of every gallery not opened within `interval` before `now`, and pages
     /// with no `gallery` row at all. Image URLs expire on the site, so legacy dropped them
     /// after a week (`removeExpiredImageURLs`).
