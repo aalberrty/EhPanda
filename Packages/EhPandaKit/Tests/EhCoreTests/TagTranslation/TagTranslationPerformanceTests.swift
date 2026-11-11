@@ -61,7 +61,10 @@ import Testing
             prepare with OpenCC (TW) \(conversionDuration), write \(writeDuration), \
             lookup table \(lookupDuration), suggestion search \(searchDuration)
             """)
-        #expect(prepareDuration < .seconds(5))
-        #expect(conversionDuration < .seconds(30))
+        // Generous bounds: this guards against accidental quadratic work, not small regressions.
+        // A release build takes about 0.1 s and 0.6 s; a debug build on a busy machine has
+        // been seen above 5 s for the first.
+        #expect(prepareDuration < .seconds(30))
+        #expect(conversionDuration < .seconds(90))
     }
 }
