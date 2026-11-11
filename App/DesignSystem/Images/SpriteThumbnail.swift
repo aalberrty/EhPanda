@@ -3,9 +3,9 @@ import SwiftUI
 
 /// One page preview cut out of a sprite sheet (the site packs up to 20 previews into one image).
 ///
-/// Every thumbnail of a sheet loads the same URL: Kingfisher merges the concurrent downloads,
-/// keeps the sheet on disk once, and caches each crop under its own processor key (see
-/// ``SpriteCropProcessor``). The view fills the proposed width at `aspectRatio` and fits the crop
+/// Every thumbnail of a sheet loads the same URL: Kingfisher merges the concurrent downloads and
+/// keeps the sheet on disk once; the sheet is decoded once and each crop is cached in memory
+/// only, under its own processor key (see ``SpriteCropProcessor``). The view fills the proposed width at `aspectRatio` and fits the crop
 /// inside it with rounded corners, as legacy previews did. For previews that are standalone
 /// images, use ``RemoteImage`` instead.
 struct SpriteThumbnail: View {
@@ -32,8 +32,11 @@ struct SpriteThumbnail: View {
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay {
                 KFImage(sheetURL)
-                    .setProcessor(SpriteCropProcessor(rect: cropRect))
+                    .setProcessor(SpriteCropProcessor(sheetURL: sheetURL, rect: cropRect))
                     .cacheOriginalImage()
+                    // The sheet is on disk; a crop is cut from it again in no time and would
+                    // otherwise be re-encoded and written as a file of its own.
+                    .cacheMemoryOnly()
                     .cancelOnDisappear(true)
                     .fade(duration: Tokens.Duration.imageFade)
                     .placeholder { [sheetURL, aspectRatio, cornerRadius] in
