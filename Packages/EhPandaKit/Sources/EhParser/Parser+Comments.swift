@@ -27,7 +27,8 @@ extension Parser {
               let commentID = c6Node["id"]?
                 .replacingOccurrences(of: "comment_", with: ""),
               let rangeA = c3Node.range(of: "Posted on "),
-              let rangeB = c3Node.range(of: " by:   "),
+              // The site separates the author with a no-break space: "by: &nbsp; ".
+              let rangeB = c3Node.range(of: " by: \u{00A0} "),
               rangeA.upperBound <= rangeB.lowerBound
         else { return nil }
 
