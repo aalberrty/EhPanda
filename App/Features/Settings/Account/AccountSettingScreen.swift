@@ -34,6 +34,7 @@ struct AccountSettingScreen: View {
             }
         }
         .hud($hud)
+        .sensoryFeedback(.impact(weight: .light), trigger: model.destination) { _, new in new != nil }
         .sensoryFeedback(.success, trigger: model.copyCount)
         .onChange(of: model.copyCount) { hud = .copiedToClipboard }
         // Loads on appear, and again when a login, logout or igneous fetch changed the cookies.
