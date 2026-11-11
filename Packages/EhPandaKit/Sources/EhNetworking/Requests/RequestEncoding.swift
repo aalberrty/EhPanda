@@ -71,17 +71,29 @@ enum RequestEncoding {
         return components.url ?? url
     }
 
-    /// Encodes a form body the way the legacy app did: `key=value` pairs joined with `&`,
-    /// then the whole string percent-escaped with `.urlQueryAllowed`.
+    /// Encodes a form body: `key=value` pairs joined with `&`, each key and value
+    /// percent-escaped.
     ///
-    /// The site has always received exactly this, so it is kept byte for byte, including
-    /// its quirks: `&`, `=` and `+` inside values are not escaped, and an already escaped
-    /// sequence such as `%0A` is escaped again to `%250A`. Pairs keep the given order;
-    /// legacy used a dictionary, so its order was unspecified and the site ignores it.
+    /// The escaping is what the site has always received from the app (`.urlQueryAllowed`),
+    /// with one correction: `&`, `=` and `+` inside a value are escaped too. The legacy app
+    /// left them as is, which cut a password or comment short at the first `&` and turned
+    /// `+` into a space. A sequence that is already escaped, such as the `%0A` that comment
+    /// newlines are sent as, is still escaped again to `%250A`, exactly as before.
     static func formBody(_ fields: [(String, String)]) -> Data? {
-        let joined = fields.map { $0 + "=" + $1 }.joined(separator: "&")
-        return (joined.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
+        fields
+            .map { escapeFormComponent($0) + "=" + escapeFormComponent($1) }
+            .joined(separator: "&")
             .data(using: .utf8)
+    }
+
+    private static let formComponentAllowed: CharacterSet = {
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: "&=+")
+        return allowed
+    }()
+
+    private static func escapeFormComponent(_ component: String) -> String {
+        component.addingPercentEncoding(withAllowedCharacters: formComponentAllowed) ?? ""
     }
 
     static func jsonBody(_ value: some Encodable) -> Data? {

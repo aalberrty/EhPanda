@@ -15,12 +15,12 @@ private typealias T = RequestTesting
         )
     }
 
-    @Test func loginEncodesCredentialsWithLegacyFormRules() {
-        // Spaces, `%` and non-ASCII are escaped; `&`, `=` and `+` are not.
+    @Test func loginEscapesEveryCharacterThatWouldSplitTheForm() {
+        // A password containing `&`, `=` or `+` must reach the server intact.
         T.expectFormPOST(
             T.eh.login(username: "pan da", password: "p%a&s=s+中"),
             "https://forums.e-hentai.org/index.php?act=Login&CODE=01",
-            body: "b=d&bt=1-1&CookieDate=1&UserName=pan%20da&PassWord=p%25a&s=s+%E4%B8%AD"
+            body: "b=d&bt=1-1&CookieDate=1&UserName=pan%20da&PassWord=p%25a%26s%3Ds%2B%E4%B8%AD"
                 + "&ipb_login_submit=Login!"
         )
     }

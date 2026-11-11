@@ -38,7 +38,8 @@ nonisolated public enum SettingsRoute: Hashable, Sendable {
 /// or a sheet, driven by a `destination` property on the parent's model.
 nonisolated public enum Route: Hashable, Sendable {
     case galleryList(GalleryListKind)
-    /// Search results for a keyword (typed, or built from a tag, an uploader or a title).
+    /// Search results for a keyword built from a tag, an uploader or a title ("detail
+    /// search"). Unlike a search typed in the Search tab, it is not added to the search history.
     case search(keyword: String)
     case detail(Gallery)
     case settings(SettingsRoute)
