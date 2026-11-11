@@ -15,19 +15,27 @@ public struct LaunchClient: Sendable {
     public var installDatabase: @Sendable (AppDatabase) -> Void
     /// The one-time import of the old app's data into the database and the stores.
     public var importLegacyData: @MainActor @Sendable (AppDatabase) async -> LegacyImportReport
+    /// Deletes the stored page URLs of galleries not opened within `pageLifetime`; the site's
+    /// image URLs expire (legacy `removeExpiredImageURLs`).
+    public var expirePages: @Sendable (AppDatabase) async throws -> Void
+
+    /// Legacy kept page URLs for a week after a gallery was last opened.
+    public static let pageLifetime: TimeInterval = 7 * 24 * 60 * 60
 
     public init(
         prepareCookies: @escaping @Sendable () async -> Void,
         openDatabase: @escaping @Sendable () async throws -> AppDatabase,
         dropDatabase: @escaping @Sendable () async throws -> Void,
         installDatabase: @escaping @Sendable (AppDatabase) -> Void,
-        importLegacyData: @escaping @MainActor @Sendable (AppDatabase) async -> LegacyImportReport
+        importLegacyData: @escaping @MainActor @Sendable (AppDatabase) async -> LegacyImportReport,
+        expirePages: @escaping @Sendable (AppDatabase) async throws -> Void
     ) {
         self.prepareCookies = prepareCookies
         self.openDatabase = openDatabase
         self.dropDatabase = dropDatabase
         self.installDatabase = installDatabase
         self.importLegacyData = importLegacyData
+        self.expirePages = expirePages
     }
 }
 
@@ -55,7 +63,8 @@ extension LaunchClient: DependencyKey {
                 importTagTranslations: LiveLegacyTagTranslations.importBlob
             )
             return await migrator.run(database: database, settings: settings, filters: filters, user: user)
-        }
+        },
+        expirePages: { try await $0.deleteExpiredPages(notOpenedWithin: pageLifetime) }
     )
 
     public static let testValue = LaunchClient(
@@ -63,7 +72,8 @@ extension LaunchClient: DependencyKey {
         openDatabase: unimplemented("LaunchClient.openDatabase"),
         dropDatabase: unimplemented("LaunchClient.dropDatabase"),
         installDatabase: unimplemented("LaunchClient.installDatabase"),
-        importLegacyData: unimplemented("LaunchClient.importLegacyData", placeholder: .nothingToImport)
+        importLegacyData: unimplemented("LaunchClient.importLegacyData", placeholder: .nothingToImport),
+        expirePages: unimplemented("LaunchClient.expirePages")
     )
 
     /// An in-memory database and nothing to import.
@@ -72,7 +82,8 @@ extension LaunchClient: DependencyKey {
         openDatabase: { try await AppDatabase.inMemory() },
         dropDatabase: {},
         installDatabase: { _ in },
-        importLegacyData: { _ in .nothingToImport }
+        importLegacyData: { _ in .nothingToImport },
+        expirePages: { _ in }
     )
 }
 

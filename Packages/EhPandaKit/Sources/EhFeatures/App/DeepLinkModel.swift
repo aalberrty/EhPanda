@@ -33,6 +33,10 @@ public final class DeepLinkModel {
     /// tabs exist.
     public private(set) var request: Request?
 
+    /// Set once the database is installed. Until then requests wait: resolving a link reads
+    /// the history.
+    @ObservationIgnored var isAcceptingLinks = false
+
     private let router: AppRouter
     @ObservationIgnored private var requestCount = 0
 
@@ -55,7 +59,7 @@ public final class DeepLinkModel {
     }
 
     public func handleRequest() async {
-        guard let request else { return }
+        guard isAcceptingLinks, let request else { return }
         await handle(request.url)
         if self.request == request {
             self.request = nil

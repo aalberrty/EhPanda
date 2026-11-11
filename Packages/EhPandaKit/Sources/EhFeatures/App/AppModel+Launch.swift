@@ -14,9 +14,6 @@ import Observation
 // cancelled with the view's `.task`.
 
 extension AppModel {
-    /// Galleries not opened for this long lose their stored page URLs, which expire on the site.
-    static let pageLifetime: TimeInterval = 7 * 24 * 60 * 60
-
     /// Legacy waited this long after "Drop the database" before dropping, showing the loading state.
     static let dropDelay: Duration = .milliseconds(500)
 
@@ -52,6 +49,7 @@ extension AppModel {
         guard !Task.isCancelled else { return }
 
         lock.lockAtLaunch()
+        links.isAcceptingLinks = true
         launchState = .ready
         // Scene changes were ignored until now; catch up with the current phase, which also
         // starts the authentication or the unlock follow-ups when the scene is active.
@@ -108,7 +106,9 @@ extension AppModel {
 
     private func expirePages(in database: AppDatabase) async {
         do {
-            try await database.deleteExpiredPages(notOpenedWithin: Self.pageLifetime)
+            try await launchClient.expirePages(database)
+        } catch is CancellationError {
+            return
         } catch {
             logger.warning("Deleting expired pages failed: \(error)", category: Self.logCategory)
         }
