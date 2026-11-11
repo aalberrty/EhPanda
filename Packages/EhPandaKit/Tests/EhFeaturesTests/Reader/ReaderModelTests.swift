@@ -1,4 +1,5 @@
 import CoreGraphics
+import EhCore
 import EhDatabase
 @testable import EhFeatures
 import EhModels
@@ -114,6 +115,40 @@ import Testing
 
         #expect(first >= .zero)
         #expect(model.timeToFirstPage == first)
+    }
+
+    /// The log files are in Documents, where the Files app shows them, and the release build
+    /// writes `info` and above: a line naming the gallery would be a list of what was read.
+    @Test func theLogDoesNotSayWhichGalleryWasRead() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appending(path: "ReaderLogTests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let logger = AppLogger.live(directory: directory, minimumLevel: .info)
+        let harness = try ReaderModelHarness()
+        harness.logger = logger
+        let gallery = Gallery(
+            gid: "987654321", token: "0a1b2c3d4e", title: "A very private title", rating: 4, tags: [],
+            category: .doujinshi, pageCount: 100, postedDate: Date(timeIntervalSince1970: 0), coverURL: nil,
+            galleryURL: URL(string: "https://e-hentai.org/g/987654321/0a1b2c3d4e/")
+        )
+        let model = harness.makeModel(gallery: gallery)
+        await model.start()
+
+        model.pagesNeeded([1, 2])
+        model.imageDidLoad(page: 1, pixelSize: CGSize(width: 100, height: 150))
+        model.currentPageDidChange(2)
+        await harness.flushWrites(of: model)
+        model.close()
+        await model.waitUntilSaved()
+        await logger.flush()
+
+        var lines: [String] = []
+        for file in await logger.logFiles() {
+            lines += try await logger.lines(of: file)
+        }
+        // The timing is logged; nothing that identifies the gallery is.
+        #expect(lines.contains { $0.contains("First page shown after") })
+        #expect(!lines.contains { $0.contains("987654321") || $0.contains("0a1b2c3d4e") || $0.contains("private") })
     }
 }
 

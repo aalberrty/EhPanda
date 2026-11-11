@@ -330,6 +330,8 @@ public final class ReaderModel {
         let elapsed = ContinuousClock.now - openedAt
         timeToFirstPage = elapsed
         let milliseconds = Int(elapsed / .milliseconds(1))
-        logger.info("Reader \(gallery.gid): first page shown after \(milliseconds) ms", category: "Reader")
+        // The timing only. The log files are in Documents, which the Files app shows: a line
+        // that named the gallery would be a dated list of everything read.
+        logger.info("First page shown after \(milliseconds) ms", category: "Reader")
     }
 }

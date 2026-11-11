@@ -29,6 +29,8 @@ final class ReaderModelHarness {
     let savesSucceed = LockIsolated(true)
     /// Whether the image cache can produce bytes.
     let imageDataFails = LockIsolated(false)
+    /// The logger of the models made from now on; the test default when nil.
+    var logger: AppLogger?
 
     /// - Parameter database: The database another feature's model already wrote to; a new,
     ///   empty one by default.
@@ -51,6 +53,9 @@ final class ReaderModelHarness {
             $0.continuousClock = clock
             $0.settings = settings
             $0.applicationClient = applicationClient
+            if let logger {
+                $0.appLogger = logger
+            }
             $0.clipboardClient.copyImage = { [copied] data in copied.withValue { $0.append(data) } }
             $0.photoLibraryClient.saveImage = { [saved, savesSucceed] data in
                 guard savesSucceed.value else { return false }
