@@ -17,11 +17,13 @@ struct SearchResultsView: View {
             .screenGround()
             .navigationTitle(model.lastKeyword)
             .tagSearchable(
-                text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search,
+                text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search, inToolbar: true,
                 onSubmit: { Task { await model.submit() } }
             )
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarSearchItem()
+                ToolbarItemGroup(placement: .primaryAction) {
+                    ListDisplayModeButton()
                     ToolbarFeaturesMenu {
                         FiltersButton(action: model.showFilters)
                         QuickSearchButton(action: model.showQuickSearch)

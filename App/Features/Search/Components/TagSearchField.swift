@@ -11,10 +11,16 @@ extension View {
     ///
     /// `suggestsTags: false` makes it a plain filter field (no suggestions, no normalising) without
     /// replacing the modifier, which would rebuild the screen under it (Library's History segment).
+    ///
+    /// `inToolbar` puts the field behind a toolbar button on iOS 26, as `toolbarSearchable` does;
+    /// add `ToolbarSearchItem` to the toolbar with it.
     func tagSearchable(
-        text: Binding<String>, prompt: String, suggestsTags: Bool = true, onSubmit: @escaping () -> Void
+        text: Binding<String>, prompt: String, suggestsTags: Bool = true, inToolbar: Bool = false,
+        onSubmit: @escaping () -> Void
     ) -> some View {
-        modifier(TagSearchableModifier(text: text, prompt: prompt, suggestsTags: suggestsTags, onSubmit: onSubmit))
+        modifier(TagSearchableModifier(
+            text: text, prompt: prompt, suggestsTags: suggestsTags, inToolbar: inToolbar, onSubmit: onSubmit
+        ))
     }
 }
 
@@ -22,14 +28,14 @@ private struct TagSearchableModifier: ViewModifier {
     @Binding var text: String
     let prompt: String
     let suggestsTags: Bool
+    let inToolbar: Bool
     let onSubmit: () -> Void
 
     @State private var model = TagSuggestionModel()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     func body(content: Content) -> some View {
-        content
-            .searchable(text: $text, prompt: prompt)
+        field(content)
             .searchSuggestions {
                 if suggestsTags, model.isEnabled, !model.suggestions.isEmpty {
                     // Legacy showed the count only on iPhone; iPad's completion menu has no header.
@@ -60,6 +66,16 @@ private struct TagSearchableModifier: ViewModifier {
                 }
             }
             .onDisappear { model.cancel() }
+    }
+
+    /// The same for the life of the screen, so the branch never switches.
+    @ViewBuilder
+    private func field(_ content: Content) -> some View {
+        if inToolbar {
+            content.toolbarSearchable(text: $text, prompt: prompt)
+        } else {
+            content.searchable(text: $text, prompt: prompt)
+        }
     }
 }
 

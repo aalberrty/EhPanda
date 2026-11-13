@@ -2,13 +2,15 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The tools of the segment on show: Quick search and the sort order for Favorites, Quick search
-/// and Filters for Watched, Clear for History. The search field is the screen's own.
+/// The display mode, which every segment shares and so stays in place, then the tools of the
+/// segment on show: Quick search and the sort order for Favorites, Quick search and Filters for
+/// Watched, Clear for History. The search field is the screen's own.
 struct LibraryToolbar: ToolbarContent {
     let model: LibraryModel
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
+            ListDisplayModeButton()
             switch model.segment {
             case .favorites:
                 QuickSearchButton { model.destination = .quickSearch }
