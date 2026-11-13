@@ -60,14 +60,11 @@ struct ReaderSettingsSheet: View {
             .navigationTitle(Strings.Title.reading)
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
-                // Legacy: an iPhone in landscape has no room to pull the sheet down.
+                // Legacy: an iPhone in landscape has no room to pull the sheet down. The shared
+                // close button, which VoiceOver reads as "Close" (legacy's chevron read as nothing).
                 if verticalSizeClass == .compact {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button {
-                            dismiss()
-                        } label: {
-                            Image(systemName: "chevron.down")
-                        }
+                        SheetCloseButton { dismiss() }
                     }
                 }
             }

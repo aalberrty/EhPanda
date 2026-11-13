@@ -144,6 +144,7 @@
 "search_view.section.title.quick_search" = "快速搜尋";
 "search_view.filter_bar.filters_active" = "過濾，%d 項已啟用";
 "search_view.filter_bar.minimum_rating" = "%d+";
+"search_view.button.remove_keyword" = "移除 %@";
 // Searchable
 "searchable.prompt.filter" = "過濾";
 "searchable.title.matches_count" = "找到 %d 項結果";

@@ -72,13 +72,15 @@ private struct KeywordChipShape: ViewModifier {
     }
 }
 
-/// Recently searched keywords in two columns, left to right, each with a remove button.
+/// Recently searched keywords in rows (`SearchRootModel.keywordRows`), left to right, each with
+/// a remove button.
 struct KeywordRows: View {
     let rows: [[SearchKeyword]]
     let search: (String) -> Void
     let remove: (String) -> Void
 
     var body: some View {
+        let columns = rows.first?.count ?? 0
         Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 0) {
             ForEach(rows.indices, id: \.self) { index in
                 GridRow {
@@ -90,7 +92,8 @@ struct KeywordRows: View {
                                 }
                             }
                     }
-                    if rows[index].count == 1 {
+                    // A short last row keeps its keyword in the first column's width.
+                    if rows[index].count < columns {
                         Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                     }
                 }
@@ -106,6 +109,8 @@ private struct KeywordRow: View {
     let search: (String) -> Void
     let remove: (String) -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         HStack(spacing: 0) {
             Button {
@@ -117,7 +122,8 @@ private struct KeywordRow: View {
                         .foregroundStyle(.textTertiary)
                     Text(keyword.title)
                         .foregroundStyle(.textPrimary)
-                        .lineLimit(1)
+                        // In the one column of the accessibility sizes, long keywords wrap.
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                 }
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
@@ -136,7 +142,7 @@ private struct KeywordRow: View {
                     .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(L10n.Localizable.ConfirmationDialog.Button.remove)
+            .accessibilityLabel(L10n.Localizable.SearchView.Button.removeKeyword(keyword.title))
         }
         .frame(maxWidth: .infinity)
     }

@@ -79,11 +79,14 @@ private struct GalleryGrid<Footer: View>: View {
     let model: GalleryCollectionModel
 
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// The grid's own width, measured once for the whole grid rather than per cell.
     @State private var width: CGFloat = 0
 
     var body: some View {
-        let metrics = GalleryGridMetrics(containerWidth: width, sizeClass: sizeClass)
+        let metrics = GalleryGridMetrics(
+            containerWidth: width, sizeClass: sizeClass, isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+        )
         ScrollView {
             LazyVGrid(columns: metrics.columns, spacing: GalleryGridMetrics.rowSpacing) {
                 // Cells wait for the width, so covers are requested at their final size. The
@@ -135,6 +138,9 @@ private struct GalleryGridItem: View {
 
 /// Columns of the cover grid: two across in compact width (the design's two large covers), as
 /// many as fit in regular width (legacy iPad: four in portrait, five in landscape).
+///
+/// At accessibility sizes two columns cut a cell's category and page count to a letter, so
+/// compact width shows one and regular width's columns are twice as wide.
 struct GalleryGridMetrics: Equatable {
     static let margin: CGFloat = Tokens.Spacing.large
     static let columnSpacing: CGFloat = 14
@@ -148,12 +154,14 @@ struct GalleryGridMetrics: Equatable {
     let columnWidth: CGFloat
     let peekWidth: CGFloat
 
-    init(containerWidth: CGFloat, sizeClass: UserInterfaceSizeClass?) {
+    init(containerWidth: CGFloat, sizeClass: UserInterfaceSizeClass?, isAccessibilitySize: Bool) {
         let available = max(containerWidth - Self.margin * 2, 0)
+        let minimumColumnWidth = Self.minimumRegularColumnWidth * (isAccessibilitySize ? 2 : 1)
+        let minimumCount = isAccessibilitySize ? 1 : 2
         let count = if sizeClass == .regular {
-            max(2, Int((available + Self.columnSpacing) / (Self.minimumRegularColumnWidth + Self.columnSpacing)))
+            max(minimumCount, Int((available + Self.columnSpacing) / (minimumColumnWidth + Self.columnSpacing)))
         } else {
-            2
+            minimumCount
         }
         columnCount = count
         columnWidth = max((available - Self.columnSpacing * CGFloat(count - 1)) / CGFloat(count), 0)

@@ -249,6 +249,13 @@ PagedGalleryList(model: model)
 Every gallery list puts `ListDisplayModeButton()` (`Features/GalleryList`) first among its
 toolbar's actions; it flips the app-wide Detail / Thumbnail setting.
 
+### Section headers
+
+"Show all ›" is `ShowAllLabel()` (`App/DesignSystem/Controls/ShowAllLabel.swift`): the text in
+`textSecondary` and a small semibold `chevron.forward`, as every mockup draws it. `SubSection`,
+Home's section header and the detail panels' header use it; put it in the header's button and
+add the tap target there.
+
 ### Presentation helpers (`App/Presentation/`)
 
 - `GalleryDetail.formattedSize`: "183.3 MiB", at most two decimals (the stored `Float` would
@@ -283,6 +290,7 @@ language, for a native speaker to check. All eight `.strings` files have every k
 | `search_view.filter_bar.minimum_rating` | %d+ | %d+ | %d+ | %d+ | %d+ | %d+ |
 | `reading_view.toolbar_item.button.live_text` | Live Text | Live Text | テキスト認識表示 | 라이브 텍스트 | 实况文本 | 原況文字 (zh-Hant-HK: 實況文字) |
 | `reading_view.title.page_position` | Page %d of %d · %d left | Seite %d von %d · noch %d | %1$d / %2$d ページ · 残り %3$d ページ | %1$d / %2$d페이지 · %3$d페이지 남음 | 第 %d 页，共 %d 页 · 剩余 %d 页 | 第 %d 頁，共 %d 頁 · 剩餘 %d 頁 |
+| `search_view.button.remove_keyword` (VoiceOver) | Remove %@ | %@ entfernen | %@を削除 | %@ 삭제 | 移除 %@ | 移除 %@ |
 
 The overhaul also removed ten keys nothing shows any more: `home_view.section.title.other`,
 `enum.home_misc_grid_type.title.watched` and `.history` (Home's old tiles), and the seven

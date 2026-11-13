@@ -35,7 +35,8 @@ struct FiltersButton: View {
     }
 }
 
-/// Opens quick search (legacy `QuickSearchButton`).
+/// Opens quick search (legacy `QuickSearchButton`). A bolt rather than legacy's magnifying
+/// glass, which the toolbar's own search button already shows (Library).
 struct QuickSearchButton: View {
     private let action: () -> Void
 
@@ -44,7 +45,7 @@ struct QuickSearchButton: View {
     }
 
     var body: some View {
-        Button(L10n.Localizable.ToolbarItem.Button.quickSearch, systemImage: "magnifyingglass", action: action)
+        Button(L10n.Localizable.ToolbarItem.Button.quickSearch, systemImage: "bolt", action: action)
     }
 }
 

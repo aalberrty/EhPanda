@@ -184,7 +184,7 @@ private struct PopularCaption: View {
             Button(action: openPopular) {
                 HStack(spacing: Tokens.Spacing.xxSmall) {
                     Text(L10n.Localizable.Enum.HomeMiscGridType.Title.popular)
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .imageScale(.small)
                         .accessibilityHidden(true)
                 }
@@ -217,21 +217,29 @@ private struct PopularCaption: View {
     }
 }
 
-/// Category · pages · rating, as one line of secondary text.
+/// Category · pages · rating, as one line of secondary text; at accessibility sizes, where
+/// the line cut every figure short, one figure per line.
 private struct PopularFigures: View {
     let gallery: Gallery
 
     @Environment(SettingsStore.self) private var settings
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         let rating = RatingStars.halfRounded(Double(gallery.rating))
         let category = gallery.category.localizedName
         let pages = L10n.Localizable.Common.Value.pages("\(gallery.pageCount)")
-        HStack(spacing: 6) {
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let layout = isStacked ? AnyLayout(VStackLayout(spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))
+        layout {
             CategoryLabel(category, color: gallery.color(for: settings.galleryHost))
-            Text(verbatim: "·")
+            if !isStacked {
+                Text(verbatim: "·")
+            }
             Text(pages)
-            Text(verbatim: "·")
+            if !isStacked {
+                Text(verbatim: "·")
+            }
             HStack(spacing: 3) {
                 Image(systemName: "star.fill")
                     .imageScale(.small)
@@ -241,7 +249,8 @@ private struct PopularFigures: View {
         }
         .font(.footnote)
         .foregroundStyle(.textSecondary)
-        .lineLimit(1)
+        .lineLimit(isStacked ? nil : 1)
+        .multilineTextAlignment(.center)
         .contentTransition(.opacity)
         // One phrase for VoiceOver, without the separators: "Doujinshi, 64 pages, Average rating, 4.5/5".
         .accessibilityElement(children: .ignore)

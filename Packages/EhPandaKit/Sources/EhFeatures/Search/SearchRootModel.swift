@@ -133,10 +133,16 @@ public final class SearchRootModel {
         isRegularWidth ? 20 : 10
     }
 
-    /// The keywords a section shows, in rows of two (left to right, then down).
-    nonisolated public static func keywordRows<Item>(_ items: [Item], isRegularWidth: Bool) -> [[Item]] {
+    /// The keywords a section shows, in rows of `columns` (left to right, then down): two, or
+    /// one where two would cut the keywords short (accessibility text sizes).
+    nonisolated public static func keywordRows<Item>(
+        _ items: [Item], isRegularWidth: Bool, columns: Int = 2
+    ) -> [[Item]] {
         let limited = Array(items.prefix(keywordLimit(isRegularWidth: isRegularWidth)))
-        return stride(from: 0, to: limited.count, by: 2).map { Array(limited[$0..<min($0 + 2, limited.count)]) }
+        let columns = max(columns, 1)
+        return stride(from: 0, to: limited.count, by: columns).map {
+            Array(limited[$0..<min($0 + columns, limited.count)])
+        }
     }
 }
 

@@ -4,8 +4,9 @@ import EhModels
 import SwiftUI
 
 /// The Library tab root: Favorites, Watched and History behind a segmented control under the
-/// title. One search field, toolbar and set of sheets serve the segment on show; the lists below
-/// stay on screen once opened, so each keeps its scroll place and loaded pages.
+/// title. One search field (behind the toolbar's search button, as on the other lists), toolbar
+/// and set of sheets serve the segment on show; the lists below stay on screen once opened, so
+/// each keeps its scroll place and loaded pages.
 struct LibraryScreen: View {
     @State private var model = LibraryModel()
 
@@ -19,7 +20,7 @@ struct LibraryScreen: View {
             }
             .tagSearchable(
                 text: $model.searchText, prompt: searchPrompt, suggestsTags: model.searchesServer,
-                onSubmit: { model.submitSearch() }
+                inToolbar: true, onSubmit: { model.submitSearch() }
             )
             .navigationTitle(L10n.Localizable.TabItem.Title.library)
             // Large, but in the bar's row and never collapsing: the lists share one bar, and a
