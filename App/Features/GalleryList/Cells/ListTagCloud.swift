@@ -3,10 +3,13 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The tags under a list cell's title (legacy `TagCloudView` in `GalleryDetailCell`), translated
-/// with a dictionary lookup in `TagTranslationService` when the setting is on.
+/// The tags of a list row or of the long-press peek (legacy `TagCloudView` in
+/// `GalleryDetailCell`), translated with a dictionary lookup in `TagTranslationService` when the
+/// setting is on. Plain tags are quiet pills; a watched tag keeps the highlight the site gives it.
 struct ListTagCloud: View {
     let tags: [GalleryTag.Content]
+    var font: Font = .caption2
+    var padding = EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4)
 
     @Environment(SettingsStore.self) private var settings
     // Optional so the cells still render where the service is not injected (previews).
@@ -21,10 +24,10 @@ struct ListTagCloud: View {
                 TagChip(
                     content.chipText(translation: display, showsImages: showsImages),
                     imageURL: showsImages ? display?.valueImageURL : nil,
-                    font: .caption2,
-                    padding: EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4),
-                    foreground: content.backgroundColor == nil ? .secondary : content.textColor ?? .secondary,
-                    background: content.backgroundColor?.color ?? Color(.systemGray5)
+                    font: font,
+                    padding: padding,
+                    foreground: content.backgroundColor == nil ? .textSecondary : content.textColor ?? .textSecondary,
+                    background: content.backgroundColor?.color ?? .chipFill
                 )
             }
         }

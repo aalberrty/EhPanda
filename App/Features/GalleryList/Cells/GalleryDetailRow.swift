@@ -2,8 +2,8 @@ import EhCore
 import EhModels
 import SwiftUI
 
-/// A gallery as a list row: cover, title, uploader, optional tags, rating, language, pages,
-/// category and posted date (legacy `GalleryDetailCell`).
+/// A gallery as a list row (the Detail display mode): cover, title, uploader, optional tags,
+/// rating, language, pages, category and posted date (legacy `GalleryDetailCell`).
 struct GalleryDetailRow: View {
     let gallery: Gallery
 
@@ -11,16 +11,19 @@ struct GalleryDetailRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: Tokens.Spacing.medium) {
+            // No `coverEdge` ring: the cover is letterboxed in its box, so a ring would outline
+            // the empty part of the box rather than the cover.
             RemoteImage(url: gallery.coverURL, size: Tokens.ImageSize.row)
             VStack(alignment: .leading, spacing: 5) {
                 Text(gallery.title)
                     .font(.headline)
+                    .foregroundStyle(.textPrimary)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
                 if let uploader = gallery.uploader, !uploader.isEmpty {
                     Text(uploader)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                         .lineLimit(1)
                 }
                 if settings.showsTagsInList {
@@ -33,7 +36,7 @@ struct GalleryDetailRow: View {
                 HStack {
                     RatingStars(rating: Double(gallery.rating))
                         .font(.caption)
-                        .foregroundStyle(.yellow)
+                        .foregroundStyle(.rating)
                     Spacer()
                     GalleryLanguageAndPages(gallery: gallery)
                         .minimumScaleFactor(0.75)
@@ -43,7 +46,8 @@ struct GalleryDetailRow: View {
                     Spacer()
                     Text(gallery.formattedDateString)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                        .foregroundStyle(.textSecondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                 }
@@ -51,11 +55,12 @@ struct GalleryDetailRow: View {
             .frame(minHeight: Tokens.ImageSize.row.height)
         }
         .padding(.vertical, Tokens.Spacing.xSmall)
+        .contentShape(.rect)
         .accessibilityElement(children: .combine)
     }
 }
 
-/// "English  🖼 24" in secondary footnote text.
+/// "English  ▣ 24" in secondary footnote text.
 struct GalleryLanguageAndPages: View {
     let gallery: Gallery
 
@@ -64,26 +69,26 @@ struct GalleryLanguageAndPages: View {
             if let language = gallery.language {
                 Text(language.localizedName)
             }
-            Label {
-                Text(gallery.pageCount, format: .number)
-            } icon: {
-                Image(systemName: "photo.on.rectangle.angled")
-            }
-            .labelStyle(CompactLabelStyle())
-            .accessibilityLabel(L10n.Localizable.Common.Value.pages("\(gallery.pageCount)"))
+            PageCountLabel(count: gallery.pageCount, font: .footnote)
         }
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.textSecondary)
         .lineLimit(1)
     }
 }
 
-/// Icon and title 2 pt apart, like legacy's `HStack(spacing: 2)`.
-private struct CompactLabelStyle: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: Tokens.Spacing.xxSmall) {
-            configuration.icon
-            configuration.title
+private struct GalleryDetailRowPreview: View {
+    var body: some View {
+        VStack(spacing: Tokens.Spacing.medium) {
+            ForEach(GalleryListPreviewData.galleries.prefix(3)) { gallery in
+                GalleryDetailRow(gallery: gallery)
+            }
         }
+        .background(.ground)
     }
+}
+
+#Preview {
+    SchemePreview { GalleryDetailRowPreview() }
+        .environment(GalleryListPreviewData.settings)
 }
