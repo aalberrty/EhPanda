@@ -13,7 +13,9 @@ struct LibraryScreen: View {
 
     var body: some View {
         LibraryLists(model: model)
-            .libraryBar { LibrarySegmentPicker(model: model) }
+            .floatingBar(edge: .top, spacing: 0, background: .materialUnderNavigationBar) {
+                LibrarySegmentPicker(model: model)
+            }
             .tagSearchable(
                 text: $model.searchText, prompt: searchPrompt, suggestsTags: model.searchesServer,
                 onSubmit: { model.submitSearch() }
@@ -87,11 +89,11 @@ private struct FavoritesList: View {
             PagedGalleryList(model: model.list)
                 .id(ObjectIdentifier(model.list))
         }
-            .libraryBar(extendsBehindTopBar: false) {
-                if !model.list.needsLogin {
-                    FavoriteFolderChips(model: model)
-                }
+        .floatingBar(edge: .top, spacing: 0, background: .material) {
+            if !model.list.needsLogin {
+                FavoriteFolderChips(model: model)
             }
+        }
     }
 }
 
