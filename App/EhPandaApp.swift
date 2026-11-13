@@ -10,6 +10,7 @@ struct EhPandaApp: App {
         // Both run before anything reads a dependency or loads an image; neither touches disk.
         // The image cache, whose creation does, gets its limits in the launch sequence.
         ImageDownloaderConfiguration.configure()
+        NavigationBarTitles.configure()
         prepareDependencies { $0.domainFronting = .appWide }
     }
 

@@ -3,15 +3,15 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// Maps a `SettingsRoute` to its screen. Every settings screen is tinted with the accent colour,
-/// as in legacy.
+/// Maps a `SettingsRoute` to its screen. Every settings screen is tinted with the app's tint
+/// (the accent colour), as in legacy.
 struct SettingsDestination: View {
     let route: SettingsRoute
 
     @Environment(SettingsStore.self) private var settings
 
     var body: some View {
-        screen.tint(settings.accentColor.color)
+        screen.tint(settings.accentColor.appTint)
     }
 
     @ViewBuilder private var screen: some View {
