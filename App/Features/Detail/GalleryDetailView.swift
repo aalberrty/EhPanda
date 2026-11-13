@@ -31,7 +31,7 @@ struct GalleryDetailView: View {
             }
             .fullScreenCover(item: $model.fullScreenDestination) { destination in
                 if case .reader(let page) = destination {
-                    ReaderScreen(gallery: model.gallery, initialPage: page)
+                    ReaderScreen(gallery: model.gallery, initialPage: page, detail: model.detail)
                 }
             }
             .sensoryFeedback(trigger: model.feedback) { _, feedback in

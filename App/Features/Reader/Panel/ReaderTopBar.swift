@@ -27,14 +27,16 @@ struct ReaderTopBar: View {
     }
 }
 
-/// "Morning Light Sketchbook" over "Page 12 of 64 · 52 left". The page follows the slider, so
-/// it shows the page being scrubbed to.
+/// "Morning Light Sketchbook" over "Page 12 of 64 · 52 left": the title the detail page shows,
+/// and the page, which follows the slider, so it shows the page being scrubbed to.
 private struct ReaderTitleCapsule: View {
     let model: ReaderModel
 
+    @Environment(SettingsStore.self) private var settings
+
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(model.gallery.title)
+            Text(model.title(prefersJapanese: settings.displaysJapaneseTitle))
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(ReaderPanelStyle.primary)
             Text(L10n.Localizable.ReadingView.Title.pagePosition(

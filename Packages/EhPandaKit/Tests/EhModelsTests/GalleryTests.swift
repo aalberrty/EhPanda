@@ -22,6 +22,14 @@ import Testing
         #expect(Self.gallery(title: "  Plain  ").trimmedTitle == "Plain")
     }
 
+    @Test func detailTitlePrefersTheJapaneseTitleWhenItHasOne() {
+        var detail = GalleryDetail.preview
+        #expect(detail.title(prefersJapanese: true) == "プレビュー")
+        #expect(detail.title(prefersJapanese: false) == "Preview")
+        detail.jpnTitle = nil
+        #expect(detail.title(prefersJapanese: true) == "Preview")
+    }
+
     @Test func language() {
         let tags = [Self.tag("language", ["translated", "chinese"])]
         #expect(Self.gallery(tags: tags).language == .chinese)

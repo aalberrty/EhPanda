@@ -82,8 +82,7 @@ public final class GalleryDetailModel {
     /// The Japanese title when preferred and present, else the title. Before the page has
     /// loaded, the list's title.
     public func title(prefersJapanese: Bool) -> String {
-        guard let detail else { return gallery.title }
-        return prefersJapanese ? detail.jpnTitle ?? detail.title : detail.title
+        detail?.title(prefersJapanese: prefersJapanese) ?? gallery.title
     }
 
     public var uploader: String? {

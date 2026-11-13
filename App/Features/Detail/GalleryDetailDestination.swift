@@ -30,7 +30,7 @@ struct GalleryDetailChildDestination: View {
             CommentsScreen(detail: model, scrollTo: commentID)
         case .previews:
             PreviewsGridScreen(
-                gallery: model.gallery, pageCount: model.pageCount,
+                gallery: model.gallery, detail: model.detail, pageCount: model.pageCount,
                 config: model.previewConfig, previewURLs: model.previewURLs
             )
         case .galleryInfos:
