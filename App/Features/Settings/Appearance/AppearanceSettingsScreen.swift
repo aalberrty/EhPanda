@@ -46,10 +46,11 @@ struct AppearanceSettingsScreen: View {
         .navigationTitle(L10n.Localizable.AppearanceSettingView.Title.appearance)
     }
 
-    /// The colour picker works on `Color`; the setting stores sRGB components.
+    /// The colour picker works on `Color`; the setting stores sRGB components. It shows the
+    /// tint in use, which on iOS 26 is the redesign's own while the setting is the default.
     private var accentColor: Binding<Color> {
         Binding(
-            get: { settings.accentColor.color },
+            get: { settings.accentColor.appTint },
             set: { color in
                 if let rgb = RGBColor(color) { settings.accentColor = rgb }
             }

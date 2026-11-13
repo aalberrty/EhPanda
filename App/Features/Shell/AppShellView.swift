@@ -7,7 +7,7 @@ import SwiftUI
 /// The root of the app: the launch screens until the database is ready, then the tabs.
 ///
 /// It also owns everything around the features: the shared services in the environment, the
-/// accent colour and colour scheme, links opened from outside, the scene lifecycle and the
+/// tint, ground and colour scheme, links opened from outside, the scene lifecycle and the
 /// privacy blur and lock, which live in a window above this one (see `SceneWindowBridge`).
 struct AppShellView: View {
     @State private var model: AppModel = {
@@ -15,6 +15,9 @@ struct AppShellView: View {
         model.lock.localizedReason = L10n.Localizable.LocalAuthorization.reason
         return model
     }()
+
+    /// Cover palettes, shared so a screen reuses the palette another one already made.
+    @State private var coverPalettes = CoverPaletteStore()
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -34,9 +37,11 @@ struct AppShellView: View {
             }
         }
         .animation(.easeOut(duration: 0.25), value: model.launchState == .ready)
-        .tint(settings.accentColor.color)
+        .background(.ground)
+        .tint(settings.accentColor.appTint)
         .environment(model.router)
         .environment(settings)
+        .environment(coverPalettes)
         .background {
             SceneWindowBridge(
                 colorScheme: settings.preferredColorScheme,

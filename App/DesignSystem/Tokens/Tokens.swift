@@ -26,6 +26,8 @@ nonisolated enum Tokens {
         static let field: CGFloat = 8
         /// Floating cards such as the HUD.
         static let card: CGFloat = 28
+        /// Glass panels over the cover glow (`glassPanel()`).
+        static let panel: CGFloat = 24
     }
 
     /// Width / height ratios.

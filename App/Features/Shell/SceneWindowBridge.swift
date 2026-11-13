@@ -34,7 +34,7 @@ struct SceneWindowBridge: UIViewRepresentable {
     func updateUIView(_ view: AnchorView, context: Context) {
         context.coordinator.update(
             style: colorScheme.userInterfaceStyle,
-            tint: UIColor(accentColor.color),
+            tint: accentColor.appTintUIColor,
             showsPrivacyOverlay: isPrivacyOverlayVisible
         )
     }

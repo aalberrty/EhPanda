@@ -38,7 +38,7 @@ struct SubSection<Content: View>: View {
                     reloadCount += 1
                 } label: {
                     HStack(spacing: Tokens.Spacing.small) {
-                        Text(title).font(.title3.bold())
+                        Text(title).font(.sectionTitle)
                         ProgressView()
                             .opacity(isLoading ? 1 : 0)
                             .animation(.default, value: isLoading)

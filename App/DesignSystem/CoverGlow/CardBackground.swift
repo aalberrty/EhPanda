@@ -1,9 +1,13 @@
+import EhCore
 import SwiftUI
 
-/// A card's backdrop: a mesh gradient of its cover's palette over a neutral fill (legacy
+/// A Home card's backdrop: a mesh gradient of its cover's palette over a neutral fill (legacy
 /// `ColorfulView`). The mesh drifts slowly while `isAnimated` and holds still otherwise.
+///
+/// It uses the palette's first four colours. For the redesign's static glow behind a page or
+/// the Popular pager, use `CoverGlow`.
 struct CardBackground: View {
-    let palette: CardPalette?
+    let palette: CoverPalette?
     /// Drifts while true. The carousel turns it off for every card but the current one, and for
     /// that one too while it cannot be seen or the page scrolls.
     let isAnimated: Bool
@@ -63,7 +67,7 @@ struct CardBackground: View {
         ]
     }
 
-    private static func colors(of palette: CardPalette) -> [Color] {
+    private static func colors(of palette: CoverPalette) -> [Color] {
         let colors = palette.colors.map(\.color)
         let color = { (index: Int) in colors.isEmpty ? Color.clear : colors[min(index, colors.count - 1)] }
         let background = color(0), primary = color(1), secondary = color(2), detail = color(3)
@@ -76,7 +80,7 @@ struct CardBackground: View {
 }
 
 #Preview {
-    let palette = CardPalette(colors: [
+    let palette = CoverPalette(colors: [
         .init(red: 0.9, green: 0.3, blue: 0.4), .init(red: 0.2, green: 0.4, blue: 0.9),
         .init(red: 0.9, green: 0.8, blue: 0.2), .init(red: 0.3, green: 0.8, blue: 0.5)
     ])
