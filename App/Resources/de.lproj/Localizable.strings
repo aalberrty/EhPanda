@@ -113,11 +113,8 @@
 "home_view.title.home" = "Home";
 "home_view.section.title.frontpage" = "Frontpage";
 "home_view.section.title.toplists" = "Toplists";
-"home_view.section.title.other" = "Other";
 // HomeMiscGridType
 "enum.home_misc_grid_type.title.popular" = "Beliebt";
-"enum.home_misc_grid_type.title.watched" = "Meine Tags";
-"enum.home_misc_grid_type.title.history" = "Verlauf";
 
 // MARK: FrontpageView
 "frontpage_view.title.frontpage" = "Frontpage";
@@ -282,13 +279,6 @@
 "detail_view.context_menu.button.withdraw_vote" = "Withdraw vote";
 "detail_view.context_menu.button.vote_up" = "Vote up";
 "detail_view.context_menu.button.vote_down" = "Vote down";
-"detail_view.description_section.title.favorited" = "Favorisiert";
-"detail_view.description_section.title.language" = "Sprache";
-"detail_view.description_section.title.ratings" = "%@ Bewertungen";
-"detail_view.description_section.title.page_count" = "Seitenzahl";
-"detail_view.description_section.title.file_size" = "Dateigröße";
-"detail_view.description_section.description.favorited" = "mal";
-"detail_view.description_section.description.page_count" = "Seiten";
 "detail_view.action_section.button.give_a_rating" = "Bewertung abgeben";
 "detail_view.action_section.button.similar_gallery" = "Ähnliche Galerien";
 "detail_view.section.title.previews" = "Vorschau";
