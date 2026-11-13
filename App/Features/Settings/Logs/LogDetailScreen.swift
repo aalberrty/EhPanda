@@ -13,6 +13,7 @@ struct LogDetailScreen: View {
 
     var body: some View {
         content
+            .screenGround(.grouped)
             .navigationTitle(model.file.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -40,6 +41,7 @@ struct LogDetailScreen: View {
                     .font(.caption.weight(.medium))
                     .textSelection(.enabled)
                     .padding(.vertical, Tokens.Spacing.xSmall)
+                    .raisedRows()
             }
         }
     }

@@ -28,6 +28,7 @@ struct LoginScreen: View {
             .frame(maxWidth: 360)
             .padding(.horizontal, Tokens.Spacing.xxLarge * 2)
         }
+        .screenGround()
         .onSubmit { run { await model.submit() } }
         // Two-way sync between the model's focus decisions and the keyboard.
         .onChange(of: model.focusedField) { _, newValue in focusedField = newValue }
@@ -78,8 +79,9 @@ private struct LoginBackground: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                WaveForm(color: Color(.systemGray2).opacity(0.2), amplitude: 100, isReversed: true)
-                WaveForm(color: Color(.systemGray).opacity(0.2), amplitude: 120)
+                // Warm on iOS 26; on iOS 18 the fill is close to the grey waves v3 drew.
+                WaveForm(color: .chipFill, amplitude: 100, isReversed: true)
+                WaveForm(color: .chipFill, amplitude: 120)
             }
             .offset(y: proxy.size.height * 0.3)
             .drawingGroup()
@@ -101,7 +103,7 @@ private struct LoginField: View {
         VStack(alignment: .leading, spacing: Tokens.Spacing.small) {
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
                 .accessibilityHidden(true)
             Group {
                 if isPassword {

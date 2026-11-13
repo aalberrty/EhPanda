@@ -4,7 +4,8 @@ import SwiftUI
 /// comments (legacy `SubSection`).
 ///
 /// Tapping the title reloads when `reload` is given; a spinner beside it shows `isLoading`.
-/// "Show all" sits on the trailing edge and is hidden (but keeps its space) when `showsAll` is false.
+/// "Show all ›" sits on the trailing edge, on the title's baseline, in `tint` (the app's tint
+/// when `nil`); it is hidden (but keeps its space) when `showsAll` is false.
 struct SubSection<Content: View>: View {
     private let title: String
     private let showsAll: Bool
@@ -39,7 +40,12 @@ struct SubSection<Content: View>: View {
                 } label: {
                     HStack(spacing: Tokens.Spacing.small) {
                         Text(title).font(.sectionTitle)
+                        // A spinner reports a text baseline near its top, and a stack takes the
+                        // topmost one, which lifted "Show all" above the title. Its bottom
+                        // stays below the title's baseline, so the title's baseline leads.
                         ProgressView()
+                            .alignmentGuide(.firstTextBaseline) { $0[.bottom] }
+                            .alignmentGuide(.lastTextBaseline) { $0[.bottom] }
                             .opacity(isLoading ? 1 : 0)
                             .animation(.default, value: isLoading)
                             .accessibilityHidden(!isLoading)
@@ -52,12 +58,23 @@ struct SubSection<Content: View>: View {
 
                 Spacer()
 
-                Button(L10n.Localizable.SubSection.Button.showAll, action: showAll)
+                // The chevron is the "Show all ›" the mockups draw.
+                Button(action: showAll) {
+                    HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.xxSmall) {
+                        Text(L10n.Localizable.SubSection.Button.showAll)
+                        Image(systemName: "chevron.right")
+                            .imageScale(.small)
+                            .fontWeight(.semibold)
+                            .accessibilityHidden(true)
+                    }
                     .font(.subheadline)
-                    .tint(tint)
-                    .opacity(showsAll ? 1 : 0)
-                    .disabled(!showsAll)
-                    .accessibilityHidden(!showsAll)
+                    .foregroundStyle(tint.map(AnyShapeStyle.init) ?? AnyShapeStyle(.tint))
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .opacity(showsAll ? 1 : 0)
+                .disabled(!showsAll)
+                .accessibilityHidden(!showsAll)
             }
             .padding(.horizontal)
             content

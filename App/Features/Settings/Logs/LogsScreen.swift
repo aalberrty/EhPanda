@@ -10,6 +10,7 @@ struct LogsScreen: View {
 
     var body: some View {
         content
+            .screenGround(.grouped)
             .navigationTitle(L10n.Localizable.LogsView.Title.logs)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -39,7 +40,7 @@ struct LogsScreen: View {
                     } label: {
                         LogRow(log: log, isLatest: log.file == model.latestLog)
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.textPrimary)
                     .contextMenu {
                         ShareLink(item: log.file.url)
                     }
@@ -51,6 +52,7 @@ struct LogsScreen: View {
                         }
                     }
                 }
+                .raisedRows()
             }
         }
     }
@@ -66,10 +68,15 @@ private struct LogRow: View {
                 Text(log.file.name).font(.callout)
                 Spacer()
                 if isLatest {
-                    Label(L10n.Localizable.LogsView.Title.latest, systemImage: "checkmark.circle")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .symbolRenderingMode(.multicolor)
+                    // The mark takes the tint: blue with v3's default accent on iOS 18, bone or
+                    // ink on iOS 26, where colour comes only from covers and category marks.
+                    Label {
+                        Text(L10n.Localizable.LogsView.Title.latest)
+                    } icon: {
+                        Image(systemName: "checkmark.circle").foregroundStyle(.tint)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.textSecondary)
                 }
             }
             HStack {
@@ -78,7 +85,7 @@ private struct LogRow: View {
                 Text(L10n.Localizable.Common.Value.records("\(log.recordCount)"))
             }
             .font(.caption2)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.textSecondary)
             .lineLimit(1)
         }
         .padding(.vertical, Tokens.Spacing.xSmall)

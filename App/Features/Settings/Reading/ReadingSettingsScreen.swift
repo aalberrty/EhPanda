@@ -22,51 +22,55 @@ struct ReadingSettingsForm: View {
     var body: some View {
         @Bindable var settings = settings
         Form {
-            Section {
-                Picker(L10n.Localizable.ReadingSettingView.Title.direction, selection: $settings.readingDirection) {
-                    ForEach(ReadingDirection.allCases) { direction in
-                        Text(direction.localizedName).tag(direction)
+            Group {
+                Section {
+                    Picker(L10n.Localizable.ReadingSettingView.Title.direction, selection: $settings.readingDirection) {
+                        ForEach(ReadingDirection.allCases) { direction in
+                            Text(direction.localizedName).tag(direction)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    Picker(L10n.Localizable.ReadingSettingView.Title.preloadLimit, selection: $settings.prefetchLimit) {
+                        ForEach(Array(stride(from: 6, through: 18, by: 4)), id: \.self) { value in
+                            Text(L10n.Localizable.Common.Value.pages("\(value)")).tag(value)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    // Only iPhone locks the reader to portrait.
+                    if UIDevice.current.userInterfaceIdiom != .pad {
+                        Toggle(
+                            L10n.Localizable.ReadingSettingView.Title.enablesLandscape,
+                            isOn: Binding(get: { settings.enablesLandscape }, set: { model.setEnablesLandscape($0) })
+                        )
                     }
                 }
-                .pickerStyle(.menu)
-                Picker(L10n.Localizable.ReadingSettingView.Title.preloadLimit, selection: $settings.prefetchLimit) {
-                    ForEach(Array(stride(from: 6, through: 18, by: 4)), id: \.self) { value in
-                        Text(L10n.Localizable.Common.Value.pages("\(value)")).tag(value)
+                Section(L10n.Localizable.ReadingSettingView.Section.Title.appearance) {
+                    Picker(
+                        L10n.Localizable.ReadingSettingView.Title.separatorHeight,
+                        selection: $settings.contentDividerHeight
+                    ) {
+                        ForEach(Array(stride(from: 0, through: 20, by: 5)), id: \.self) { value in
+                            Text(verbatim: "\(value)pt").tag(Double(value))
+                        }
                     }
-                }
-                .pickerStyle(.menu)
-                // Only iPhone locks the reader to portrait.
-                if UIDevice.current.userInterfaceIdiom != .pad {
-                    Toggle(
-                        L10n.Localizable.ReadingSettingView.Title.enablesLandscape,
-                        isOn: Binding(get: { settings.enablesLandscape }, set: { model.setEnablesLandscape($0) })
+                    .pickerStyle(.menu)
+                    // The separator only exists between vertically stacked pages.
+                    .disabled(settings.readingDirection != .vertical)
+                    ScaleFactorRow(
+                        title: L10n.Localizable.ReadingSettingView.Title.maximumScaleFactor,
+                        value: $settings.maximumScaleFactor,
+                        range: 1.5...10
+                    )
+                    ScaleFactorRow(
+                        title: L10n.Localizable.ReadingSettingView.Title.doubleTapScaleFactor,
+                        value: $settings.doubleTapScaleFactor,
+                        range: 1.5...5
                     )
                 }
             }
-            Section(L10n.Localizable.ReadingSettingView.Section.Title.appearance) {
-                Picker(
-                    L10n.Localizable.ReadingSettingView.Title.separatorHeight,
-                    selection: $settings.contentDividerHeight
-                ) {
-                    ForEach(Array(stride(from: 0, through: 20, by: 5)), id: \.self) { value in
-                        Text(verbatim: "\(value)pt").tag(Double(value))
-                    }
-                }
-                .pickerStyle(.menu)
-                // The separator only exists between vertically stacked pages.
-                .disabled(settings.readingDirection != .vertical)
-                ScaleFactorRow(
-                    title: L10n.Localizable.ReadingSettingView.Title.maximumScaleFactor,
-                    value: $settings.maximumScaleFactor,
-                    range: 1.5...10
-                )
-                ScaleFactorRow(
-                    title: L10n.Localizable.ReadingSettingView.Title.doubleTapScaleFactor,
-                    value: $settings.doubleTapScaleFactor,
-                    range: 1.5...5
-                )
-            }
+            .raisedRows()
         }
+        .screenGround(.grouped)
     }
 }
 

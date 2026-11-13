@@ -139,7 +139,7 @@ private struct ExcludeToggle: View {
         } label: {
             Image(systemName: isOn ? "nosign" : "circle")
                 .font(.title2)
-                .foregroundStyle(isOn ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
+                .foregroundStyle(isOn ? Color.red : .textPrimary)
                 .contentTransition(.symbolEffect(.replace))
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .contentShape(.rect)

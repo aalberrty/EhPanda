@@ -16,55 +16,60 @@ struct EhSettingForm: View {
         if let setting = model.setting {
             let editor = EhSettingEditor(model: model)
             Form {
-                EhProfileSection(
-                    model: model, profiles: setting.ehProfiles,
-                    canCreate: setting.isCapableOfCreatingNewProfile, perform: perform
-                )
-                ImageLoadSection(
-                    editor: editor, value: setting.loadThroughHathSetting,
-                    options: setting.capableLoadThroughHathSettings,
-                    country: setting.browsingCountry,
-                    detectedCountry: setting.localizedLiteralBrowsingCountry ?? setting.literalBrowsingCountry
-                )
-                ImageSizeSection(
-                    editor: editor, resolution: setting.imageResolution,
-                    resolutions: setting.capableImageResolutions, useOriginalImages: setting.useOriginalImages,
-                    width: setting.imageSizeWidth, height: setting.imageSizeHeight
-                )
-                GalleryNameSection(editor: editor, value: setting.galleryName)
-                ArchiverSection(editor: editor, value: setting.archiverBehavior)
-                FrontPageSection(
-                    editor: editor, host: settings.galleryHost, disabledCategories: setting.disabledCategories,
-                    displayMode: setting.displayMode, showsRangeIndicator: setting.showSearchRangeIndicator
-                )
-                OptionalUISection(editor: editor, isOn: setting.enableGalleryThumbnailSelector)
-                FavoritesSection(
-                    editor: editor, host: settings.galleryHost,
-                    names: setting.favoriteCategories, sortOrder: setting.favoritesSortOrder
-                )
-                SearchResultCountSection(
-                    editor: editor, value: setting.searchResultCount, options: setting.capableSearchResultCounts
-                )
-                ThumbnailSection(
-                    editor: editor, timing: setting.thumbnailLoadTiming, size: setting.thumbnailConfigSize,
-                    sizes: setting.capableThumbnailConfigSizes, rows: setting.thumbnailConfigRows,
-                    rowOptions: setting.capableThumbnailConfigRowCounts
-                )
-                CoverScalingSection(editor: editor, value: setting.coverScaleFactor)
-                RatingsSection(editor: editor, value: setting.ratingsColor)
-                TagWatchingSection(editor: editor, value: setting.tagWatchingThreshold)
-                TagFilteringSection(editor: editor, value: setting.tagFilteringThreshold)
-                FilteredRemovalSection(editor: editor, isOn: setting.showFilteredRemovalCount)
-                ExcludedLanguagesSection(editor: editor, values: setting.excludedLanguages)
-                ExcludedUploadersSection(editor: editor, text: setting.excludedUploaders)
-                ViewportSection(editor: editor, value: setting.viewportVirtualWidth)
-                CommentsSection(editor: editor, order: setting.commentsSortOrder, timing: setting.commentVotesShowTiming)
-                TagsSection(editor: editor, value: setting.tagsSortOrder)
-                PageLabelingSection(editor: editor, value: setting.galleryPageNumbering)
-                MultiPageViewerSection(
-                    editor: editor, isOn: setting.useMultiplePageViewer,
-                    style: setting.multiplePageViewerStyle, showsPane: setting.multiplePageViewerShowThumbnailPane
-                )
+                Group {
+                    EhProfileSection(
+                        model: model, profiles: setting.ehProfiles,
+                        canCreate: setting.isCapableOfCreatingNewProfile, perform: perform
+                    )
+                    ImageLoadSection(
+                        editor: editor, value: setting.loadThroughHathSetting,
+                        options: setting.capableLoadThroughHathSettings,
+                        country: setting.browsingCountry,
+                        detectedCountry: setting.localizedLiteralBrowsingCountry ?? setting.literalBrowsingCountry
+                    )
+                    ImageSizeSection(
+                        editor: editor, resolution: setting.imageResolution,
+                        resolutions: setting.capableImageResolutions, useOriginalImages: setting.useOriginalImages,
+                        width: setting.imageSizeWidth, height: setting.imageSizeHeight
+                    )
+                    GalleryNameSection(editor: editor, value: setting.galleryName)
+                    ArchiverSection(editor: editor, value: setting.archiverBehavior)
+                    FrontPageSection(
+                        editor: editor, host: settings.galleryHost, disabledCategories: setting.disabledCategories,
+                        displayMode: setting.displayMode, showsRangeIndicator: setting.showSearchRangeIndicator
+                    )
+                    OptionalUISection(editor: editor, isOn: setting.enableGalleryThumbnailSelector)
+                    FavoritesSection(
+                        editor: editor, host: settings.galleryHost,
+                        names: setting.favoriteCategories, sortOrder: setting.favoritesSortOrder
+                    )
+                    SearchResultCountSection(
+                        editor: editor, value: setting.searchResultCount, options: setting.capableSearchResultCounts
+                    )
+                    ThumbnailSection(
+                        editor: editor, timing: setting.thumbnailLoadTiming, size: setting.thumbnailConfigSize,
+                        sizes: setting.capableThumbnailConfigSizes, rows: setting.thumbnailConfigRows,
+                        rowOptions: setting.capableThumbnailConfigRowCounts
+                    )
+                    CoverScalingSection(editor: editor, value: setting.coverScaleFactor)
+                    RatingsSection(editor: editor, value: setting.ratingsColor)
+                    TagWatchingSection(editor: editor, value: setting.tagWatchingThreshold)
+                    TagFilteringSection(editor: editor, value: setting.tagFilteringThreshold)
+                    FilteredRemovalSection(editor: editor, isOn: setting.showFilteredRemovalCount)
+                    ExcludedLanguagesSection(editor: editor, values: setting.excludedLanguages)
+                    ExcludedUploadersSection(editor: editor, text: setting.excludedUploaders)
+                    ViewportSection(editor: editor, value: setting.viewportVirtualWidth)
+                    CommentsSection(
+                        editor: editor, order: setting.commentsSortOrder, timing: setting.commentVotesShowTiming
+                    )
+                    TagsSection(editor: editor, value: setting.tagsSortOrder)
+                    PageLabelingSection(editor: editor, value: setting.galleryPageNumbering)
+                    MultiPageViewerSection(
+                        editor: editor, isOn: setting.useMultiplePageViewer,
+                        style: setting.multiplePageViewerStyle, showsPane: setting.multiplePageViewerShowThumbnailPane
+                    )
+                }
+                .raisedRows()
             }
             .scrollDismissesKeyboard(.interactively)
         }

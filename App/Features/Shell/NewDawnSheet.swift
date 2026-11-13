@@ -31,10 +31,10 @@ struct NewDawnSheet: View {
                 .accessibilityHidden(true)
             VStack(spacing: 50) {
                 VStack(spacing: 10) {
-                    line(L10n.Localizable.NewDawnView.Title.first, font: .largeTitle)
-                    line(L10n.Localizable.NewDawnView.Title.second, font: .title2)
+                    line(L10n.Localizable.NewDawnView.Title.first, font: .heading(.largeTitle))
+                    line(L10n.Localizable.NewDawnView.Title.second, font: .heading(.title2))
                 }
-                line(greeting.gainContent ?? "", font: .title3)
+                line(greeting.gainContent ?? "", font: .title3.bold())
             }
             .padding()
         }
@@ -43,10 +43,11 @@ struct NewDawnSheet: View {
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
     }
 
+    /// The two title lines are headings (serif on iOS 26); the rewards stay in the default
+    /// design, like other content.
     private func line(_ text: String, font: Font) -> some View {
         Text(text)
             .font(font)
-            .fontWeight(.bold)
             .foregroundStyle(.white)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -11,6 +11,7 @@ struct EhSettingScreen: View {
 
     var body: some View {
         content
+            .screenGround(.grouped)
             .navigationTitle(L10n.Localizable.EhSettingView.Title.hostSettings(model.galleryHost.rawValue))
             .toolbar { toolbar }
             .sheet(item: $model.destination) { destination in

@@ -12,37 +12,43 @@ struct AppearanceSettingsScreen: View {
     var body: some View {
         @Bindable var settings = settings
         Form {
-            Section {
-                Picker(L10n.Localizable.AppearanceSettingView.Title.theme, selection: $settings.preferredColorScheme) {
-                    ForEach(PreferredColorScheme.allCases) { scheme in
-                        Text(scheme.localizedName).tag(scheme)
+            Group {
+                Section {
+                    Picker(
+                        L10n.Localizable.AppearanceSettingView.Title.theme, selection: $settings.preferredColorScheme
+                    ) {
+                        ForEach(PreferredColorScheme.allCases) { scheme in
+                            Text(scheme.localizedName).tag(scheme)
+                        }
                     }
-                }
-                .pickerStyle(.menu)
-                ColorPicker(
-                    L10n.Localizable.AppearanceSettingView.Title.tintColor,
-                    selection: accentColor,
-                    supportsOpacity: false
-                )
-                Button {
-                    stack.push(.settings(.appIcon))
-                } label: {
-                    LabeledContent {
-                        Text(settings.appIconType.localizedName)
+                    .pickerStyle(.menu)
+                    ColorPicker(
+                        L10n.Localizable.AppearanceSettingView.Title.tintColor,
+                        selection: accentColor,
+                        supportsOpacity: false
+                    )
+                    Button {
+                        stack.push(.settings(.appIcon))
                     } label: {
-                        Text(L10n.Localizable.AppearanceSettingView.Button.appIcon).foregroundStyle(Color.primary)
+                        LabeledContent {
+                            Text(settings.appIconType.localizedName)
+                        } label: {
+                            Text(L10n.Localizable.AppearanceSettingView.Button.appIcon).foregroundStyle(.textPrimary)
+                        }
+                        .disclosureIndicator()
                     }
-                    .disclosureIndicator()
+                }
+                ListSection()
+                Section(L10n.Localizable.AppearanceSettingView.Section.Title.gallery) {
+                    Toggle(
+                        L10n.Localizable.AppearanceSettingView.Title.displaysJapaneseTitle,
+                        isOn: $settings.displaysJapaneseTitle
+                    )
                 }
             }
-            ListSection()
-            Section(L10n.Localizable.AppearanceSettingView.Section.Title.gallery) {
-                Toggle(
-                    L10n.Localizable.AppearanceSettingView.Title.displaysJapaneseTitle,
-                    isOn: $settings.displaysJapaneseTitle
-                )
-            }
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.AppearanceSettingView.Title.appearance)
     }
 

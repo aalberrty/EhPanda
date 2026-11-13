@@ -17,9 +17,13 @@ struct FiltersSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                FiltersBasicSection(model: model)
-                FiltersAdvancedSections(model: model, focusedBound: $focusedBound)
+                Group {
+                    FiltersBasicSection(model: model)
+                    FiltersAdvancedSections(model: model, focusedBound: $focusedBound)
+                }
+                .raisedRows()
             }
+            .screenGround(.grouped)
             .navigationTitle(L10n.Localizable.FiltersView.Title.filters)
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -67,7 +71,7 @@ private struct FiltersBasicSection: View {
     }
 }
 
-/// The ten categories as coloured tiles; a dimmed tile is excluded from results.
+/// The ten categories as tiles; a struck-through tile is excluded from results.
 private struct FilterCategoryGrid: View {
     let model: FiltersModel
 
@@ -79,25 +83,12 @@ private struct FilterCategoryGrid: View {
         let host = settings.galleryHost
         LazyVGrid(columns: [GridItem(.adaptive(minimum: sizeClass == .regular ? 100 : 80, maximum: 100))]) {
             ForEach(FiltersModel.categories) { category in
-                let isExcluded = model.isExcluded(category)
-                Button {
+                CategoryToggleTile(
+                    category.localizedName, color: category.color(for: host), isOn: !model.isExcluded(category)
+                ) {
                     toggles += 1
                     model.toggleExclusion(of: category)
-                } label: {
-                    Text(category.localizedName)
-                        .bold()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 5)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            category.color(for: host).opacity(isExcluded ? 0.3 : 1),
-                            in: .rect(cornerRadius: 5, style: .continuous)
-                        )
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(isExcluded ? [] : .isSelected)
             }
         }
         .padding(.vertical, Tokens.Spacing.small)

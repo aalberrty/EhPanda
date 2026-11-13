@@ -6,19 +6,23 @@ import SwiftUI
 struct SettingsScreen: View {
     var body: some View {
         List {
-            Section {
-                SettingsRow(route: .account)
+            Group {
+                Section {
+                    SettingsRow(route: .account)
+                }
+                Section {
+                    SettingsRow(route: .general)
+                    SettingsRow(route: .appearance)
+                    SettingsRow(route: .reading)
+                    SettingsRow(route: .laboratory)
+                }
+                Section {
+                    SettingsRow(route: .about)
+                }
             }
-            Section {
-                SettingsRow(route: .general)
-                SettingsRow(route: .appearance)
-                SettingsRow(route: .reading)
-                SettingsRow(route: .laboratory)
-            }
-            Section {
-                SettingsRow(route: .about)
-            }
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.SettingView.Title.setting)
     }
 }
