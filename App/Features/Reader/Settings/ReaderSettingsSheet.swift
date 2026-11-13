@@ -19,37 +19,43 @@ struct ReaderSettingsSheet: View {
         @Bindable var settings = settings
         NavigationStack {
             Form {
-                Section {
-                    Picker(Strings.Title.direction, selection: $settings.readingDirection) {
-                        ForEach(ReadingDirection.allCases) { direction in
-                            Text(direction.localizedName).tag(direction)
+                Group {
+                    Section {
+                        Picker(Strings.Title.direction, selection: $settings.readingDirection) {
+                            ForEach(ReadingDirection.allCases) { direction in
+                                Text(direction.localizedName).tag(direction)
+                            }
+                        }
+                        Picker(Strings.Title.preloadLimit, selection: $settings.prefetchLimit) {
+                            ForEach([6, 10, 14, 18], id: \.self) { limit in
+                                Text(L10n.Localizable.Common.Value.pages("\(limit)")).tag(limit)
+                            }
+                        }
+                        if showsLandscapeSetting {
+                            Toggle(Strings.Title.enablesLandscape, isOn: $settings.enablesLandscape)
                         }
                     }
-                    Picker(Strings.Title.preloadLimit, selection: $settings.prefetchLimit) {
-                        ForEach([6, 10, 14, 18], id: \.self) { limit in
-                            Text(L10n.Localizable.Common.Value.pages("\(limit)")).tag(limit)
+                    Section(Strings.Section.Title.appearance) {
+                        Picker(Strings.Title.separatorHeight, selection: $settings.contentDividerHeight) {
+                            ForEach([0, 5, 10, 15, 20], id: \.self) { height in
+                                Text(verbatim: "\(height)pt").tag(Double(height))
+                            }
                         }
-                    }
-                    if showsLandscapeSetting {
-                        Toggle(Strings.Title.enablesLandscape, isOn: $settings.enablesLandscape)
+                        // The separator sits between the pages of the vertical strip.
+                        .disabled(settings.readingDirection != .vertical)
+                        ReaderScaleFactorRow(
+                            title: Strings.Title.maximumScaleFactor, value: $settings.maximumScaleFactor,
+                            range: 1.5...10
+                        )
+                        ReaderScaleFactorRow(
+                            title: Strings.Title.doubleTapScaleFactor, value: $settings.doubleTapScaleFactor,
+                            range: 1.5...5
+                        )
                     }
                 }
-                Section(Strings.Section.Title.appearance) {
-                    Picker(Strings.Title.separatorHeight, selection: $settings.contentDividerHeight) {
-                        ForEach([0, 5, 10, 15, 20], id: \.self) { height in
-                            Text(verbatim: "\(height)pt").tag(Double(height))
-                        }
-                    }
-                    // The separator sits between the pages of the vertical strip.
-                    .disabled(settings.readingDirection != .vertical)
-                    ReaderScaleFactorRow(
-                        title: Strings.Title.maximumScaleFactor, value: $settings.maximumScaleFactor, range: 1.5...10
-                    )
-                    ReaderScaleFactorRow(
-                        title: Strings.Title.doubleTapScaleFactor, value: $settings.doubleTapScaleFactor, range: 1.5...5
-                    )
-                }
+                .raisedRows()
             }
+            .screenGround(.grouped)
             .pickerStyle(.menu)
             .navigationTitle(Strings.Title.reading)
             .toolbarTitleDisplayMode(.inline)
@@ -66,6 +72,8 @@ struct ReaderSettingsSheet: View {
                 }
             }
         }
+        // The reader presents this with the accent colour itself; the redesign's tint wins.
+        .tint(settings.accentColor.appTint)
         // Half height leaves the page visible while its settings change.
         .presentationDetents([.medium, .large])
     }

@@ -15,6 +15,7 @@ struct QuickSearchSheet: View {
     var body: some View {
         NavigationStack {
             QuickSearchList(model: model, onSelect: onSelect)
+                .screenGround(.grouped)
                 .navigationTitle(L10n.Localizable.QuickSearchView.Title.quickSearch)
                 .toolbar { toolbar }
                 .navigationDestination(item: $model.editor) { editor in
@@ -49,7 +50,7 @@ private struct QuickSearchList: View {
                 Button { onSelect(word.content) } label: {
                     QuickSearchWordRow(word: word, showsDisclosure: !model.isEditing)
                 }
-                .tint(.primary)
+                .tint(.textPrimary)
                 .swipeActions(edge: .trailing) {
                     Button(L10n.Localizable.ConfirmationDialog.Button.delete, systemImage: "trash") {
                         model.requestDeletion(of: word)
@@ -66,6 +67,7 @@ private struct QuickSearchList: View {
             .onMove { source, destination in
                 Task { await model.move(fromOffsets: source, toOffset: destination) }
             }
+            .raisedRows()
         }
         .overlay {
             if model.words.isEmpty {
@@ -116,7 +118,7 @@ private struct QuickSearchWordRow: View {
                 if !word.name.isEmpty {
                     Text(word.name)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                         .lineLimit(1)
                 }
                 Text(word.content)
@@ -148,20 +150,24 @@ private struct QuickSearchWordForm: View {
 
     var body: some View {
         Form {
-            Section(L10n.Localizable.QuickSearchView.Title.name) {
-                TextField(L10n.Localizable.QuickSearchView.Placeholder.optional, text: $model.draft.name)
-                    .submitLabel(.next)
-                    .focused($focusedField, equals: .name)
-                    .onSubmit { focusedField = .content }
+            Group {
+                Section(L10n.Localizable.QuickSearchView.Title.name) {
+                    TextField(L10n.Localizable.QuickSearchView.Placeholder.optional, text: $model.draft.name)
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .name)
+                        .onSubmit { focusedField = .content }
+                }
+                Section(L10n.Localizable.QuickSearchView.Title.content) {
+                    TextEditor(text: $model.draft.content)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .focused($focusedField, equals: .content)
+                        .frame(minHeight: 88)
+                }
             }
-            Section(L10n.Localizable.QuickSearchView.Title.content) {
-                TextEditor(text: $model.draft.content)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .focused($focusedField, equals: .content)
-                    .frame(minHeight: 88)
-            }
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(title)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
