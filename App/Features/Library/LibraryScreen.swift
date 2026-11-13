@@ -13,6 +13,7 @@ struct LibraryScreen: View {
 
     var body: some View {
         LibraryLists(model: model)
+            .screenGround()
             .floatingBar(edge: .top, spacing: 0, background: .materialUnderNavigationBar) {
                 LibrarySegmentPicker(model: model)
             }
