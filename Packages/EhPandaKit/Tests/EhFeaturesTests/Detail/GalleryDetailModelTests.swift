@@ -246,3 +246,36 @@ import Testing
         #expect(chip.content.chipText(translation: nil, showsImages: true) == "non-h imageset")
     }
 }
+
+@MainActor
+@Suite struct GalleryDetailDerivedTests {
+    @Test func favoritedFollowsTheLoadedPage() async throws {
+        let env = try await DetailEnvironment()
+        let model = env.makeDetailModel()
+        #expect(model.isFavorited == false)
+        env.serveDetail()
+        await model.load()
+        #expect(model.detail?.isFavorited == false)
+        #expect(model.isFavorited == false)
+    }
+
+    @Test func showAllPreviewsOnlyPastTheTwentyOnThePage() async throws {
+        let env = try await DetailEnvironment()
+        #expect(env.makeDetailModel().showsAllPreviews)
+        let short = Gallery(
+            gid: DetailEnvironment.gid, token: DetailEnvironment.token, title: "Short", rating: 0, tags: [],
+            category: .misc, pageCount: 20, postedDate: .now, coverURL: nil, galleryURL: DetailEnvironment.galleryURL
+        )
+        #expect(env.makeDetailModel(gallery: short).showsAllPreviews == false)
+    }
+
+    @Test func similarGalleryKeywordWaitsForThePage() async throws {
+        let env = try await DetailEnvironment()
+        let model = env.makeDetailModel()
+        #expect(model.similarGalleryKeyword == nil)
+        env.serveDetail()
+        await model.load()
+        let detail = try #require(model.detail)
+        #expect(model.similarGalleryKeyword == DetailSearchKeyword.similar(to: detail))
+    }
+}
