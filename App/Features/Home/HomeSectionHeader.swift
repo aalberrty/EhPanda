@@ -10,9 +10,16 @@ struct HomeSectionHeader: View {
     let showAll: () -> Void
 
     @State private var reloadCount = 0
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(alignment: .center) {
+        // At accessibility sizes the title and "Show all" broke mid-word side by side, so
+        // "Show all" goes under the title.
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let layout = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(alignment: .center))
+        layout {
             Button {
                 reload()
                 reloadCount += 1
@@ -31,7 +38,9 @@ struct HomeSectionHeader: View {
             .accessibilityAddTraits(.isHeader)
             .sensoryFeedback(.impact(flexibility: .soft), trigger: reloadCount)
 
-            Spacer(minLength: Tokens.Spacing.large)
+            if !isStacked {
+                Spacer(minLength: Tokens.Spacing.large)
+            }
 
             Button(action: showAll) {
                 HStack(spacing: Tokens.Spacing.xxSmall) {
