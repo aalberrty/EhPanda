@@ -18,6 +18,9 @@ struct ReaderBottomPanel: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     /// How far the handle has been pulled down.
     @State private var pull: CGFloat = 0
+    /// The panel's width inside its padding, measured while the panel is shown so the strip
+    /// has its size before it first appears.
+    @State private var contentWidth: CGFloat = 0
 
     var body: some View {
         let isReversed = settings.readingDirection == .rightToLeft
@@ -27,7 +30,9 @@ struct ReaderBottomPanel: View {
             if model.showsSliderPreview {
                 ReaderPreviewStrip(
                     model: model, isReversed: isReversed,
-                    thumbnailSize: ReaderPanelStyle.thumbnailSize(isLarge: isLarge)
+                    thumbnailSize: ReaderPanelStyle.thumbnailSize(
+                        isLarge: isLarge, count: stripLength, availableWidth: contentWidth
+                    )
                 )
                 .padding(.top, Tokens.Spacing.xSmall)
                 .transition(.opacity)
@@ -39,6 +44,7 @@ struct ReaderBottomPanel: View {
             }
             ReaderPanelButtons(model: model)
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
         .padding(.horizontal, 14)
         .padding(.bottom, Tokens.Spacing.small)
         .frame(maxWidth: isWide ? ReaderPanelStyle.maximumPanelWidth : .infinity)

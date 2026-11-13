@@ -33,9 +33,18 @@ nonisolated enum ReaderPanelStyle {
     static let thumbnailCornerRadius: CGFloat = 6
     static let thumbnailSpacing: CGFloat = 12
 
-    /// A thumbnail of the preview strip; larger on an iPad-sized window.
-    static func thumbnailSize(isLarge: Bool) -> CGSize {
-        let width: CGFloat = isLarge ? 70 : 50
+    /// The share of the panel's content width the strip fills, as in the mockup: five 50 pt
+    /// thumbnails with 12 pt gaps in a 346 pt wide panel.
+    static let thumbnailStripFill: CGFloat = 298 / 346
+
+    /// A thumbnail of the preview strip, sized so `count` thumbnails fill the panel the way the
+    /// mockup does: a fixed 50 pt looked small on wider phones. Never below 50 pt (70 pt on an
+    /// iPad-sized window) and never more than 30% above that.
+    static func thumbnailSize(isLarge: Bool, count: Int, availableWidth: CGFloat) -> CGSize {
+        let minimum: CGFloat = isLarge ? 70 : 50
+        let gaps = thumbnailSpacing * CGFloat(max(count - 1, 0))
+        let fitted = ((availableWidth * thumbnailStripFill - gaps) / CGFloat(max(count, 1))).rounded(.down)
+        let width = min(max(fitted, minimum), (minimum * 1.3).rounded())
         return CGSize(width: width, height: (width / Tokens.Aspect.preview).rounded())
     }
 }
