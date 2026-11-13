@@ -2,13 +2,16 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The display mode, which every segment shares and so stays in place, then the tools of the
-/// segment on show: Quick search and the sort order for Favorites, Quick search and Filters for
-/// Watched, Clear for History. The search field is the screen's own.
+/// The search button (E-Library), then the display mode, which every segment shares and so stays
+/// in place, then the tools of the segment on show: Quick search and the sort order for
+/// Favorites, Quick search and Filters for Watched, Clear for History. The search field behind
+/// the button is the screen's own: server search for Favorites and Watched, the title filter
+/// for History.
 struct LibraryToolbar: ToolbarContent {
     let model: LibraryModel
 
     var body: some ToolbarContent {
+        ToolbarSearchItem()
         ToolbarItemGroup(placement: .primaryAction) {
             ListDisplayModeButton()
             switch model.segment {
