@@ -1,3 +1,4 @@
+import EhCore
 import EhFeatures
 import EhModels
 import SwiftUI
@@ -6,6 +7,8 @@ import SwiftUI
 struct GalleryInfosScreen: View {
     @State private var model: GalleryInfosModel
     @State private var hud: HUDConfiguration?
+
+    @Environment(SettingsStore.self) private var settings
 
     init(gallery: Gallery, detail: GalleryDetail) {
         _model = State(initialValue: GalleryInfosModel(gallery: gallery, detail: detail))
@@ -21,11 +24,19 @@ struct GalleryInfosScreen: View {
                 Button {
                     if let value = row.value { model.copy(value) }
                 } label: {
-                    Text(row.value ?? L10n.Localizable.GalleryInfosView.Value.none)
-                        .font(.caption)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.trailing)
-                        .foregroundStyle(.tint)
+                    if let category = row.category, let value = row.value {
+                        // The category mark, in the values' tint like the rest of the column.
+                        CategoryLabel(
+                            value, color: category.color(for: settings.galleryHost), font: .caption,
+                            foreground: settings.accentColor.appTint
+                        )
+                    } else {
+                        Text(row.value ?? L10n.Localizable.GalleryInfosView.Value.none)
+                            .font(.caption)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.trailing)
+                            .foregroundStyle(.tint)
+                    }
                 }
                 .buttonStyle(.plain)
                 .disabled(row.value == nil)
@@ -56,7 +67,7 @@ struct GalleryInfosScreen: View {
             InfoRow(Title.archiveURL, detail.archiveURL?.absoluteString),
             InfoRow(Title.torrentURL, model.torrentURL.absoluteString),
             InfoRow(Title.parentURL, detail.parentURL?.absoluteString),
-            InfoRow(Title.category, detail.category.localizedName),
+            InfoRow(Title.category, detail.category.localizedName, category: detail.category),
             InfoRow(Title.uploader, detail.uploader),
             InfoRow(Title.postedDate, detail.formattedDateString),
             InfoRow(Title.visibility, detail.visibility.localizedName),
@@ -77,11 +88,14 @@ struct GalleryInfosScreen: View {
 private struct InfoRow: Identifiable {
     let title: String
     let value: String?
+    /// Set on the Category row, which shows the category mark.
+    let category: Category?
 
     var id: String { title }
 
-    init(_ title: String, _ value: String?) {
+    init(_ title: String, _ value: String?, category: Category? = nil) {
         self.title = title
         self.value = value
+        self.category = category
     }
 }
