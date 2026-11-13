@@ -24,9 +24,9 @@ spacing, colours, type) are the intent, not pixel law: use the closest native Sw
   only from covers and category marks. Screen and section titles use the serif system design
   (New York); gallery titles stay in the default design so mixed-script titles hold up.
 - **Liquid Glass** on bars, floating controls and the gallery detail's panels, over a **cover
-  glow**: a static mesh of about five colours extracted from the gallery's cover (reuse
-  `App/Features/Home/CardPalette.swift` and `CardBackground.swift`). In light appearance the glow
-  is a pastel wash (`E-Detail-Light`).
+  glow**: a static mesh of about five colours extracted from the gallery's cover (the palette
+  extraction Home's cards used, now `CoverPaletteExtractor` and `CoverPaletteStore`). In light
+  appearance the glow is a pastel wash (`E-Detail-Light`).
 - **Tabs:** Home, **Library**, Setting, plus Search as today. Library holds Favorites, Watched and
   History behind a three-part control; each keeps its own scroll place; favourite folders are
   chips. Home no longer has the Watched / History / Popular "Other" tiles.
@@ -38,7 +38,9 @@ spacing, colours, type) are the intent, not pixel law: use the closest native Sw
 - **Category:** a colour dot plus the name in normal text, everywhere, replacing white text on a
   coloured pill.
 - **Gallery detail:** direction B's layout (cover as hero with Read set into it, previews moved up,
-  one tag flow, comments after), on glass panels over the cover glow.
+  one tag flow, comments after), on glass panels over the cover glow. No tab bar, as drawn, on the
+  detail page and on the screens pushed from it (comments, previews, gallery infos), so it does
+  not come and go between them (decided 2026-11-13); `RouteDestination` hides it per route.
 - **Reader:** reading behaves exactly as before: vertical continuous scroll by default and every
   existing reading mode and setting unchanged. **No glow in the reader.** Only the controls change:
   close, a title capsule ("Page 12 of 64 · 52 left") and More at the top; one glass panel at the
@@ -83,8 +85,7 @@ titles, category dot, glass helpers) without new layouts.
 ## New strings
 
 Every new key goes into all `App/Resources/*.lproj/Localizable.strings` and `Strings.swift`.
-Known so far: "Library" (tab and title), "Page %d of %d · %d left", "Live Text" (visible label),
-"Filters, %d active" (accessibility).
+The keys the overhaul added are listed under "Localized keys to review" at the end.
 
 ## Building blocks
 
@@ -123,7 +124,8 @@ RoundedRectangle(cornerRadius: 10).strokeBorder(.coverEdge)
 
 Serif (New York) bold on iOS 26, the default design on iOS 18. Gallery titles never use these.
 
-- `.font(.screenTitle)`: a large title drawn in the content (34 pt), e.g. Home's or Search's header.
+- `.font(.screenTitle)`: a large title drawn in the content (34 pt). Unused so far: Home and
+  Search kept the navigation bar's large title, which is the same serif 34 pt on iOS 26.
 - `.font(.sectionTitle)`: a section title (20 pt): "Previews", "Comments", "Quick search".
 - `.font(.heading(.title2))`: any other size, e.g. Home's 22 pt "Frontpage".
 - Navigation bar titles (large and inline) are serif automatically (`NavigationBarTitles`,
@@ -136,7 +138,7 @@ while the accent setting is the default (any system blue), otherwise the user's 
 always the setting.
 
 - Anything that re-applies the tint (a sheet, a cover) uses `settings.accentColor.appTint`, never
-  `settings.accentColor.color`. `ReaderScreen` still does the latter for its settings sheet.
+  `settings.accentColor.color`.
 - Text or symbols on a tint-coloured fill use `settings.accentColor.appTintForeground` (ground on
   bone or ink, white on an accent colour). `glassProminentButtonStyle()` already does.
 
@@ -151,8 +153,7 @@ ScrollView { … }.screenGround()
 ```
 
 It hides a list's own background and draws the ground under the bars; on iOS 18 it does
-nothing. Doing it once for every pushed screen belongs in `RoutedStack` / `RouteDestination`
-(owned by the navigation work, not done here).
+nothing. Each screen applies it itself; `RoutedStack` and `RouteDestination` do not.
 
 ### Glass (`App/DesignSystem/Availability/Glass.swift`)
 
@@ -191,11 +192,17 @@ Button("Read") { … }.glassProminentButtonStyle()
   `@Environment(CoverPaletteStore.self) private var palettes`; `palettes.palette(for: gallery.id)`
   observes only that gallery; `await palettes.load(gallery)` from a `.task`. Previews inject
   `.environment(CoverPaletteStore())`. The extraction itself is `CoverPaletteExtractor` in `EhCore`.
-- `CardBackground(palette:isAnimated:)`: today's drifting card backdrop on Home (legacy
-  `ColorfulView`), moved here unchanged. E-Home's pager glow "drifts slowly only while the pager
-  is on screen and still"; `CoverGlow` is static, so the Home rework either keeps it still or
-  reuses `CardBackground`'s drift.
-- The detail page already shows `CoverGlow(.page)` behind today's layout (`DetailBackdrop`).
+  - One palette per gallery for the session (a gallery keeps its cover); the store keeps the
+    400 most recent and drops the oldest beyond that.
+  - Each gallery's palette is its own observable entry, so a palette arriving redraws only the
+    views showing that gallery. `CoverGlow` reads it this way; read it the same way elsewhere,
+    never by iterating the store.
+  - `load` reuses the cover Kingfisher already downloaded, decodes a small thumbnail and analyses
+    it off the main actor. A second call while one runs returns at once; a load cancelled with
+    its view's `.task`, or one that failed, runs again on the next call.
+  - `load(galleryID:coverURL:)` takes a cover URL the gallery lacks, e.g. the detail's.
+- Both are static: Home's pager glow does not drift (the mockup's drift was dropped for
+  scrolling cost), and the detail page shows `CoverGlow(.page)` through `DetailBackdrop`.
 
 ### Category mark (`App/DesignSystem/Controls/CategoryLabel.swift`)
 
@@ -207,3 +214,76 @@ draws the dot and the name in `textSecondary` (`font:` defaults to `.footnote`, 
 ### Metrics (`App/DesignSystem/Tokens/Tokens.swift`)
 
 `Tokens.Radius.panel` (24) for glass panels; the existing spacing, radius and image tokens are unchanged.
+
+### Rating colour (`App/DesignSystem/Tokens/RatingColor.swift`)
+
+`.foregroundStyle(.rating)` for rating stars that show a rating: the text colour on iOS 26 (colour
+comes only from covers and category marks), v3's yellow on iOS 18. The stars that give a rating
+(the detail page's `RatingControl`) stay yellow.
+
+### Bars, search fields and titles (`App/DesignSystem/Availability/`)
+
+Each picks its iOS 26 API or the iOS 18 stand-in in one place, like `Glass.swift`.
+
+| Helper | iOS 26 | iOS 18 |
+|---|---|---|
+| `floatingBar(edge:spacing:background:)` (`SafeAreaBar.swift`) | `safeAreaBar`: content scrolling under the bar fades under the scroll edge effect | `safeAreaInset` with `background` behind the bar: `.none` (the bar draws its own surface), `.material`, or `.materialUnderNavigationBar` (the material runs up behind the navigation bar, whose own background is hidden, so title and bar read as one) |
+| `SegmentedControl(_:options:selection:optionTitle:onSelect:)` (`SegmentedControl.swift`) | E-Library's control: a `.bar` glass capsule with a sliding `selectedFill` segment | the native segmented picker |
+| `toolbarSearchable(text:prompt:)` plus `ToolbarSearchItem()` in the toolbar (`ToolbarSearch.swift`) | a search button among the toolbar's items that expands into the field (`searchToolbarBehavior(.minimize)`) | the field in the navigation bar drawer |
+| `tagSearchable(…, inToolbar: true)` (`Features/Search/Components/TagSearchField.swift`) | the same, for the server search field with tag suggestions (search results outside the Search tab) | the same as `toolbarSearchable` |
+| `navigationTitle(_:subtitle:)` (`NavigationSubtitle.swift`) | the title, large, with `navigationSubtitle` under it (Toplists and its period) | one inline title, "Toplists - Yesterday" |
+| `risesUnderNavigationBar(by:)` (`HeroUnderBar.swift`) | raises a hero image into the navigation bar, between its glass buttons (E-Detail's cover); apply it to the first view of the scroll content | nothing: the back button carries the previous screen's title and would run over the hero |
+| `hidesTopScrollEdgeEffect(_:)` (`HeroUnderBar.swift`) | hides the soft edge under the navigation bar while true, so a hero raised under the bar is not blurred at rest | nothing |
+
+```swift
+List { … }
+    .floatingBar(edge: .top, spacing: 0, background: .materialUnderNavigationBar) { segmentControl }
+PagedGalleryList(model: model)
+    .toolbarSearchable(text: $model.titleFilter, prompt: L10n.Localizable.Searchable.Prompt.filter)
+    .toolbar {
+        ToolbarSearchItem()
+        ToolbarItemGroup(placement: .primaryAction) { ListDisplayModeButton(); FiltersButton { … } }
+    }
+```
+
+Every gallery list puts `ListDisplayModeButton()` (`Features/GalleryList`) first among its
+toolbar's actions; it flips the app-wide Detail / Thumbnail setting.
+
+### Presentation helpers (`App/Presentation/`)
+
+- `GalleryDetail.formattedSize`: "183.3 MiB", at most two decimals (the stored `Float` would
+  print as 183.300003). The detail page's figures and Gallery infos use it.
+
+### Pitfalls the screen work ran into
+
+- **Context-menu previews do not inherit the environment.** The `preview:` of
+  `.contextMenu(menuItems:preview:)` is hosted outside the view hierarchy, so an
+  `@Environment(SettingsStore.self)` in it crashes on long-press. Read the stores in the cell and
+  pass them on: `GalleryPeek(…).environment(settings).environment(tagTranslations)`
+  (`GalleryGridItem` in `GalleryCollection.swift`).
+- **`Binding(set:)` with a method reference crashes the compiler.** Swift 6.2.3 crashes while
+  compiling when a `@MainActor` method is passed straight to `Binding(set:)`, as in
+  `Binding(get: { model.x }, set: model.setX)`. Wrap it in a closure: `set: { model.setX($0) }`.
+- **The Search tab owns the search button of its whole stack on iOS 26.** In a `Tab(role: .search)`
+  a pushed screen's `ToolbarSearchItem` opens the Search root's field and drops the screen.
+  `SearchResultsView` therefore keeps the plain field when its stack is `AppRouter.search`.
+- **`onChange(of:initial: true)` runs again when a screen comes back from a pushed one.** A
+  handler that resets state (Home's pager used to jump back to its second page) must check that
+  the value really changed.
+
+## Localized keys to review
+
+Every key the overhaul added (the lproj files against branch `v3`), with its text in each
+language, for a native speaker to check. All eight `.strings` files have every key.
+
+| Key | en | de | ja | ko | zh-Hans | zh-Hant, zh-Hant-HK, zh-Hant-TW |
+|---|---|---|---|---|---|---|
+| `tab_item.title.library` | Library | Bibliothek | ライブラリ | 보관함 | 资料库 | 資料庫 |
+| `search_view.filter_bar.filters_active` (VoiceOver) | Filters, %d active | Filter, %d aktiv | フィルター、%d 件有効 | 필터, %d개 활성 | 筛选，%d 项已启用 | 過濾，%d 項已啟用 |
+| `search_view.filter_bar.minimum_rating` | %d+ | %d+ | %d+ | %d+ | %d+ | %d+ |
+| `reading_view.toolbar_item.button.live_text` | Live Text | Live Text | テキスト認識表示 | 라이브 텍스트 | 实况文本 | 原況文字 (zh-Hant-HK: 實況文字) |
+| `reading_view.title.page_position` | Page %d of %d · %d left | Seite %d von %d · noch %d | %1$d / %2$d ページ · 残り %3$d ページ | %1$d / %2$d페이지 · %3$d페이지 남음 | 第 %d 页，共 %d 页 · 剩余 %d 页 | 第 %d 頁，共 %d 頁 · 剩餘 %d 頁 |
+
+The overhaul also removed ten keys nothing shows any more: `home_view.section.title.other`,
+`enum.home_misc_grid_type.title.watched` and `.history` (Home's old tiles), and the seven
+`detail_view.description_section.*` keys (the detail page's old figures row).
