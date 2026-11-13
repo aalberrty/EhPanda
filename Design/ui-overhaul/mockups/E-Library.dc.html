@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>E · Library</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+h1,h2,p{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; background: #100E0C; color: #F4EFE7">
+
+  <!-- Scrolling content -->
+  <div style="position: absolute; left: 0; top: 54px; width: 390px; display: flex; flex-direction: column">
+
+    <!-- Title, and the tools of the list on show: Favorites searches its folders on the server and has a sort order (Watched shows Filters here, History shows Clear) -->
+    <header style="height: 48px; padding: 0 16px 0 20px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between">
+      <h1 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.2px">Library</h1>
+      <div style="height: 44px; padding: 0 4px; box-sizing: border-box; border-radius: 22px; display: flex; align-items: center; background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.50); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.22)">
+        <button aria-label="Search" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2.1" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20.5 20.5"/></svg>
+        </button>
+        <button aria-label="Favorites sort order: By favorited time" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+          <svg aria-hidden="true" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 19.5V4.5M4.2 8.3 8 4.5l3.8 3.8"/><path d="M16 4.5v15M12.2 15.7l3.8 3.8 3.8-3.8"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- The three lists of the tab. Favorites and Watched need login; History is kept on the device. Each list keeps its own place. -->
+    <div role="tablist" aria-label="Library" style="margin: 8px 16px 0; height: 44px; padding: 3px; box-sizing: border-box; border-radius: 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.50); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.16); box-shadow: inset 0 1px 0 rgba(255,255,255,0.18)">
+      <button role="tab" aria-selected="true" style="border-radius: 19px; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 20px; font-weight: 600; color: #100E0C; background: #F4EFE7; box-shadow: 0 2px 8px rgba(0,0,0,0.30)">Favorites</button>
+      <button role="tab" aria-selected="false" style="border-radius: 19px; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 20px; font-weight: 500; color: #D6CEC4">Watched</button>
+      <button role="tab" aria-selected="false" style="border-radius: 19px; display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 20px; font-weight: 500; color: #D6CEC4">History</button>
+    </div>
+
+    <!-- Favourite folders: today's folder menu laid out as chips. "All", then each folder by the user's own name or "Favorites N". -->
+    <div role="radiogroup" aria-label="Favorites folder" style="margin-top: 6px; padding: 0 16px; display: flex; gap: 8px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 88%, transparent 100%); mask-image: linear-gradient(90deg, #000 0%, #000 88%, transparent 100%)">
+      <button role="radio" aria-checked="true" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; color: #100E0C; background: #F4EFE7">All</span>
+      </button>
+      <button role="radio" aria-checked="false" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">Favorites 0</span>
+      </button>
+      <button role="radio" aria-checked="false" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">Favorites 1</span>
+      </button>
+      <button role="radio" aria-checked="false" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">Favorites 2</span>
+      </button>
+      <button role="radio" aria-checked="false" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 14px; border-radius: 16px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">Favorites 3</span>
+      </button>
+    </div>
+
+    <!-- The list: B's large covers, two across, the same cell as the gallery lists -->
+    <div style="margin-top: 10px; padding: 0 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px">
+
+      <a href="E-Detail.dc.html" style="display: flex; flex-direction: column">
+        <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 10px; background: radial-gradient(circle closest-side at 76% 20%, #2F7A78 0 34%, transparent 35%), radial-gradient(circle closest-side, #E07A3F 0 62%, transparent 63%), #F3D9B1"></span>
+        <span style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; line-height: 16px; color: #CFC7BC">
+          <span style="display: flex; align-items: center; gap: 6px">
+            <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #C7BF08; box-shadow: 0 0 0 1px rgba(244,239,231,0.35)"></span>
+            <span>Artist CG</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums">
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7.5" width="12.5" height="13" rx="2"/><path d="M4 16.5V5.5a2 2 0 0 1 2-2h9.5"/></svg>
+            <span aria-label="64 pages">64</span>
+          </span>
+        </span>
+        <span style="margin-top: 3px; font-size: 14px; line-height: 18px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Morning Light Sketchbook</span>
+      </a>
+
+      <a href="#" style="display: flex; flex-direction: column">
+        <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 10px; background: linear-gradient(135deg, #D8E2DC 0 50%, #5B8E7D 50% 100%)"></span>
+        <span style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; line-height: 16px; color: #CFC7BC">
+          <span style="display: flex; align-items: center; gap: 6px">
+            <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #0F9EBC; box-shadow: 0 0 0 1px rgba(244,239,231,0.35)"></span>
+            <span>Non-H</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums">
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7.5" width="12.5" height="13" rx="2"/><path d="M4 16.5V5.5a2 2 0 0 1 2-2h9.5"/></svg>
+            <span aria-label="36 pages">36</span>
+          </span>
+        </span>
+        <span style="margin-top: 3px; font-size: 14px; line-height: 18px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Rainy Season Diary</span>
+      </a>
+
+      <a href="#" style="display: flex; flex-direction: column">
+        <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 10px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #4FD1C5 40% 55%, transparent 55%), #102A43; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+        <span style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; line-height: 16px; color: #CFC7BC">
+          <span style="display: flex; align-items: center; gap: 6px">
+            <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #5BC13A; box-shadow: 0 0 0 1px rgba(244,239,231,0.35)"></span>
+            <span>Western</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums">
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7.5" width="12.5" height="13" rx="2"/><path d="M4 16.5V5.5a2 2 0 0 1 2-2h9.5"/></svg>
+            <span aria-label="18 pages">18</span>
+          </span>
+        </span>
+        <span style="margin-top: 3px; font-size: 14px; line-height: 18px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Northern Lights Studies</span>
+      </a>
+
+      <a href="#" style="display: flex; flex-direction: column">
+        <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 10px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #F2A541 40% 55%, transparent 55%), #3B1F2B; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+        <span style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; line-height: 16px; color: #CFC7BC">
+          <span style="display: flex; align-items: center; gap: 6px">
+            <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #FC4F4F; box-shadow: 0 0 0 1px rgba(244,239,231,0.35)"></span>
+            <span>Doujinshi</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums">
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7.5" width="12.5" height="13" rx="2"/><path d="M4 16.5V5.5a2 2 0 0 1 2-2h9.5"/></svg>
+            <span aria-label="28 pages">28</span>
+          </span>
+        </span>
+        <span style="margin-top: 3px; font-size: 14px; line-height: 18px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Paper Lantern Festival</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Tab bar: Library selected -->
+  <nav aria-label="Tabs" style="position: absolute; left: 21px; right: 21px; bottom: 34px; height: 62px; display: flex; gap: 10px">
+    <div style="flex: 1; min-width: 0; padding: 4px; box-sizing: border-box; border-radius: 31px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+      <a href="E-Home.dc.html" style="border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; line-height: 12px; font-weight: 500; color: #D6CEC4">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D6CEC4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 3.8l8.5 7.4"/><path d="M5.8 9.6V20h4.4v-5.6h3.6V20h4.4V9.6"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="E-Library.dc.html" aria-current="page" style="border-radius: 27px; background: rgba(255,255,255,0.14); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; line-height: 12px; font-weight: 600; color: #F4EFE7">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="4.2" width="4.2" height="15.6" rx="1"/><rect x="9.6" y="4.2" width="4.2" height="15.6" rx="1"/><path d="m15.9 5.6 3.4-.9a.8.8 0 0 1 1 .6l3.2 13.3-4.1 1-3.4-14z" transform="translate(-1.6 0)"/></svg>
+        <span>Library</span>
+      </a>
+      <a href="#" style="border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; line-height: 12px; font-weight: 500; color: #D6CEC4">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D6CEC4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Setting</span>
+      </a>
+    </div>
+    <a href="E-Search.dc.html" aria-label="Search" style="flex: none; width: 62px; height: 62px; border-radius: 31px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2.1" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20.5 20.5"/></svg>
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

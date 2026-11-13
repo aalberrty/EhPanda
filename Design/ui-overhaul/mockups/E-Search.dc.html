@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>E · Search</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+h1,h2,p{margin:0}
+input::placeholder{color:#B3AA9F;opacity:1}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; background: #100E0C; color: #F4EFE7">
+
+  <!-- Scrolling content -->
+  <main style="position: absolute; left: 0; top: 54px; width: 390px; display: flex; flex-direction: column">
+
+    <header style="height: 48px; padding: 0 16px 0 20px; box-sizing: border-box; display: flex; align-items: center">
+      <h1 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.2px">Search</h1>
+    </header>
+
+    <!-- Quick search: the saved words as chips; one tap runs the search -->
+    <section aria-label="Quick search" style="margin-top: 8px; display: flex; flex-direction: column">
+      <div style="height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between">
+        <h2 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 20px; line-height: 25px; font-weight: 700">Quick search</h2>
+        <a href="#" style="height: 44px; padding-left: 16px; display: flex; align-items: center; gap: 2px; font-size: 15px; line-height: 20px; color: #CFC7BC">
+          <span>Show all</span>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div style="padding: 0 16px; display: flex; flex-wrap: wrap; column-gap: 8px">
+        <a href="#" style="height: 44px; display: flex; align-items: center"><span style="height: 32px; padding: 0 11px; border-radius: 9px; display: flex; align-items: center; gap: 4px; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)"><span style="font-weight: 500; color: #B3AA9F">language:</span>english</span></a>
+        <a href="#" style="height: 44px; display: flex; align-items: center"><span style="height: 32px; padding: 0 11px; border-radius: 9px; display: flex; align-items: center; gap: 4px; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)"><span style="font-weight: 500; color: #B3AA9F">artist:</span>tsukimi</span></a>
+        <a href="#" style="height: 44px; display: flex; align-items: center"><span style="height: 32px; padding: 0 11px; border-radius: 9px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">kumo works</span></a>
+        <a href="#" style="height: 44px; display: flex; align-items: center"><span style="height: 32px; padding: 0 11px; border-radius: 9px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">full color</span></a>
+        <a href="#" style="height: 44px; display: flex; align-items: center"><span style="height: 32px; padding: 0 11px; border-radius: 9px; display: flex; align-items: center; font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(244,239,231,0.10)">artbook</span></a>
+      </div>
+    </section>
+
+    <!-- Recently searched: two columns of rows, each removable -->
+    <section aria-label="Recently searched" style="margin-top: 10px; display: flex; flex-direction: column">
+      <div style="height: 44px; padding: 0 16px; display: flex; align-items: center">
+        <h2 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 20px; line-height: 25px; font-weight: 700">Recently searched</h2>
+      </div>
+      <div style="padding: 0 6px 0 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px">
+        <div style="height: 44px; min-width: 0; display: flex; align-items: center">
+          <a href="#" style="flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">tsukimi</span></a>
+          <button aria-label="Remove tsukimi" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+        </div>
+        <div style="height: 44px; min-width: 0; display: flex; align-items: center">
+          <a href="#" style="flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">harbor town</span></a>
+          <button aria-label="Remove harbor town" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+        </div>
+        <div style="height: 44px; min-width: 0; display: flex; align-items: center; border-top: 1px solid rgba(244,239,231,0.08)">
+          <a href="#" style="flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">lantern festival</span></a>
+          <button aria-label="Remove lantern festival" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+        </div>
+        <div style="height: 44px; min-width: 0; display: flex; align-items: center; border-top: 1px solid rgba(244,239,231,0.08)">
+          <a href="#" style="flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">english artbook</span></a>
+          <button aria-label="Remove english artbook" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+        </div>
+        <div style="height: 44px; min-width: 0; display: flex; align-items: center; border-top: 1px solid rgba(244,239,231,0.08)">
+          <a href="#" style="flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">clockwork</span></a>
+          <button aria-label="Remove clockwork" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+        </div>
+        <div style="height: 44px; min-width: 0; display: flex; align-items: center; border-top: 1px solid rgba(244,239,231,0.08)">
+          <a href="#" style="flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">anthology</span></a>
+          <button aria-label="Remove anthology" style="flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recently seen: covers, as everywhere in E -->
+    <section aria-label="Recently seen" style="margin-top: 10px; display: flex; flex-direction: column">
+      <div style="height: 44px; padding: 0 16px; display: flex; align-items: center">
+        <h2 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 20px; line-height: 25px; font-weight: 700">Recently seen</h2>
+      </div>
+      <div style="margin-top: 2px; padding-left: 16px; display: flex; gap: 12px">
+        <a href="E-Detail.dc.html" style="flex: none; width: 96px; display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; width: 96px; height: 132px; border-radius: 8px; background: radial-gradient(circle closest-side at 76% 20%, #2F7A78 0 34%, transparent 35%), radial-gradient(circle closest-side, #E07A3F 0 62%, transparent 63%), #F3D9B1"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Morning Light Sketchbook</span>
+        </a>
+        <a href="#" style="flex: none; width: 96px; display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; width: 96px; height: 132px; border-radius: 8px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #F2A541 40% 55%, transparent 55%), #3B1F2B; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Paper Lantern Festival</span>
+        </a>
+        <a href="#" style="flex: none; width: 96px; display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; width: 96px; height: 132px; border-radius: 8px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #4FD1C5 40% 55%, transparent 55%), #102A43; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Northern Lights Studies</span>
+        </a>
+        <a href="#" style="flex: none; width: 96px; display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; width: 96px; height: 132px; border-radius: 8px; background: linear-gradient(135deg, #1B1B1E 0 50%, #E9C46A 50% 100%); box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Midnight Train Anthology</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Scroll edge under the floating bars -->
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 170px; background: linear-gradient(180deg, rgba(16,14,12,0) 0%, rgba(16,14,12,0.86) 34%, #100E0C 100%)"></div>
+
+  <!-- The Search filter as chips, set before the query is sent: Filters opens the full sheet, the chips toggle in place -->
+  <div role="toolbar" aria-label="Search filters" style="position: absolute; left: 21px; right: 21px; bottom: 96px; height: 52px; padding: 0 4px; box-sizing: border-box; border-radius: 26px; display: flex; align-items: center; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+    <button aria-label="Filters, 2 active" style="flex: none; height: 44px; padding: 0 10px; border-radius: 22px; display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.10)">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2.2" stroke-linecap="round"><path d="M3.5 6.5h17M6.5 12h11M9.5 17.5h5"/></svg>
+      <span style="min-width: 18px; height: 18px; border-radius: 9px; background: #F4EFE7; color: #100E0C; font-size: 11px; line-height: 18px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums">2</span>
+    </button>
+    <div style="flex: 1; min-width: 0; margin-left: 6px; display: flex; align-items: center; gap: 6px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 88%, transparent 100%); mask-image: linear-gradient(90deg, #000 0%, #000 88%, transparent 100%)">
+      <button aria-label="Minimum rating, 4 stars" aria-pressed="true" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 10px; border-radius: 16px; display: flex; align-items: center; gap: 4px; font-size: 13px; line-height: 18px; font-weight: 700; color: #100E0C; background: #F4EFE7"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="#100E0C"/></svg>4+<svg aria-hidden="true" width="9" height="6" viewBox="0 0 10 7" fill="none" stroke="#100E0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.2 1.5 5 5.3l3.8-3.8"/></svg></span>
+      </button>
+      <button aria-pressed="true" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 11px; border-radius: 16px; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(255,255,255,0.14)"><span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 4px; background: #FC4F4F"></span>Doujinshi</span>
+      </button>
+      <button aria-label="Manga, excluded" aria-pressed="false" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 11px; border-radius: 16px; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; color: #B3AA9F; text-decoration: line-through; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18)"><span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 4px; box-sizing: border-box; border: 1.5px solid #E88C1A"></span>Manga</span>
+      </button>
+      <button aria-pressed="true" style="flex: none; height: 44px; display: flex; align-items: center">
+        <span style="height: 32px; padding: 0 11px; border-radius: 16px; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; background: rgba(255,255,255,0.14)"><span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 4px; background: #C7BF08"></span>Artist CG</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search tab selected: the tab bar folds into one button (back to the last tab) and the field sits at the bottom -->
+  <div style="position: absolute; left: 21px; right: 21px; bottom: 34px; height: 52px; display: flex; gap: 10px">
+    <a href="E-Home.dc.html" aria-label="Home" style="flex: none; width: 52px; height: 52px; border-radius: 26px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 3.8l8.5 7.4"/><path d="M5.8 9.6V20h4.4v-5.6h3.6V20h4.4V9.6"/></svg>
+    </a>
+    <div style="flex: 1; min-width: 0; height: 52px; padding: 0 16px; box-sizing: border-box; border-radius: 26px; display: flex; align-items: center; gap: 8px; background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+      <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#B3AA9F" stroke-width="2.4" stroke-linecap="round" style="flex: none"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg>
+      <label for="query" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search</label>
+      <input id="query" type="search" placeholder="Search" style="flex: 1; min-width: 0; height: 44px; font-size: 17px; line-height: 22px; outline: none">
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>E · Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+h1,h2,p{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; background: #100E0C; color: #F4EFE7">
+
+  <!-- The glow, quieter than Detail: the current Popular cover's palette as one mesh behind the pager. It crossfades when the pager turns and drifts slowly only while the pager is on screen and still (today's CardBackground rule). It scrolls away with the pager. -->
+  <div aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 390px; height: 620px; background: radial-gradient(70% 34% at 50% 4%, rgba(243,217,177,0.18) 0%, rgba(243,217,177,0.07) 45%, rgba(243,217,177,0) 100%), radial-gradient(58% 40% at 10% 26%, rgba(224,122,63,0.46) 0%, rgba(224,122,63,0.18) 45%, rgba(224,122,63,0) 100%), radial-gradient(56% 38% at 92% 30%, rgba(47,122,120,0.54) 0%, rgba(47,122,120,0.22) 45%, rgba(47,122,120,0) 100%), radial-gradient(70% 30% at 46% 64%, rgba(168,82,40,0.26) 0%, rgba(168,82,40,0.10) 45%, rgba(168,82,40,0) 100%)"></div>
+
+  <!-- Scrolling content -->
+  <div style="position: absolute; left: 0; top: 54px; width: 390px; display: flex; flex-direction: column">
+
+    <header style="height: 48px; padding: 0 16px 0 20px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between">
+      <h1 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.2px">Home</h1>
+      <button aria-label="Reload" style="width: 44px; height: 44px; border-radius: 22px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.36); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.22)">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 13.2a7 7 0 1 0 1.9-6.1L4.6 9.6"/><path d="M4.4 4.9v4.9h4.9"/></svg>
+      </button>
+    </header>
+
+    <!-- Popular: one cover per page, neighbours peeking in at both edges -->
+    <section aria-label="Popular" style="margin-top: 8px; display: flex; flex-direction: column; align-items: center">
+      <div style="width: 390px; height: 297px; display: flex; align-items: center; justify-content: center; gap: 14px">
+        <a href="#" aria-label="Paper Lantern Festival" style="flex: none; width: 184px; height: 253px; border-radius: 12px; opacity: 0.55; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #F2A541 40% 55%, transparent 55%), #3B1F2B"></a>
+        <a href="E-Detail.dc.html" aria-label="Morning Light Sketchbook" style="flex: none; width: 216px; height: 297px; border-radius: 14px; background: radial-gradient(circle closest-side at 76% 20%, #2F7A78 0 34%, transparent 35%), radial-gradient(circle closest-side, #E07A3F 0 62%, transparent 63%), #F3D9B1; box-shadow: 0 22px 44px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.10)"></a>
+        <a href="#" aria-label="Harbor Town Chronicle Vol. 2" style="flex: none; width: 184px; height: 253px; border-radius: 12px; opacity: 0.55; background: repeating-linear-gradient(-45deg, #8FB8DE 0 15px, #1F3A5F 15px 34px)"></a>
+      </div>
+      <div style="margin-top: 6px; padding: 0 24px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center">
+        <!-- The Home shortcuts are gone (Watched and History live in Library), so the Popular list opens from its own label -->
+        <a href="#" style="height: 32px; padding: 0 8px; display: flex; align-items: center; gap: 2px; font-size: 13px; line-height: 16px; font-weight: 600; color: #CFC7BC">
+          <span>Popular</span>
+          <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <span style="font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -0.2px">Morning Light Sketchbook</span>
+        <span style="margin-top: 2px; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: #CFC7BC">
+          <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #C7BF08; box-shadow: 0 0 0 1px rgba(244,239,231,0.35)"></span>
+          <span>Artist CG</span>
+          <span aria-hidden="true">·</span>
+          <span>64 pages</span>
+          <span aria-hidden="true">·</span>
+          <span role="img" aria-label="Average rating, 4.5/5" style="display: flex; align-items: center; gap: 3px">
+            <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="#F4EFE7"/></svg>
+            <span>4.5</span>
+          </span>
+        </span>
+      </div>
+    </section>
+
+    <!-- Frontpage: a wall of covers, title only. No glow or glass in here: plain cells scroll cheaply. -->
+    <section style="margin-top: 14px; display: flex; flex-direction: column">
+      <div style="height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between">
+        <h2 style="font-family: ui-serif, 'New York', 'Source Serif 4', Georgia, serif; font-size: 22px; line-height: 28px; font-weight: 700">Frontpage</h2>
+        <a href="E-List.dc.html" style="height: 44px; padding-left: 16px; display: flex; align-items: center; gap: 2px; font-size: 15px; line-height: 20px; color: #CFC7BC">
+          <span>Show all</span>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CFC7BC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div style="margin-top: 4px; padding: 0 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 12px">
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 8px; background: linear-gradient(#6C63FF 0 2px, transparent 2px) 0 0 / 23px 23px, linear-gradient(90deg, #6C63FF 0 2px, transparent 2px) 0 0 / 23px 23px, #0E1A2B; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Cosmic Drift Concept Art</span>
+        </a>
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 8px; background: linear-gradient(135deg, #D8E2DC 0 50%, #5B8E7D 50% 100%)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Rainy Season Diary</span>
+        </a>
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 8px; background: radial-gradient(circle closest-side, #8C5E3C 0 62%, transparent 63%), #EDE6DB"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Clockwork Garden Artbook</span>
+        </a>
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 8px; background: repeating-linear-gradient(-45deg, #FF6B6B 0 9px, #FFE66D 9px 20px)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Summer Arcade Collection</span>
+        </a>
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 8px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #4FD1C5 40% 55%, transparent 55%), #102A43; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Northern Lights Studies</span>
+        </a>
+        <a href="#" style="display: flex; flex-direction: column; gap: 6px">
+          <span aria-hidden="true" style="display: block; aspect-ratio: 8 / 11; border-radius: 8px; background: linear-gradient(#C084FC 0 2px, transparent 2px) 0 0 / 23px 23px, linear-gradient(90deg, #C084FC 0 2px, transparent 2px) 0 0 / 23px 23px, #2D1B3D; box-shadow: inset 0 0 0 1px rgba(244,239,231,0.10)"></span>
+          <span style="font-size: 12px; line-height: 15px; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">Velvet Hour Cosplay Set</span>
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tab bar: Home, Library, Setting on one glass capsule; Search split off as on iOS 26 -->
+  <nav aria-label="Tabs" style="position: absolute; left: 21px; right: 21px; bottom: 34px; height: 62px; display: flex; gap: 10px">
+    <div style="flex: 1; min-width: 0; padding: 4px; box-sizing: border-box; border-radius: 31px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+      <a href="E-Home.dc.html" aria-current="page" style="border-radius: 27px; background: rgba(255,255,255,0.14); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; line-height: 12px; font-weight: 600; color: #F4EFE7">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.2 12 3.8l8.5 7.4"/><path d="M5.8 9.6V20h4.4v-5.6h3.6V20h4.4V9.6"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="E-Library.dc.html" style="border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; line-height: 12px; font-weight: 500; color: #D6CEC4">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D6CEC4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="4.2" width="4.2" height="15.6" rx="1"/><rect x="9.6" y="4.2" width="4.2" height="15.6" rx="1"/><path d="m15.9 5.6 3.4-.9a.8.8 0 0 1 1 .6l3.2 13.3-4.1 1-3.4-14z" transform="translate(-1.6 0)"/></svg>
+        <span>Library</span>
+      </a>
+      <a href="#" style="border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; line-height: 12px; font-weight: 500; color: #D6CEC4">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D6CEC4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Setting</span>
+      </a>
+    </div>
+    <a href="E-Search.dc.html" aria-label="Search" style="flex: none; width: 62px; height: 62px; border-radius: 31px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.72); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.20)">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2.1" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20.5 20.5"/></svg>
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

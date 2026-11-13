@@ -15,6 +15,11 @@ in this branch; when the old behaviour matters, read them from `main`
 Scope is **feature parity with the old app first**. Do not add features it does not have.
 When behaviour is unclear, read the matching old code on `main` and keep its behaviour.
 
+**UI overhaul (branch `ui-overhaul`).** The owner approved a redesign of the layout and look.
+`Design/ui-overhaul/README.md` and its mockups are the reference for every screen; they change how
+features are arranged and drawn, not which features exist. Where the README and an older rule in
+this file disagree about layout or look, the README wins.
+
 ## Layout
 
 ```

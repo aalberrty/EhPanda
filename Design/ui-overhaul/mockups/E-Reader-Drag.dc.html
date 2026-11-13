@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>E · Reader, dragging the slider</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+input.pg{-webkit-appearance:none;appearance:none;background:transparent;position:absolute;left:0;top:0;width:100%;height:44px;margin:0;cursor:pointer}
+input.pg::-webkit-slider-runnable-track{height:6px;background:transparent}
+input.pg::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:34px;height:22px;margin-top:-8px;border-radius:11px;background:rgba(244,239,231,0.88);transform:scale(1.28);box-shadow:0 0 0 1px rgba(255,255,255,0.55),0 6px 16px rgba(0,0,0,0.5)}
+input.pg::-moz-range-track{height:6px;background:transparent}
+input.pg::-moz-range-thumb{width:34px;height:22px;border:0;border-radius:11px;background:rgba(244,239,231,0.88);transform:scale(1.28);box-shadow:0 0 0 1px rgba(255,255,255,0.55),0 6px 16px rgba(0,0,0,0.5)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; background: #0B0A09; color: #F4EFE7">
+
+  <!-- Vertical scroll as today, no glow: the end of page 11, page 12 and the start of page 13, one under the other. The strip stays put while the thumb moves and scrolls to page 18 when it is let go. -->
+  <div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; overflow: hidden">
+    <div role="img" aria-label="Page 11" style="position: absolute; left: 0; top: -377px; width: 390px; height: 557px; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.14); background: radial-gradient(circle at 50% 100%, transparent 0 40%, #2F7A78 40% 55%, transparent 55%), #F3D9B1"></div>
+    <div role="img" aria-label="Page 12" style="position: absolute; left: 0; top: 180px; width: 390px; height: 557px; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.14); background: radial-gradient(circle at 58% 56%, #E07A3F 0 30%, transparent 30.5%), #F3D9B1"></div>
+    <div role="img" aria-label="Page 13" style="position: absolute; left: 0; top: 737px; width: 390px; height: 557px; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.14); background: radial-gradient(circle closest-side, #E07A3F 0 58%, transparent 59%), #F3D9B1"></div>
+  </div>
+
+  <!-- Controls, top: the page line follows the thumb -->
+  <div style="position: absolute; left: 16px; right: 16px; top: 54px; height: 44px; display: flex; align-items: center; gap: 10px">
+    <a href="E-Detail.dc.html" aria-label="Close" style="flex: none; width: 44px; height: 44px; border-radius: 22px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.55); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.22)">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="2.6" stroke-linecap="round"><path d="M5.5 5.5l13 13M18.5 5.5l-13 13"/></svg>
+    </a>
+    <div style="flex: 1; min-width: 0; height: 44px; padding: 0 18px; box-sizing: border-box; border-radius: 22px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.55); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.22)">
+      <span style="font-size: 14px; line-height: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Morning Light Sketchbook</span>
+      <span style="font-size: 12px; line-height: 15px; color: #D6CEC4; font-variant-numeric: tabular-nums; white-space: nowrap">Page 18 of 64 · 46 left</span>
+    </div>
+    <button aria-label="More" style="flex: none; width: 44px; height: 44px; border-radius: 22px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.55); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.22)">
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="#F4EFE7"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+    </button>
+  </div>
+
+  <!-- Controls, bottom: while the thumb is held the panel grows upward to show the pages around it (three on iPhone, as today); the slider does not move under the finger. The strip goes away on release. -->
+  <div style="position: absolute; left: 8px; right: 8px; bottom: 34px; padding: 8px 14px 8px; box-sizing: border-box; border-radius: 30px; display: flex; flex-direction: column; background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%), rgba(22,18,15,0.70); backdrop-filter: blur(26px) saturate(180%); -webkit-backdrop-filter: blur(26px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 12px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.22)">
+
+    <div aria-hidden="true" style="align-self: center; width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.34)"></div>
+
+    <div aria-hidden="true" style="margin-top: 10px; display: flex; justify-content: center; gap: 12px">
+      <div style="width: 50px; display: flex; flex-direction: column; align-items: center; gap: 5px">
+        <span style="display: block; width: 50px; height: 69px; border-radius: 6px; background: linear-gradient(135deg, #F3D9B1 0 50%, #2F7A78 50% 100%); box-shadow: 0 0 0 1px rgba(255,255,255,0.10)"></span>
+        <span style="font-size: 11.5px; line-height: 14px; font-weight: 500; color: #E4DDD3; font-variant-numeric: tabular-nums">16</span>
+      </div>
+      <div style="width: 50px; display: flex; flex-direction: column; align-items: center; gap: 5px">
+        <span style="display: block; width: 50px; height: 69px; border-radius: 6px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #2F7A78 40% 55%, transparent 55%), #F3D9B1; box-shadow: 0 0 0 1px rgba(255,255,255,0.10)"></span>
+        <span style="font-size: 11.5px; line-height: 14px; font-weight: 500; color: #E4DDD3; font-variant-numeric: tabular-nums">17</span>
+      </div>
+      <div style="width: 50px; display: flex; flex-direction: column; align-items: center; gap: 5px">
+        <span style="display: block; width: 50px; height: 69px; border-radius: 6px; background: radial-gradient(circle at 58% 56%, #E07A3F 0 30%, transparent 30.5%), #F3D9B1; box-shadow: 0 0 0 2px #0B0A09, 0 0 0 4.5px #F4EFE7, 0 6px 16px rgba(0,0,0,0.4)"></span>
+        <span style="font-size: 11.5px; line-height: 14px; font-weight: 700; color: #F4EFE7; font-variant-numeric: tabular-nums">18</span>
+      </div>
+      <div style="width: 50px; display: flex; flex-direction: column; align-items: center; gap: 5px">
+        <span style="display: block; width: 50px; height: 69px; border-radius: 6px; background: radial-gradient(circle closest-side, #E07A3F 0 58%, transparent 59%), #F3D9B1; box-shadow: 0 0 0 1px rgba(255,255,255,0.10)"></span>
+        <span style="font-size: 11.5px; line-height: 14px; font-weight: 500; color: #E4DDD3; font-variant-numeric: tabular-nums">19</span>
+      </div>
+      <div style="width: 50px; display: flex; flex-direction: column; align-items: center; gap: 5px">
+        <span style="display: block; width: 50px; height: 69px; border-radius: 6px; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #E07A3F 40% 55%, transparent 55%), #F3D9B1; box-shadow: 0 0 0 1px rgba(255,255,255,0.10)"></span>
+        <span style="font-size: 11.5px; line-height: 14px; font-weight: 500; color: #E4DDD3; font-variant-numeric: tabular-nums">20</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 4px; height: 44px; padding: 0 4px; display: flex; align-items: center; gap: 10px; font-size: 12px; line-height: 16px; font-weight: 500; color: #D6CEC4; font-variant-numeric: tabular-nums">
+      <span aria-hidden="true" style="flex: none; width: 20px; text-align: center">1</span>
+      <div style="position: relative; flex: 1; min-width: 0; height: 44px">
+        <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 19px; height: 6px; border-radius: 3px; background: rgba(244,239,231,0.26)"></span>
+        <span aria-hidden="true" style="position: absolute; left: 0; top: 19px; height: 6px; border-radius: 3px; background: #F4EFE7; width: calc(17px + (100% - 34px) * 0.2698)"></span>
+        <label for="page" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Page</label>
+        <input id="page" class="pg" type="range" min="1" max="64" value="18">
+      </div>
+      <span aria-hidden="true" style="flex: none; width: 20px; text-align: center">64</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+      <button aria-pressed="false" style="height: 52px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.3"/><path d="M8 10V8.6a.6.6 0 0 1 .6-.6H10M14 8h1.4a.6.6 0 0 1 .6.6V10M16 14v1.4a.6.6 0 0 1-.6.6H14M10 16H8.6a.6.6 0 0 1-.6-.6V14"/></svg>
+        <span style="font-size: 11px; line-height: 13px; font-weight: 500; color: #D6CEC4">Live Text</span>
+      </button>
+      <button style="height: 52px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 2.8h4M12 2.8V6"/></svg>
+        <span style="font-size: 11px; line-height: 13px; font-weight: 500; color: #D6CEC4">Auto-Play</span>
+      </button>
+      <button style="height: 52px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4EFE7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M18.5 7H20M4 12h2.5M11.5 12H20M4 17h8M17.5 17H20"/><circle cx="15.7" cy="7" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="14.7" cy="17" r="2.2"/></svg>
+        <span style="font-size: 11px; line-height: 13px; font-weight: 500; color: #D6CEC4">Reading setting</span>
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

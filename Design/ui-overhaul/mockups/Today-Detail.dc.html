@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today · Gallery detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif; background: #FFFFFF; color: #000000">
+
+  <!-- DetailBackdrop: the cover blurred, 420 pt tall, 40% opacity in light mode, fading out downwards -->
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 420px; overflow: hidden; opacity: 0.4; -webkit-mask-image: linear-gradient(#000, rgba(0,0,0,0.6), transparent); mask-image: linear-gradient(#000, rgba(0,0,0,0.6), transparent)">
+    <div style="position: absolute; inset: -40px; background: radial-gradient(circle at 50% 52%, #E07A3F 0 110px, #F3D9B1 170px); filter: blur(28px)"></div>
+  </div>
+
+  <!-- Scroll content: LazyVStack(spacing: 30), starting under the inline navigation bar -->
+  <div style="position: absolute; left: 0; right: 0; top: 98px; display: flex; flex-direction: column; gap: 30px">
+
+    <!-- Header: 109 x 150 cover with shadow; title, uploader, category, favourite, READ -->
+    <section style="padding: 0 16px; display: flex; gap: 12px; align-items: flex-start">
+      <div style="width: 109px; height: 150px; border-radius: 8px; flex: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2); background: radial-gradient(circle closest-side, #E07A3F 0 62%, transparent 63%), #F3D9B1"></div>
+      <div style="flex: 1; min-width: 0; min-height: 150px; display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-size: 20px; line-height: 25px; font-weight: 700">Morning Light Sketchbook</h1>
+        <a href="#" style="font-size: 16px; line-height: 21px; color: rgba(60,60,67,0.6)">kumo_archive</a>
+        <div style="flex: 1; min-height: 8px"></div>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="font-size: 15px; line-height: 20px; font-weight: 700; color: #FFFFFF; background: #C7BF08; border-radius: 12px; padding: 2px 8px">Artist CG</span>
+          <span style="flex: 1"></span>
+          <button aria-label="Favorites" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #007AFF; background: rgba(255,255,255,0.55); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 3px 10px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.05)">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 20s-7.8-4.7-7.8-10.3A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.8 2.3C19.8 15.3 12 20 12 20z"/></svg>
+          </button>
+          <button style="height: 40px; padding: 0 16px; border-radius: 20px; background: #007AFF; color: #FFFFFF; font-size: 17px; line-height: 22px; font-weight: 600; text-transform: uppercase; box-shadow: 0 3px 10px rgba(0,122,255,0.25), inset 0 0.5px 0 rgba(255,255,255,0.5)">Read</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Description strip: items a fifth of the width (at least 80 pt), dividers between -->
+    <section aria-label="Description" style="height: 63px; overflow: hidden; padding-left: 8px; display: flex">
+      <div style="width: 80px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; white-space: nowrap">
+        <span style="font-size: 12px; line-height: 16px; text-transform: uppercase; color: rgba(60,60,67,0.6)">Favorited</span>
+        <span style="font-size: 20px; line-height: 25px; font-weight: 500">1,284</span>
+        <span style="font-size: 12px; line-height: 16px; color: rgba(60,60,67,0.6)">Times</span>
+      </div>
+      <span style="width: 0.5px; flex: none; background: rgba(60,60,67,0.29)"></span>
+      <div style="width: 80px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; white-space: nowrap">
+        <span style="font-size: 12px; line-height: 16px; text-transform: uppercase; color: rgba(60,60,67,0.6)">Language</span>
+        <span style="font-size: 20px; line-height: 25px; font-weight: 500">EN</span>
+        <span style="font-size: 12px; line-height: 16px; color: rgba(60,60,67,0.6)">English</span>
+      </div>
+      <span style="width: 0.5px; flex: none; background: rgba(60,60,67,0.29)"></span>
+      <div style="width: 80px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; white-space: nowrap">
+        <span style="font-size: 10.5px; line-height: 16px; text-transform: uppercase; color: rgba(60,60,67,0.6)">312 Ratings</span>
+        <span style="font-size: 20px; line-height: 25px; font-weight: 500">4.50</span>
+        <span role="img" aria-label="Average rating, 4.5/5" style="display: flex; color: #FFCC00; height: 16px; align-items: center">
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="currentColor"/></svg>
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="currentColor"/></svg>
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="currentColor"/></svg>
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="currentColor"/></svg>
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17.1 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><polygon points="12,2.5 9.1,8.6 2.5,9.3 7.4,13.8 6,20.4 12,17.1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <span style="width: 0.5px; flex: none; background: rgba(60,60,67,0.29)"></span>
+      <div style="width: 80px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; white-space: nowrap">
+        <span style="font-size: 10.5px; line-height: 16px; text-transform: uppercase; color: rgba(60,60,67,0.6)">Page Count</span>
+        <span style="font-size: 20px; line-height: 25px; font-weight: 500">64</span>
+        <span style="font-size: 12px; line-height: 16px; color: rgba(60,60,67,0.6)">Pages</span>
+      </div>
+      <span style="width: 0.5px; flex: none; background: rgba(60,60,67,0.29)"></span>
+      <div style="width: 80px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; white-space: nowrap">
+        <span style="font-size: 12px; line-height: 16px; text-transform: uppercase; color: rgba(60,60,67,0.6)">File Size</span>
+        <span style="font-size: 20px; line-height: 25px; font-weight: 500">212.4</span>
+        <span style="font-size: 12px; line-height: 16px; color: rgba(60,60,67,0.6)">MB</span>
+      </div>
+    </section>
+
+    <!-- Actions: two glass buttons, large control size, callout bold -->
+    <section style="padding: 0 16px; display: flex; gap: 12px">
+      <button style="flex: 1; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #007AFF; font-size: 16px; line-height: 21px; font-weight: 700; background: rgba(255,255,255,0.55); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 3px 10px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.05)">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V13"/><path d="M17.5 3.5l3 3L12 15l-4 1 1-4z"/></svg>
+        Give a Rating
+      </button>
+      <button style="flex: 1; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #007AFF; font-size: 16px; line-height: 21px; font-weight: 700; background: rgba(255,255,255,0.55); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 3px 10px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.05)">
+        <svg aria-hidden="true" width="19" height="17" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 3.5h13a1.5 1.5 0 0 1 1.5 1.5v9"/><rect x="2.5" y="6.5" width="15" height="11" rx="1.5"/><path d="M2.8 15.5 7 11.5l3 3 2-2 5 4.5"/></svg>
+        Similar Gallery
+      </button>
+    </section>
+
+    <!-- Tags: one row per namespace; grey namespace chip, then tertiary-fill chips -->
+    <section aria-label="Tags" style="padding: 0 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: flex-start; gap: 8px">
+        <span style="font-size: 15px; line-height: 20px; font-weight: 700; color: #FFFFFF; background: #8E8E93; border-radius: 8px; padding: 5px 14px">Language</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px">
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 700; background: rgba(118,118,128,0.12); border-radius: 8px; padding: 5px 14px">english</a>
+        </div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 8px">
+        <span style="font-size: 15px; line-height: 20px; font-weight: 700; color: #FFFFFF; background: #8E8E93; border-radius: 8px; padding: 5px 14px">Group</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px">
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 700; background: rgba(118,118,128,0.12); border-radius: 8px; padding: 5px 14px">kumo works</a>
+        </div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 8px">
+        <span style="font-size: 15px; line-height: 20px; font-weight: 700; color: #FFFFFF; background: #8E8E93; border-radius: 8px; padding: 5px 14px">Artist</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px">
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 700; background: rgba(118,118,128,0.12); border-radius: 8px; padding: 5px 14px">tsukimi</a>
+        </div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 8px">
+        <span style="font-size: 15px; line-height: 20px; font-weight: 700; color: #FFFFFF; background: #8E8E93; border-radius: 8px; padding: 5px 14px">Other</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px">
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 700; background: rgba(118,118,128,0.12); border-radius: 8px; padding: 5px 14px">full color</a>
+          <a href="#" style="font-size: 15px; line-height: 20px; font-weight: 700; background: rgba(118,118,128,0.12); border-radius: 8px; padding: 5px 14px">artbook</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Previews: SubSection with "Show all" (more than 20 pages), 110 x 151 thumbnails, 8 pt apart -->
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 16px">
+        <h2 style="margin: 0; font-size: 20px; line-height: 25px; font-weight: 700">Previews</h2>
+        <a href="#" style="font-size: 15px; line-height: 20px; color: #007AFF">Show all</a>
+      </div>
+      <div style="height: 151px; overflow: hidden; padding-left: 16px; display: flex; gap: 8px">
+        <a href="#" aria-label="1" style="width: 110px; height: 151px; border-radius: 8px; flex: none; background: radial-gradient(circle closest-side, #E07A3F 0 62%, transparent 63%), #F3D9B1"></a>
+        <a href="#" aria-label="2" style="width: 110px; height: 151px; border-radius: 8px; flex: none; background: radial-gradient(circle at 50% 100%, transparent 0 40%, #E07A3F 40% 55%, transparent 55%), #F3D9B1"></a>
+        <a href="#" aria-label="3" style="width: 110px; height: 151px; border-radius: 8px; flex: none; background: repeating-linear-gradient(-45deg, #E07A3F 0 7px, #F3D9B1 7px 16px)"></a>
+        <a href="#" aria-label="4" style="width: 110px; height: 151px; border-radius: 8px; flex: none; background: linear-gradient(135deg, #F3D9B1 0 50%, #E07A3F 50% 100%)"></a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Inline navigation bar with no title: back, and the "more" menu (Archives, Torrents, Share) -->
+  <a href="#" aria-label="Back" style="position: absolute; left: 16px; top: 54px; width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 4px 14px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.05)">
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5 7.5 12l7.5 7.5"/></svg>
+  </a>
+  <button aria-label="More" style="position: absolute; right: 16px; top: 54px; width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 4px 14px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.05)">
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="#000"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>
+  </button>
+
+  <!-- Tab bar (Home tab) -->
+  <nav aria-label="Tabs" style="position: absolute; left: 21px; right: 21px; bottom: 21px; height: 62px; display: flex; gap: 10px">
+    <div style="flex: 1; display: flex; padding: 4px; border-radius: 31px; background: rgba(255,255,255,0.62); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 6px 20px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.05)">
+      <a href="#" aria-current="page" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 27px; background: rgba(0,0,0,0.07); color: #007AFF; font-size: 10px; line-height: 12px; font-weight: 600">
+        <svg aria-hidden="true" width="26" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M2.8 11.2 12 3.6l9.2 7.6" fill="none"/><path d="M5.5 9.6V20h4.8v-5.6h3.4V20h4.8V9.6L12 4.4z" stroke="none"/></svg>
+        Home
+      </a>
+      <a href="#" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #000; font-size: 10px; line-height: 12px; font-weight: 600">
+        <svg aria-hidden="true" width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 20s-7.8-4.7-7.8-10.3A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.8 2.3C19.8 15.3 12 20 12 20z"/></svg>
+        Favorites
+      </a>
+      <a href="#" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #000; font-size: 10px; line-height: 12px; font-weight: 600">
+        <svg aria-hidden="true" width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="7.6" stroke-width="2.6" stroke-dasharray="2.6 2.4"/><circle cx="12" cy="12" r="6.2" stroke-width="1.5"/><circle cx="12" cy="12" r="2.6" stroke-width="1.5"/></svg>
+        Setting
+      </a>
+    </div>
+    <a href="#" aria-label="Search" style="width: 62px; flex: none; border-radius: 31px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.62); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 0.5px solid rgba(255,255,255,0.9); box-shadow: 0 6px 20px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.05)">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20.5 20.5"/></svg>
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
