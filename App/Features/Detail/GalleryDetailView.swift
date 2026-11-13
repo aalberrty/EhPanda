@@ -108,7 +108,7 @@ private struct DetailContent: View {
             LazyVStack(spacing: DetailMetrics.panelSpacing) {
                 DetailHeroSection(model: model)
                     // The cover rises between the back and More buttons, as drawn.
-                    .padding(.top, -DetailMetrics.heroRise)
+                    .risesUnderNavigationBar(by: DetailMetrics.heroRise)
                 DetailFiguresSection(model: model)
                     .padding(.top, Tokens.Spacing.xSmall)
                     .padding(.horizontal, DetailMetrics.pageMargin)

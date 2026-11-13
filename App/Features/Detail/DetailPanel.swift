@@ -12,8 +12,8 @@ enum DetailMetrics {
     static let panelSpacing: CGFloat = Tokens.Spacing.medium
     /// Inside a panel, before its content.
     static let panelInset: CGFloat = 14
-    /// How far the hero reaches up into the navigation bar: a little less than the bar is
-    /// tall on iOS 18 (44 pt) and on iOS 26, so the cover's top sits beside the bar's buttons.
+    /// How far the cover rises into the navigation bar on iOS 26: a little less than the bar
+    /// is tall, so the cover's top sits beside the bar's buttons.
     static let heroRise: CGFloat = 40
 }
 
