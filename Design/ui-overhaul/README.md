@@ -249,6 +249,13 @@ PagedGalleryList(model: model)
 Every gallery list puts `ListDisplayModeButton()` (`Features/GalleryList`) first among its
 toolbar's actions; it flips the app-wide Detail / Thumbnail setting.
 
+### Section headers
+
+"Show all ›" is `ShowAllLabel()` (`App/DesignSystem/Controls/ShowAllLabel.swift`): the text in
+`textSecondary` and a small semibold `chevron.forward`, as every mockup draws it. `SubSection`,
+Home's section header and the detail panels' header use it; put it in the header's button and
+add the tap target there.
+
 ### Presentation helpers (`App/Presentation/`)
 
 - `GalleryDetail.formattedSize`: "183.3 MiB", at most two decimals (the stored `Float` would
