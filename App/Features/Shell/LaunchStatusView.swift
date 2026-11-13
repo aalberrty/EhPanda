@@ -15,8 +15,9 @@ struct LaunchStatusView: View {
 
     var body: some View {
         ZStack {
-            // Matches the empty launch screen, so the hand-over is invisible.
-            Color(.systemBackground).ignoresSafeArea()
+            // Matches the empty launch screen, so the hand-over is invisible, and turns to the
+            // app's ground once there is something to show.
+            (isShowingStatus ? Color.ground : Color(.systemBackground)).ignoresSafeArea()
             switch model.launchState {
             case .launching:
                 if showsProgress {
@@ -37,6 +38,14 @@ struct LaunchStatusView: View {
             showsProgress = model.launchAttempt > 0
             guard (try? await Task.sleep(for: Self.progressDelay)) != nil else { return }
             showsProgress = true
+        }
+    }
+
+    private var isShowingStatus: Bool {
+        switch model.launchState {
+        case .launching: showsProgress
+        case .failed: true
+        case .ready: false
         }
     }
 

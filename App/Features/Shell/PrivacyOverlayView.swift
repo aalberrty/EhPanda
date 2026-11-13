@@ -11,8 +11,8 @@ struct PrivacyOverlayView: View {
     var body: some View {
         ZStack {
             if let view = snapshot.view {
-                // The background shows at the blurred edges instead of the sharp window below.
-                Color(.systemBackground)
+                // The ground shows at the blurred edges instead of the sharp window below.
+                Color.ground
                 SnapshotView(view: view)
                     .autoBlur(radius: lock.blurRadius)
             } else {
@@ -49,7 +49,7 @@ private struct LockControl: View {
         Button(action: action) {
             Image(systemName: "lock.fill")
                 .font(.system(size: 44, weight: .regular))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.textPrimary)
                 .frame(width: 96, height: 96)
         }
         .glassButtonStyle()
