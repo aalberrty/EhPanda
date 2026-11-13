@@ -80,7 +80,13 @@ private struct FavoritesList: View {
     let model: FavoritesModel
 
     var body: some View {
-        PagedGalleryList(model: model.list)
+        // Each folder is a list of its own, so its view is too: a list swapped into the previous
+        // folder's view opened rows down, under the bars, instead of at its top. The stack keeps
+        // that identity off the chip row, which keeps its own scroll place.
+        ZStack {
+            PagedGalleryList(model: model.list)
+                .id(ObjectIdentifier(model.list))
+        }
             .libraryBar(extendsBehindTopBar: false) {
                 if !model.list.needsLogin {
                     FavoriteFolderChips(model: model)
