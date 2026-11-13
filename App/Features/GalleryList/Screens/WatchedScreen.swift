@@ -15,13 +15,15 @@ struct WatchedScreen: View {
 
     var body: some View {
         PagedGalleryList(model: model.list)
+            .screenGround()
             .tagSearchable(
                 text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search,
                 onSubmit: { model.submitKeyword() }
             )
             .navigationTitle(L10n.Localizable.WatchedView.Title.watched)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    ListDisplayModeButton()
                     ToolbarFeaturesMenu {
                         FiltersButton { sheet = .filters }
                         QuickSearchButton { sheet = .quickSearch }

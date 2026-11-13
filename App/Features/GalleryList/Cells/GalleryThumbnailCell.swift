@@ -2,45 +2,94 @@ import EhCore
 import EhModels
 import SwiftUI
 
-/// A gallery as a grid card: cover, then its category, title, optional tags, language, pages
-/// and rating (legacy `GalleryThumbnailCell`).
+/// A gallery in the cover grid: a large cover, one quiet line with its category and page
+/// count, then the title. Everything else is in the long-press peek and the Detail mode.
 ///
-/// Covers share one 8:11 box so the grid can stay lazy; legacy's waterfall showed each cover at
-/// its own height, which needs every cover measured up front.
+/// Every cover shares one 8:11 box and every title reserves two lines, so the cells of a row
+/// line up and the grid stays lazy.
 struct GalleryThumbnailCell: View {
     let gallery: Gallery
+    /// The width covers are decoded at: the grid's column width.
+    let coverWidth: CGFloat
 
     @Environment(SettingsStore.self) private var settings
 
-    /// The widest a grid column gets; covers are decoded at this width.
-    static let maximumWidth: CGFloat = 260
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            RemoteImage(url: gallery.coverURL, width: Self.maximumWidth, aspectRatio: Tokens.Aspect.cover, cornerRadius: 0)
-            VStack(alignment: .leading, spacing: 5) {
+            ListCover(url: gallery.coverURL, decodeWidth: coverWidth)
+            HStack(spacing: Tokens.Spacing.xSmall) {
                 // Below the cover rather than on it: a dot and plain text cannot be read on
                 // every cover.
-                CategoryLabel(gallery.category.localizedName, color: gallery.color(for: settings.galleryHost))
-                Text(gallery.title)
-                    .font(.callout.bold())
-                    .lineLimit(3, reservesSpace: true)
-                if settings.showsTagsInList {
-                    let tags = gallery.tagContents(maximum: settings.listTagsNumberMaximum)
-                    if !tags.isEmpty {
-                        ListTagCloud(tags: tags)
-                    }
-                }
-                GalleryLanguageAndPages(gallery: gallery)
-                RatingStars(rating: Double(gallery.rating))
-                    .font(.caption)
-                    .foregroundStyle(.yellow)
+                CategoryLabel(
+                    gallery.category.localizedName, color: gallery.color(for: settings.galleryHost), font: .caption
+                )
+                Spacer(minLength: 0)
+                PageCountLabel(count: gallery.pageCount)
             }
-            .padding(Tokens.Spacing.medium)
+            .padding(.top, Tokens.Spacing.small)
+            Text(gallery.title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.textPrimary)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2, reservesSpace: true)
+                .padding(.top, 3)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(.rect(cornerRadius: 15, style: .continuous))
+        .contentShape(.rect)
         .accessibilityElement(children: .combine)
     }
+}
+
+/// A list cover: the 8:11 box decoded at `decodeWidth`, with the faint edge that lifts it off
+/// the ground. The grid and the peek decode at the same width, so they share one cached bitmap.
+struct ListCover: View {
+    let url: URL?
+    let decodeWidth: CGFloat
+
+    /// Larger than the row covers' `Tokens.Radius.image`, as drawn for the two-across covers.
+    static let cornerRadius: CGFloat = 10
+
+    var body: some View {
+        RemoteImage(url: url, width: decodeWidth, aspectRatio: Tokens.Aspect.cover, cornerRadius: Self.cornerRadius)
+            .overlay {
+                RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+                    .strokeBorder(.coverEdge, lineWidth: 1)
+            }
+    }
+}
+
+/// "▣ 64": the page count with a stacked-pages symbol, read as "64 pages".
+struct PageCountLabel: View {
+    let count: Int
+    var font: Font = .caption
+
+    var body: some View {
+        HStack(spacing: Tokens.Spacing.xSmall) {
+            Image(systemName: "square.on.square")
+                .imageScale(.small)
+            Text(count, format: .number)
+                .monospacedDigit()
+        }
+        .font(font)
+        .foregroundStyle(.textSecondary)
+        .lineLimit(1)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L10n.Localizable.Common.Value.pages("\(count)"))
+    }
+}
+
+private struct GalleryThumbnailCellPreview: View {
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 2), spacing: 20) {
+            ForEach(GalleryListPreviewData.galleries) { gallery in
+                GalleryThumbnailCell(gallery: gallery, coverWidth: 180)
+            }
+        }
+        .padding(.horizontal, Tokens.Spacing.large)
+        .background(.ground)
+    }
+}
+
+#Preview {
+    SchemePreview { GalleryThumbnailCellPreview() }
+        .environment(GalleryListPreviewData.settings)
 }

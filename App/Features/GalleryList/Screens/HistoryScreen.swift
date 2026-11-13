@@ -11,6 +11,8 @@ struct HistoryScreen: View {
         HistoryList(model: model)
             .searchable(text: $model.titleFilter, prompt: L10n.Localizable.Searchable.Prompt.filter)
             .navigationTitle(L10n.Localizable.HistoryView.Title.history)
+            .screenGround()
+            .toolbar { ToolbarItem(placement: .primaryAction) { ListDisplayModeButton() } }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     HistoryClearButton(model: model)
