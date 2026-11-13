@@ -88,6 +88,9 @@ public final class ReaderModel {
     public var previewStripLength = 5
     /// How long the first page took to appear after the reader opened.
     public private(set) var timeToFirstPage: Duration?
+    /// The gallery's detail page, for its titles: the opener's, else what is stored. A list's
+    /// gallery carries neither the detail's title nor its Japanese title.
+    private var detail: GalleryDetail?
 
     // MARK: Engine
 
@@ -125,13 +128,17 @@ public final class ReaderModel {
     @ObservationIgnored @Dependency(\.continuousClock) var clock
     @ObservationIgnored @Dependency(\.appLogger) private var logger
 
-    /// - Parameter initialPage: 1-based; `nil` opens at the stored reading progress.
-    public init(gallery: Gallery, initialPage: Int? = nil) {
+    /// - Parameters:
+    ///   - initialPage: 1-based; `nil` opens at the stored reading progress.
+    ///   - detail: The gallery's detail page when the opener has it (the detail screen does);
+    ///     otherwise `start()` reads the stored one.
+    public init(gallery: Gallery, initialPage: Int? = nil, detail: GalleryDetail? = nil) {
         @Dependency(\.ehClient) var client
         @Dependency(\.database) var database
         @Dependency(\.continuousClock) var clock
         @Dependency(\.appLogger) var logger
         self.gallery = gallery
+        self.detail = detail
         pageCount = max(gallery.pageCount, 0)
         requestedPage = initialPage
         let previews = ReaderPreviewLoader(galleryURL: gallery.galleryURL, client: client)
@@ -166,6 +173,16 @@ public final class ReaderModel {
         guard !isClosed, !isReady else { return }
         restore(pages: pages, state: state)
         isReady = true
+        // Only the title needs it, so it is read once the engine can show the first page.
+        if detail == nil, let stored = try? await database.detail(gid: gid), !isClosed {
+            detail = stored
+        }
+    }
+
+    /// The title the detail page shows: the Japanese title when preferred and present, else the
+    /// detail's title; the list's title until a detail is known.
+    public func title(prefersJapanese: Bool) -> String {
+        detail?.title(prefersJapanese: prefersJapanese) ?? gallery.title
     }
 
     /// Stops all work and saves what is left to save. Call it when the reader goes away.

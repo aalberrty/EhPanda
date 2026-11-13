@@ -14,12 +14,8 @@ struct GalleryListDestination: View {
             )
         case .popular:
             FilteredListScreen(source: .popular, title: L10n.Localizable.PopularView.Title.popular)
-        case .watched:
-            WatchedScreen()
         case .toplists:
             ToplistsScreen()
-        case .history:
-            HistoryScreen()
         }
     }
 }

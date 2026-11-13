@@ -87,6 +87,11 @@ extension GalleryDetail {
     public var trimmedTitle: String {
         TitleTrimming.trimmed(title)
     }
+
+    /// The title the app shows: the Japanese title when preferred and the gallery has one.
+    public func title(prefersJapanese: Bool) -> String {
+        prefersJapanese ? jpnTitle ?? title : title
+    }
 }
 
 extension GalleryDetail: DateFormattable {

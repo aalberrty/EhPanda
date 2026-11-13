@@ -10,14 +10,12 @@ nonisolated public enum AppTab: Hashable, Sendable, CaseIterable {
     case settings
 }
 
-/// The gallery lists that can be pushed as their own screen. Watched and History are also
-/// segments of the Library tab; Home still pushes them as screens of their own.
+/// The gallery lists Home pushes as screens of their own. Watched and History are segments of
+/// the Library tab.
 nonisolated public enum GalleryListKind: Hashable, Sendable {
     case frontpage
     case popular
-    case watched
     case toplists
-    case history
 }
 
 /// Screens of the Settings tab.

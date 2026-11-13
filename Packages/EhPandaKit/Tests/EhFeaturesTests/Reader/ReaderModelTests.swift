@@ -150,6 +150,41 @@ import Testing
         #expect(lines.contains { $0.contains("First page shown after") })
         #expect(!lines.contains { $0.contains("987654321") || $0.contains("0a1b2c3d4e") || $0.contains("private") })
     }
+
+    @Test func theTitleIsTheStoredDetailsOnceStarted() async throws {
+        let harness = try ReaderModelHarness()
+        try await harness.storeDetail(previewConfig: .large(rows: 4), jpnTitle: "タイトル")
+        var gallery = harness.site.gallery
+        gallery.title = "List title"
+        let model = harness.makeModel(gallery: gallery)
+        #expect(model.title(prefersJapanese: true) == "List title")
+
+        await model.start()
+
+        #expect(model.title(prefersJapanese: true) == "タイトル")
+        #expect(model.title(prefersJapanese: false) == "Title")
+    }
+
+    @Test func theOpenersDetailIsUsedOverTheStoredOne() async throws {
+        let harness = try ReaderModelHarness()
+        try await harness.storeDetail(previewConfig: .large(rows: 4), jpnTitle: "Stored")
+        var detail = GalleryDetail.preview
+        detail.jpnTitle = "Fresh"
+        let model = harness.makeModel(detail: detail)
+        #expect(model.title(prefersJapanese: true) == "Fresh")
+
+        await model.start()
+
+        #expect(model.title(prefersJapanese: true) == "Fresh")
+        #expect(model.title(prefersJapanese: false) == "Preview")
+    }
+
+    @Test func withoutADetailTheTitleIsTheListsTitle() async throws {
+        let harness = try ReaderModelHarness()
+        let model = await harness.startedModel()
+        #expect(model.title(prefersJapanese: true) == "Title")
+        #expect(model.title(prefersJapanese: false) == "Title")
+    }
 }
 
 @Suite struct ReaderModelResolutionTests {

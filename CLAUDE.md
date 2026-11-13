@@ -26,8 +26,12 @@ this file disagree about layout or look, the README wins.
 App/                      App target (SwiftUI + UIKit views only). Folder is synchronized with
                           Xcode: adding or removing files needs no project edits.
   Features/<Name>/        Views for one feature
-  DesignSystem/           Shared components, styles, layout helpers
-    Availability/         iOS 26 APIs with their iOS 18 fallbacks (glass, sheet buttons)
+  DesignSystem/           Shared components, styles, layout helpers ("Building blocks" in
+                          Design/ui-overhaul/README.md)
+    Availability/         The look switch (`AppLook`) and iOS 26 APIs with their iOS 18 fallbacks
+                          (glass, bars, toolbar search, segmented control, sheet buttons)
+    Tokens/               The redesign's colours, type, tint and metrics
+    CoverGlow/            The cover glow and the shared cover palettes (`CoverPaletteStore`)
   Platform/               iOS-only services (haptics, clipboard, photos, biometrics, image cache)
   Generated/Strings.swift SwiftGen output for `App/Resources/*.lproj` (the `L10n` enum)
   Resources/              Asset catalog, alternate icons, localized strings
@@ -80,12 +84,16 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
 - **Availability:** the minimum is iOS 18. On iOS 26 the app uses the iOS 26 APIs and must look and
   behave as designed for it; on iOS 18 it falls back to the closest native look. Every iOS-26-only
   API needs an iOS 18 fallback, kept in one place rather than as `#available` checks at call
-  sites: Liquid Glass through `App/DesignSystem/Availability/Glass.swift` (`glassSurface(in:)`,
-  `glassButtonStyle()`, `glassProminentButtonStyle()`, `GlassGroup`), sheet and alert buttons
-  through `SheetButtons.swift`, `Observations` through `forEachObservedValue` in
-  `EhFeatures/Support/ObservedValues.swift`. Larger fallbacks get their own file (e.g.
-  `LegacyAccountWebView` for the SwiftUI `WebView`). New iOS 26 APIs get a helper there.
-  SF Symbols must exist in SF Symbols 6 (iOS 18).
+  sites: Liquid Glass through `App/DesignSystem/Availability/Glass.swift` (`glassSurface(in:tone:)`,
+  `glassPanel()`, `glassButtonStyle(tone:)`, `glassProminentButtonStyle()`, `GlassGroup`), bars over
+  scrolling content through `floatingBar(edge:spacing:background:)` (`SafeAreaBar.swift`), a
+  search field behind a toolbar button through `toolbarSearchable` (`ToolbarSearch.swift`), sheet
+  and alert buttons through `SheetButtons.swift`, `Observations` through `forEachObservedValue` in
+  `EhFeatures/Support/ObservedValues.swift`; the rest are listed in the README's "Building blocks".
+  The look itself (the redesign's colours, serif titles, glass and glow on iOS 26, v3's system look
+  on iOS 18) is switched by `AppLook.isRedesigned`, which only the design tokens and these helpers
+  read. Larger fallbacks get their own file (e.g. `LegacyAccountWebView` for the SwiftUI
+  `WebView`). New iOS 26 APIs get a helper there. SF Symbols must exist in SF Symbols 6 (iOS 18).
 - **Logging:** `AppLogger` (os.Logger plus a file sink). Never log per action, per frame or per cell.
 
 ## Feature layer
@@ -98,7 +106,9 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
   Models ignore cancellation and store other failures as `LoadingState.failed`.
 - **Shared stores** (`SettingsStore`, `FilterStore`, `UserStore`, `TagTranslationService`) are injected
   into the SwiftUI environment at the root and are also available to models through `@Dependency`.
-  Views read the individual properties they need.
+  Views read the individual properties they need. `CoverPaletteStore` (cover glow palettes) is an
+  app-target store in the environment only. A context menu's `preview:` does not inherit the
+  environment: pass the stores it reads into it.
 - **Navigation.**
   - Cross-feature: push a `Route` (`EhFeatures/Navigation/Route.swift`) onto the `StackRouter` in the
     environment, e.g. `stack.push(.detail(gallery))`. `App/Features/Shell/RouteDestination.swift` maps
@@ -111,6 +121,9 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
     `destination` property on its model.
   - `AppRouter` owns the selected tab, one `StackRouter` per tab, and the gallery sheet used for
     deep links. Re-selecting a tab pops it to its root, or bumps `rootReselections` when already there.
+  - The tab bar is hidden on a gallery's detail screen and every screen pushed from it
+    (`.detail` and `.detailChild`); `RouteDestination` sets that per route with the native
+    toolbar visibility. Every other screen keeps it.
 - **Entry points.** Each feature owns the entry views the shell references (`HomeScreen`,
   `LibraryScreen`, `SearchScreen`, `SearchResultsDestination`, `GalleryListDestination`,
   `GalleryDetailDestination`, `SettingsScreen`, `SettingsDestination`). Keep their names and initializers.
@@ -132,6 +145,8 @@ These are requirements, not suggestions.
 6. Network work is cancellable end to end and fan-out is bounded (task groups with a limit).
 7. Nothing reads window or screen size from globals. Use size classes, `containerRelativeFrame`,
    `onGeometryChange` or the view's own bounds.
+8. Glass and the cover glow go only on a screen's few large surfaces (bars, floating controls, the
+   detail panels), never per cell of a scrolling list or grid.
 
 ## Swift conventions
 

@@ -113,11 +113,8 @@
 "home_view.title.home" = "總覽";
 "home_view.section.title.frontpage" = "首頁";
 "home_view.section.title.toplists" = "排行";
-"home_view.section.title.other" = "其他";
 // HomeMiscGridType
 "enum.home_misc_grid_type.title.popular" = "熱門";
-"enum.home_misc_grid_type.title.watched" = "關注";
-"enum.home_misc_grid_type.title.history" = "歷程";
 
 // MARK: FrontpageView
 "frontpage_view.title.frontpage" = "首頁";
@@ -282,13 +279,6 @@
 "detail_view.context_menu.button.withdraw_vote" = "收回評分";
 "detail_view.context_menu.button.vote_up" = "Vote up";
 "detail_view.context_menu.button.vote_down" = "Vote down";
-"detail_view.description_section.title.favorited" = "收藏";
-"detail_view.description_section.title.language" = "語言";
-"detail_view.description_section.title.ratings" = "%@ 個評分";
-"detail_view.description_section.title.page_count" = "頁數";
-"detail_view.description_section.title.file_size" = "檔案大小";
-"detail_view.description_section.description.favorited" = "次";
-"detail_view.description_section.description.page_count" = "頁";
 "detail_view.action_section.button.give_a_rating" = "給予評分";
 "detail_view.action_section.button.similar_gallery" = "類似畫廊";
 "detail_view.section.title.previews" = "預覽";

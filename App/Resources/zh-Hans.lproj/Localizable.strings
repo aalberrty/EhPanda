@@ -113,11 +113,8 @@
 "home_view.title.home" = "主页";
 "home_view.section.title.frontpage" = "扉页";
 "home_view.section.title.toplists" = "排行";
-"home_view.section.title.other" = "其它";
 // HomeMiscGridType
 "enum.home_misc_grid_type.title.popular" = "热门";
-"enum.home_misc_grid_type.title.watched" = "标签";
-"enum.home_misc_grid_type.title.history" = "历史";
 
 // MARK: FrontpageView
 "frontpage_view.title.frontpage" = "扉页";
@@ -282,13 +279,6 @@
 "detail_view.context_menu.button.withdraw_vote" = "撤销投票";
 "detail_view.context_menu.button.vote_up" = "投票赞成";
 "detail_view.context_menu.button.vote_down" = "投票反对";
-"detail_view.description_section.title.favorited" = "收藏";
-"detail_view.description_section.title.language" = "语言";
-"detail_view.description_section.title.ratings" = "%@ 个评分";
-"detail_view.description_section.title.page_count" = "页数";
-"detail_view.description_section.title.file_size" = "文件大小";
-"detail_view.description_section.description.favorited" = "次";
-"detail_view.description_section.description.page_count" = "页";
 "detail_view.action_section.button.give_a_rating" = "给予评分";
 "detail_view.action_section.button.similar_gallery" = "相似画廊";
 "detail_view.section.title.previews" = "预览";

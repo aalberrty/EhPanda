@@ -46,7 +46,7 @@ final class ReaderModelHarness {
         Data([0x89, 0x50, 0x4E, 0x47]) + Data(url.absoluteString.utf8)
     }
 
-    func makeModel(initialPage: Int? = nil, gallery: Gallery? = nil) -> ReaderModel {
+    func makeModel(initialPage: Int? = nil, gallery: Gallery? = nil, detail: GalleryDetail? = nil) -> ReaderModel {
         let model = withDependencies {
             $0.ehClient = site.client
             $0.database = database
@@ -68,7 +68,7 @@ final class ReaderModelHarness {
                 return Self.imageData(for: url)
             }
         } operation: {
-            ReaderModel(gallery: gallery ?? site.gallery, initialPage: initialPage)
+            ReaderModel(gallery: gallery ?? site.gallery, initialPage: initialPage, detail: detail)
         }
         model.engine = ReaderEngineCommands(
             reloadPage: { [weak self] in self?.engineLog.append("reload:\($0)") },
@@ -116,9 +116,9 @@ final class ReaderModelHarness {
     }
 
     /// Stores a detail page of the gallery that showed this preview layout.
-    func storeDetail(previewConfig: PreviewConfig) async throws {
+    func storeDetail(previewConfig: PreviewConfig, jpnTitle: String? = nil) async throws {
         let detail = GalleryDetail(
-            gid: gid, title: "Title", isFavorited: false, visibility: .yes, rating: 4, userRating: 0,
+            gid: gid, title: "Title", jpnTitle: jpnTitle, isFavorited: false, visibility: .yes, rating: 4, userRating: 0,
             ratingCount: 1, category: .doujinshi, language: .japanese, uploader: "Uploader",
             postedDate: Date(timeIntervalSince1970: 0), coverURL: nil, favoritedCount: 0,
             pageCount: site.pageCount, sizeCount: 1, sizeType: "MiB", torrentCount: 0

@@ -6,19 +6,12 @@ struct LibrarySegmentPicker: View {
     let model: LibraryModel
 
     var body: some View {
-        Picker(L10n.Localizable.TabItem.Title.library, selection: selection) {
-            ForEach(LibrarySegment.allCases, id: \.self) { segment in
-                Text(segment.localizedName).tag(segment)
-            }
-        }
-        .pickerStyle(.segmented)
-        .controlSize(.large)
+        SegmentedControl(
+            L10n.Localizable.TabItem.Title.library, options: LibrarySegment.allCases,
+            selection: model.segment, optionTitle: \.localizedName, onSelect: { model.select($0) }
+        )
         .padding(.horizontal, Tokens.Spacing.large)
         .padding(.vertical, Tokens.Spacing.small)
-    }
-
-    private var selection: Binding<LibrarySegment> {
-        Binding(get: { model.segment }, set: { model.select($0) })
     }
 }
 
@@ -61,8 +54,8 @@ struct FavoriteFolderChips: View {
 
 /// A folder chip: a filled capsule in a full-height touch target, inverted when selected.
 ///
-/// The selected chip uses the UIKit label and background colours: on the iOS 18 bar material
-/// `.primary` (the style and the colour) turns into a vibrant grey.
+/// The fills are colours rather than hierarchical styles: on the iOS 18 bar material
+/// `.primary` and `.fill` turn into vibrant greys, and the selected chip would lose its contrast.
 private struct FolderChip: View {
     let title: String
     let isSelected: Bool
@@ -73,10 +66,10 @@ private struct FolderChip: View {
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .lineLimit(1)
-                .foregroundStyle(isSelected ? AnyShapeStyle(Color(.systemBackground)) : AnyShapeStyle(.primary))
+                .foregroundStyle(isSelected ? Color.onSelectedFill : Color.textPrimary)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 32)
-                .background(isSelected ? AnyShapeStyle(Color(.label)) : AnyShapeStyle(.fill.tertiary), in: .capsule)
+                .background(isSelected ? Color.selectedFill : Color.chipFill, in: .capsule)
                 .frame(minHeight: 44)
                 .contentShape(.rect)
         }

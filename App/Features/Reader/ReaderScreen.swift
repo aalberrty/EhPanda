@@ -5,6 +5,8 @@ import SwiftUI
 
 /// The full-screen reader for a gallery (legacy `ReadingView`). Present it with
 /// `fullScreenCover`. `initialPage` is 1-based; nil opens at the stored reading progress.
+/// `detail` is the gallery's detail page when the opener has it, for the title the detail
+/// page shows; without it the reader reads the stored one.
 ///
 /// Three layers: the background, the UIKit reading engine, and the control panel on top.
 /// The engine view reads the reading settings and nothing of the panel, so showing the panel,
@@ -12,12 +14,12 @@ import SwiftUI
 struct ReaderScreen: View {
     @State private var session: ReaderSession
 
-    init(gallery: Gallery, initialPage: Int? = nil) {
+    init(gallery: Gallery, initialPage: Int? = nil, detail: GalleryDetail? = nil) {
         // Only the holder is made here. A view's `init` runs again every time the presenting
         // screen is re-evaluated (when the detail page finishes loading behind the open reader,
         // for one) and SwiftUI keeps the first value: a model made here would be built, with
         // its resolver, writer and loader, and thrown away each time.
-        _session = State(initialValue: ReaderSession(gallery: gallery, initialPage: initialPage))
+        _session = State(initialValue: ReaderSession(gallery: gallery, initialPage: initialPage, detail: detail))
     }
 
     var body: some View {
@@ -39,13 +41,15 @@ struct ReaderScreen: View {
 private final class ReaderSession {
     private let gallery: Gallery
     private let initialPage: Int?
+    private let detail: GalleryDetail?
 
-    private(set) lazy var model = ReaderModel(gallery: gallery, initialPage: initialPage)
+    private(set) lazy var model = ReaderModel(gallery: gallery, initialPage: initialPage, detail: detail)
     private(set) lazy var bridge = ReaderEngineBridge(model: model)
 
-    init(gallery: Gallery, initialPage: Int?) {
+    init(gallery: Gallery, initialPage: Int?, detail: GalleryDetail?) {
         self.gallery = gallery
         self.initialPage = initialPage
+        self.detail = detail
     }
 }
 
@@ -103,7 +107,7 @@ private struct ReaderChrome: ViewModifier {
                 switch destination {
                 case .settings:
                     ReaderSettingsSheet(showsLandscapeSetting: model.showsLandscapeSetting)
-                        .tint(settings.accentColor.color)
+                        .tint(settings.accentColor.appTint)
                 case .share(let file):
                     ActivityView(items: [file])
                         .presentationDetents([.medium, .large])

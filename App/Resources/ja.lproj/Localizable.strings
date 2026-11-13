@@ -113,11 +113,8 @@
 "home_view.title.home" = "ホーム";
 "home_view.section.title.frontpage" = "フロントページ";
 "home_view.section.title.toplists" = "ランキング";
-"home_view.section.title.other" = "その他";
 // HomeMiscGridType
 "enum.home_misc_grid_type.title.popular" = "人気";
-"enum.home_misc_grid_type.title.watched" = "タグの購読";
-"enum.home_misc_grid_type.title.history" = "閲覧履歴";
 
 // MARK: FrontpageView
 "frontpage_view.title.frontpage" = "フロントページ";
@@ -282,13 +279,6 @@
 "detail_view.context_menu.button.withdraw_vote" = "投票を取り消す";
 "detail_view.context_menu.button.vote_up" = "賛成票を投じる";
 "detail_view.context_menu.button.vote_down" = "反対票を投じる";
-"detail_view.description_section.title.favorited" = "気に入り";
-"detail_view.description_section.title.language" = "言語";
-"detail_view.description_section.title.ratings" = "%@ 件の評価";
-"detail_view.description_section.title.page_count" = "ページ数";
-"detail_view.description_section.title.file_size" = "ファイルサイズ";
-"detail_view.description_section.description.favorited" = "回";
-"detail_view.description_section.description.page_count" = "ページ";
 "detail_view.action_section.button.give_a_rating" = "評価する";
 "detail_view.action_section.button.similar_gallery" = "類似ギャラリー";
 "detail_view.section.title.previews" = "プレビュー";

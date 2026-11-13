@@ -427,28 +427,6 @@ internal enum L10n {
           internal static let withdrawVote = L10n.tr("Localizable", "detail_view.context_menu.button.withdraw_vote", fallback: "Withdraw vote")
         }
       }
-      internal enum DescriptionSection {
-        internal enum Description {
-          /// Times
-          internal static let favorited = L10n.tr("Localizable", "detail_view.description_section.description.favorited", fallback: "Times")
-          /// Pages
-          internal static let pageCount = L10n.tr("Localizable", "detail_view.description_section.description.page_count", fallback: "Pages")
-        }
-        internal enum Title {
-          /// Favorited
-          internal static let favorited = L10n.tr("Localizable", "detail_view.description_section.title.favorited", fallback: "Favorited")
-          /// File Size
-          internal static let fileSize = L10n.tr("Localizable", "detail_view.description_section.title.file_size", fallback: "File Size")
-          /// Language
-          internal static let language = L10n.tr("Localizable", "detail_view.description_section.title.language", fallback: "Language")
-          /// Page Count
-          internal static let pageCount = L10n.tr("Localizable", "detail_view.description_section.title.page_count", fallback: "Page Count")
-          /// %@ Ratings
-          internal static func ratings(_ p1: Any) -> String {
-            return L10n.tr("Localizable", "detail_view.description_section.title.ratings", String(describing: p1), fallback: "%@ Ratings")
-          }
-        }
-      }
       internal enum Section {
         internal enum Title {
           /// Comments
@@ -1430,12 +1408,8 @@ internal enum L10n {
       }
       internal enum HomeMiscGridType {
         internal enum Title {
-          /// History
-          internal static let history = L10n.tr("Localizable", "enum.home_misc_grid_type.title.history", fallback: "History")
           /// Popular
           internal static let popular = L10n.tr("Localizable", "enum.home_misc_grid_type.title.popular", fallback: "Popular")
-          /// Watched
-          internal static let watched = L10n.tr("Localizable", "enum.home_misc_grid_type.title.watched", fallback: "Watched")
         }
       }
       internal enum Language {
@@ -1891,8 +1865,6 @@ internal enum L10n {
         internal enum Title {
           /// Frontpage
           internal static let frontpage = L10n.tr("Localizable", "home_view.section.title.frontpage", fallback: "Frontpage")
-          /// Other
-          internal static let other = L10n.tr("Localizable", "home_view.section.title.other", fallback: "Other")
           /// Toplists
           internal static let toplists = L10n.tr("Localizable", "home_view.section.title.toplists", fallback: "Toplists")
         }

@@ -4,11 +4,15 @@ import SwiftUI
 
 /// Every page's preview in a lazy grid, loaded a preview page at a time as it scrolls into view.
 struct PreviewsGridScreen: View {
+    /// Handed to the reader for its title.
+    private let detail: GalleryDetail?
+
     @State private var model: PreviewsModel
 
     @Environment(\.horizontalSizeClass) private var sizeClass
 
-    init(gallery: Gallery, pageCount: Int, config: PreviewConfig?, previewURLs: [Int: URL]) {
+    init(gallery: Gallery, detail: GalleryDetail?, pageCount: Int, config: PreviewConfig?, previewURLs: [Int: URL]) {
+        self.detail = detail
         _model = State(initialValue: PreviewsModel(
             gallery: gallery, pageCount: pageCount, config: config, previewURLs: previewURLs
         ))
@@ -44,7 +48,7 @@ struct PreviewsGridScreen: View {
         .task { await model.load() }
         .fullScreenCover(item: $model.readerDestination) { destination in
             if case .reader(let page) = destination {
-                ReaderScreen(gallery: model.gallery, initialPage: page)
+                ReaderScreen(gallery: model.gallery, initialPage: page, detail: detail)
             }
         }
         .sensoryFeedback(.impact(weight: .light), trigger: model.readerDestination) { _, destination in
