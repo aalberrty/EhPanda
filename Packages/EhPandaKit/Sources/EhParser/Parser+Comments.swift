@@ -154,10 +154,23 @@ extension Parser {
         return tmpLink
     }
 
-    private static func appendPlainText(_ text: String, to contents: inout [CommentContent]) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    /// Appends a run of the body's HTML between links and images as text.
+    private static func appendPlainText(_ html: String, to contents: inout [CommentContent]) {
+        let trimmed = decodedText(html).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         contents.append(CommentContent(type: .plainText, text: trimmed))
+    }
+
+    /// The text of a run of the body's HTML, which is cut from `innerHTML` and so still holds
+    /// entities (`&gt;GURU`, `&amp;`, `&nbsp;`). libxml decodes them, and drops any tag the
+    /// splitting left behind, the same way it reads a link's text. Line breaks are newlines
+    /// by now, which it keeps.
+    static func decodedText(_ html: String) -> String {
+        guard html.contains("&") || html.contains("<"),
+              let document = try? Kanna.HTML(html: html, encoding: .utf8),
+              let text = document.body?.text
+        else { return html }
+        return text
     }
 
     private static func appendLinkOrImage(_ link: Kanna.XMLElement, to contents: inout [CommentContent]) {

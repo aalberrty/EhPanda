@@ -57,4 +57,46 @@ struct CommentContentParserTests {
         let result = try contents(#"Kept<span>dropped</span><div>also dropped</div>"#)
         #expect(summary(result) == ["plainText|Kept"])
     }
+
+    @Test func entitiesInPlainTextAreDecoded() throws {
+        let result = try contents(
+            #"&gt;GURU said 1 &lt; 2 &amp;&amp; &quot;yes&quot; it&#39;s&nbsp;fine &#12354;&#x3042;"#
+        )
+        #expect(summary(result) == ["plainText|>GURU said 1 < 2 && \"yes\" it's\u{00A0}fine ああ"])
+    }
+
+    @Test func entitiesAroundALinkAreDecoded() throws {
+        let result = try contents(
+            #"&gt;&gt;5143504 <a href="https://x.example/?a=1&amp;b=2">Tom &amp; Jerry</a> &lt;3"#
+        )
+        #expect(summary(result) == [
+            "plainText|>>5143504",
+            "linkedText|Tom & Jerry|https://x.example/?a=1&b=2",
+            "plainText|<3"
+        ])
+    }
+
+    @Test func entitiesKeepLineBreaks() throws {
+        #expect(summary(try contents("a &gt; b<br>c &amp; d<br><br>e")) == ["plainText|a > b\nc & d\n\ne"])
+    }
+
+    @Test func entitiesBetweenImagesAreDecoded() throws {
+        let result = try contents(
+            #"<img src="https://i.example/1.png"> &gt; <a href="https://x.example/2"><img src="https://i.example/2.png"></a>"#
+        )
+        #expect(summary(result) == [
+            "singleImg|https://i.example/1.png",
+            "plainText|>",
+            "linkedImg|https://x.example/2|https://i.example/2.png"
+        ])
+    }
+
+    @Test func commentBodiesOnAPageAreDecoded() throws {
+        let doc = try html(#"""
+            <div id="cdiv"><div class="c1"><div class="c2"><div class="c3">Posted on 28 August 2022, 07:32 by: &nbsp; <a href="https://e-hentai.org/uploader/A">A</a></div></div>
+            <div class="c6" id="comment_5143504">&gt;GURU<br>Agreed &amp; thanks</div></div></div>
+            """#)
+        let comment = try #require(Parser.parseComments(doc: doc).first)
+        #expect(summary(comment.contents) == ["plainText|>GURU\nAgreed & thanks"])
+    }
 }
