@@ -163,6 +163,15 @@ import Testing
         #expect(SearchRootModel.keywordLimit(isRegularWidth: true) == 20)
     }
 
+    @Test func keywordRowsInOneColumnKeepTheWidthsLimit() {
+        let items = Array(0..<25)
+        let rows = SearchRootModel.keywordRows(items, isRegularWidth: false, columns: 1)
+        #expect(rows == (0..<10).map { [$0] })
+        #expect(SearchRootModel.keywordRows(items, isRegularWidth: true, columns: 1).count == 20)
+        // A column count below one still lays out one keyword per row.
+        #expect(SearchRootModel.keywordRows([1, 2], isRegularWidth: false, columns: 0) == [[1], [2]])
+    }
+
     @Test func keywordTitlesSplitAfterALeadingNamespace() throws {
         func split(_ title: String) -> [String]? {
             SearchKeyword(keyword: title, title: title).namespacedTitle.map { [$0.namespace, $0.value] }

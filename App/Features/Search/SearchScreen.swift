@@ -3,7 +3,8 @@ import EhModels
 import SwiftUI
 
 /// The Search tab's root (E-Search): Quick search words as chips, recent searches in two
-/// columns, recently seen covers, and the search filter as chips above the search field.
+/// columns (one at accessibility sizes), recently seen covers, and the search filter as chips
+/// above the search field.
 ///
 /// On iOS 26 the search tab folds the tab bar and puts the field at the bottom; on iOS 18
 /// the field sits in the navigation bar and the chips stay above the tab bar.
@@ -61,6 +62,8 @@ private struct SearchRootSections: View {
     let search: (String) -> Void
     let openGallery: (Gallery) -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Spacing.large) {
             let quickSearch = model.quickSearchKeywords
@@ -77,7 +80,9 @@ private struct SearchRootSections: View {
             if !history.isEmpty {
                 SubSection(title: L10n.Localizable.SearchView.Section.Title.recentlySearched, showsAll: false) {
                     KeywordRows(
-                        rows: SearchRootModel.keywordRows(history, isRegularWidth: isRegularWidth),
+                        rows: SearchRootModel.keywordRows(
+                            history, isRegularWidth: isRegularWidth, columns: dynamicTypeSize.isAccessibilitySize ? 1 : 2
+                        ),
                         search: search,
                         remove: { keyword in Task { await model.removeHistoryKeyword(keyword) } }
                     )

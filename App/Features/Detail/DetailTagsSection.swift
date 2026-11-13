@@ -7,33 +7,26 @@ import SwiftUI
 /// Every tag in one flow on a glass panel, each namespace named once in front of its chips
 /// (E-Detail). Tapping a tag searches for it; its context menu offers the tag's translation
 /// detail and, when logged in, votes.
+///
+/// At accessibility sizes a name and a chip no longer fit side by side, so each namespace's
+/// name goes on a line of its own above its chips.
 struct DetailTagsSection: View {
     let model: GalleryDetailModel
 
     @Environment(SettingsStore.self) private var settings
     @Environment(StackRouter.self) private var stack: StackRouter?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var searchCount = 0
 
     var body: some View {
         if !model.tagRows.isEmpty {
-            let translates = settings.translatesTags
-            let showsImages = settings.showsImagesInTags
-            FlowLayout(spacing: Self.chipSpacing, lineSpacing: Tokens.Spacing.small + Tokens.Spacing.xxSmall) {
-                ForEach(model.tagRows) { row in
-                    ForEach(row.chips) { chip in
-                        TagFlowItem(
-                            namespace: chip.id == row.chips.first?.id ? namespaceName(of: row) : nil,
-                            chip: chip,
-                            translation: translates ? model.translation(for: chip) : nil,
-                            translates: translates,
-                            showsImages: showsImages,
-                            isLoggedIn: model.isLoggedIn,
-                            // The last chip of a namespace keeps the wider gap to the next one.
-                            trailingGap: chip.id == row.chips.last?.id ? Self.namespaceSpacing - Self.chipSpacing : 0,
-                            actions: actions
-                        )
-                        .equatable()
-                    }
+            // Read once here rather than per chip.
+            let options = ItemOptions(translates: settings.translatesTags, showsImages: settings.showsImagesInTags)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    namespaceStack(options)
+                } else {
+                    flow(options)
                 }
             }
             .padding(DetailMetrics.panelInset)
@@ -41,6 +34,52 @@ struct DetailTagsSection: View {
             .glassPanel()
             .sensoryFeedback(.impact(flexibility: .soft), trigger: searchCount)
         }
+    }
+
+    private func flow(_ options: ItemOptions) -> some View {
+        FlowLayout(spacing: Self.chipSpacing, lineSpacing: Self.lineSpacing) {
+            ForEach(model.tagRows) { row in
+                ForEach(row.chips) { chip in
+                    item(
+                        chip, options: options,
+                        namespace: chip.id == row.chips.first?.id ? namespaceName(of: row) : nil,
+                        // The last chip of a namespace keeps the wider gap to the next one.
+                        trailingGap: chip.id == row.chips.last?.id ? Self.namespaceSpacing - Self.chipSpacing : 0
+                    )
+                }
+            }
+        }
+    }
+
+    private func namespaceStack(_ options: ItemOptions) -> some View {
+        VStack(alignment: .leading, spacing: Self.namespaceSpacing) {
+            ForEach(model.tagRows) { row in
+                VStack(alignment: .leading, spacing: Tokens.Spacing.xSmall) {
+                    NamespaceName(name: namespaceName(of: row))
+                    FlowLayout(spacing: Self.chipSpacing, lineSpacing: Self.lineSpacing) {
+                        ForEach(row.chips) { chip in
+                            item(chip, options: options, namespace: nil, trailingGap: 0)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func item(
+        _ chip: DetailTagChip, options: ItemOptions, namespace: String?, trailingGap: CGFloat
+    ) -> some View {
+        TagFlowItem(
+            namespace: namespace,
+            chip: chip,
+            translation: options.translates ? model.translation(for: chip) : nil,
+            translates: options.translates,
+            showsImages: options.showsImages,
+            isLoggedIn: model.isLoggedIn,
+            trailingGap: trailingGap,
+            actions: actions
+        )
+        .equatable()
     }
 
     private func namespaceName(of row: DetailTagRow) -> String {
@@ -60,6 +99,24 @@ struct DetailTagsSection: View {
 
     private static let chipSpacing: CGFloat = 6
     private static let namespaceSpacing: CGFloat = 14
+    private static let lineSpacing: CGFloat = Tokens.Spacing.small + Tokens.Spacing.xxSmall
+
+    private struct ItemOptions {
+        let translates: Bool
+        let showsImages: Bool
+    }
+}
+
+/// A namespace's name in front of (or, at accessibility sizes, above) its chips.
+private struct NamespaceName: View {
+    let name: String
+
+    var body: some View {
+        Text(name)
+            .font(.caption)
+            .foregroundStyle(.textTertiary)
+            .accessibilityAddTraits(.isHeader)
+    }
 }
 
 struct TagChipActions {
@@ -91,11 +148,8 @@ private struct TagFlowItem: View, Equatable {
             if let namespace {
                 // Fixed, so the stack gives the chip all the rest: otherwise a chip with an image
                 // can be offered only half the width and truncate beside a short name.
-                Text(namespace)
-                    .font(.caption)
-                    .foregroundStyle(.textTertiary)
+                NamespaceName(name: namespace)
                     .fixedSize()
-                    .accessibilityAddTraits(.isHeader)
             }
             chipButton
         }
