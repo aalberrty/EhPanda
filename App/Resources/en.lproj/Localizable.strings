@@ -361,6 +361,8 @@
 "reading_view.toolbar_item.button.retry_all_failed_images" = "Retry all failed images";
 "reading_view.toolbar_item.button.reload_all_images" = "Reload all images";
 "reading_view.toolbar_item.button.reading_setting" = "Reading setting";
+"reading_view.toolbar_item.button.live_text" = "Live Text";
+"reading_view.title.page_position" = "Page %d of %d · %d left";
 // AutoPlayPolicy
 "enum.auto_play_policy.value.off" = "Off";
 

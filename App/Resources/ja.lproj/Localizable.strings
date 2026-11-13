@@ -361,6 +361,8 @@
 "reading_view.toolbar_item.button.retry_all_failed_images" = "読み込み失敗した画像をすべてリトライ";
 "reading_view.toolbar_item.button.reload_all_images" = "画像をすべて再読み込み";
 "reading_view.toolbar_item.button.reading_setting" = "閲覧設定";
+"reading_view.toolbar_item.button.live_text" = "テキスト認識表示";
+"reading_view.title.page_position" = "%1$d / %2$d ページ · 残り %3$d ページ";
 // AutoPlayPolicy
 "enum.auto_play_policy.value.off" = "オフ";
 

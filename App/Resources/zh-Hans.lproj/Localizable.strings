@@ -361,6 +361,8 @@
 "reading_view.toolbar_item.button.retry_all_failed_images" = "重试所有读取失败图片";
 "reading_view.toolbar_item.button.reload_all_images" = "重新加载所有图片";
 "reading_view.toolbar_item.button.reading_setting" = "阅读设置";
+"reading_view.toolbar_item.button.live_text" = "实况文本";
+"reading_view.title.page_position" = "第 %d 页，共 %d 页 · 剩余 %d 页";
 // AutoPlayPolicy
 "enum.auto_play_policy.value.off" = "不启用";
 

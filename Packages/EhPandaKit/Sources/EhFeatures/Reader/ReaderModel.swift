@@ -83,8 +83,9 @@ public final class ReaderModel {
     public var notice: Notice?
     /// Slider thumbnails by page, as stored (a sprite-sheet tile carries its crop in the URL).
     public internal(set) var previewURLs: [Int: URL] = [:]
-    /// How many thumbnails the preview strip shows; the view sets it for its size.
-    public var previewStripLength = 3
+    /// How many thumbnails the preview strip shows; the view sets it for its size with
+    /// `previewStripLength(isRegularWidth:isLandscape:)`.
+    public var previewStripLength = 5
     /// How long the first page took to appear after the reader opened.
     public private(set) var timeToFirstPage: Duration?
 
