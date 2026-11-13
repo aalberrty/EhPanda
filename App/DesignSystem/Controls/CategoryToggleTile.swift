@@ -33,7 +33,8 @@ struct CategoryToggleTile: View {
             }
             .font(.footnote.weight(.semibold))
             .foregroundStyle(isOn ? Color.textPrimary : .textTertiary)
-            .padding(.horizontal, Tokens.Spacing.small)
+            // Tiles are as narrow as 80 pt; a slim inset leaves the longer names their size.
+            .padding(.horizontal, Tokens.Spacing.xSmall)
             .frame(maxWidth: .infinity, minHeight: height)
             .background {
                 if isOn {
