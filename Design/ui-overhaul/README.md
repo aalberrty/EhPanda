@@ -125,8 +125,9 @@ RoundedRectangle(cornerRadius: 10).strokeBorder(.coverEdge)
 
 Serif (New York) bold on iOS 26, the default design on iOS 18. Gallery titles never use these.
 
-- `.font(.screenTitle)`: a large title drawn in the content (34 pt). Unused so far: Home and
-  Search kept the navigation bar's large title, which is the same serif 34 pt on iOS 26.
+- `.font(.screenTitle)`: a large title drawn in the content (34 pt). Home and Search kept the
+  navigation bar's large title, which is the same serif 34 pt on iOS 26; `titledFloatingBar`
+  uses it for Toplists' title on iOS 26.
 - `.font(.sectionTitle)`: a section title (20 pt): "Previews", "Comments", "Quick search".
 - `.font(.heading(.title2))`: any other size, e.g. Home's 22 pt "Frontpage".
 - Navigation bar titles (large and inline) are serif automatically (`NavigationBarTitles`,
@@ -230,9 +231,9 @@ Each picks its iOS 26 API or the iOS 18 stand-in in one place, like `Glass.swift
 |---|---|---|
 | `floatingBar(edge:spacing:background:)` (`SafeAreaBar.swift`) | `safeAreaBar`: content scrolling under the bar fades under the scroll edge effect | `safeAreaInset` with `background` behind the bar: `.none` (the bar draws its own surface), `.material`, or `.materialUnderNavigationBar` (the material runs up behind the navigation bar, whose own background is hidden, so title and bar read as one) |
 | `SegmentedControl(_:options:selection:optionTitle:onSelect:)` (`SegmentedControl.swift`) | E-Library's control: a `.bar` glass capsule with a sliding `selectedFill` segment | the native segmented picker |
-| `toolbarSearchable(text:prompt:)` plus `ToolbarSearchItem()` in the toolbar (`ToolbarSearch.swift`) | a search button among the toolbar's items that expands into the field (`searchToolbarBehavior(.minimize)`) | the field in the navigation bar drawer |
+| `toolbarSearchable(text:prompt:alwaysShowsField:)` plus `ToolbarSearchItem()` in the toolbar (`ToolbarSearch.swift`) | a search button among the toolbar's items that expands into the field (`searchToolbarBehavior(.minimize)`) | the field in the navigation bar drawer, revealed by pulling the list down; with `alwaysShowsField: true` always on screen (needed under a top bar that scrolls sideways, see the pitfalls) |
 | `tagSearchable(…, inToolbar: true)` (`Features/Search/Components/TagSearchField.swift`) | the same, for the server search field with tag suggestions (search results outside the Search tab) | the same as `toolbarSearchable` |
-| `navigationTitle(_:subtitle:)` (`NavigationSubtitle.swift`) | the title, large, with `navigationSubtitle` under it (Toplists and its period) | one inline title, "Toplists - Yesterday" |
+| `titledFloatingBar(_:background:content:)` (`SafeAreaBar.swift`) | a top `floatingBar` headed by the screen's large title (`.screenTitle`), which never collapses; the navigation bar's own title is removed (Toplists over its period chips) | v3's inline title in the navigation bar, the bar under it |
 | `risesUnderNavigationBar(by:)` (`HeroUnderBar.swift`) | raises a hero image into the navigation bar, between its glass buttons (E-Detail's cover); apply it to the first view of the scroll content | nothing: the back button carries the previous screen's title and would run over the hero |
 | `hidesTopScrollEdgeEffect(_:)` (`HeroUnderBar.swift`) | hides the soft edge under the navigation bar while true, so a hero raised under the bar is not blurred at rest | nothing |
 
@@ -249,6 +250,24 @@ PagedGalleryList(model: model)
 
 Every gallery list puts `ListDisplayModeButton()` (`Features/GalleryList`) first among its
 toolbar's actions; it flips the app-wide Detail / Thumbnail setting.
+
+### Chip row (`App/DesignSystem/Controls/ChipRow.swift`)
+
+`ChipRow(_:options:selection:optionTitle:onSelect:)` picks one of a few options with one-tap
+chips: `chipFill` capsules, the selected one in `selectedFill`, in a row that scrolls sideways
+when they do not fit and keeps the selected chip in view. Library's favourite folders and the
+Toplists periods use it, pinned under the title in a top `floatingBar` (Library) or
+`titledFloatingBar` (Toplists). The chips are the same on both systems; only the bar behind
+them differs.
+
+```swift
+list
+    .titledFloatingBar(title, background: .materialUnderNavigationBar) {
+        ChipRow(title, options: ToplistsType.allCases, selection: model.type.id,
+                optionTitle: { $0.localizedName }, onSelect: { model.select($0) })
+    }
+    .toolbarSearchable(text: $model.titleFilter, prompt: prompt, alwaysShowsField: true)
+```
 
 ### Section headers
 
@@ -275,6 +294,16 @@ add the tap target there.
 - **The Search tab owns the search button of its whole stack on iOS 26.** In a `Tab(role: .search)`
   a pushed screen's `ToolbarSearchItem` opens the Search root's field and drops the screen.
   `SearchResultsView` therefore keeps the plain field when its stack is `AppRouter.search`.
+- **A large title over a top `floatingBar` on a pushed screen (iOS 26).** The bar's scroll edge
+  effect reaches over the navigation bar's large title (and `inlineLarge`, which a back button
+  moves to its own row) and blurs it at rest; a collapsing title is also left half collapsed,
+  overlapping the back button, when the list under it is replaced (a period chip). Use
+  `titledFloatingBar`, which draws the title in the bar. Library's root title is fine: with no
+  back button, `inlineLarge` sits in the buttons' row.
+- **A sideways scrolling row in a top `floatingBar` takes over iOS 18's navigation bar.** The bar
+  follows the chips' `ScrollView` instead of the list, so pulling the list down no longer reveals
+  the drawer's search field (it refreshes instead). Pass `alwaysShowsField: true` to
+  `toolbarSearchable` on such a screen.
 - **`onChange(of:initial: true)` runs again when a screen comes back from a pushed one.** A
   handler that resets state (Home's pager used to jump back to its second page) must check that
   the value really changed.

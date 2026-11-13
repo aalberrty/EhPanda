@@ -55,3 +55,62 @@ private struct FloatingBar<Bar: View>: ViewModifier {
         }
     }
 }
+
+extension View {
+    /// A pushed screen's title with a top `floatingBar` pinned under it, for a screen whose bar
+    /// swaps the list below (Toplists over its period chips).
+    ///
+    /// iOS 26 draws the title in the bar, large and never collapsing, above `content`, and
+    /// removes the navigation bar's own: the bar's scroll edge effect reaches over the navigation
+    /// bar's large title and blurs it, and a collapsing title is left half collapsed when the
+    /// list that collapsed it is replaced. iOS 18 keeps v3's inline title, with the search
+    /// field's drawer under it and the bar under that.
+    func titledFloatingBar(
+        _ title: String, background: FloatingBarBackground = .none, @ViewBuilder content: () -> some View
+    ) -> some View {
+        modifier(TitledFloatingBar(title: title, background: background, bar: content()))
+    }
+}
+
+private struct TitledFloatingBar<Bar: View>: ViewModifier {
+    let title: String
+    let background: FloatingBarBackground
+    let bar: Bar
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) {
+            content
+                .floatingBar(edge: .top, spacing: 0, background: background) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        BarTitle(title: title)
+                        bar
+                    }
+                }
+                .navigationTitle(title)
+                .toolbarTitleDisplayMode(.inline)
+                .toolbar(removing: .title)
+        } else {
+            content
+                .floatingBar(edge: .top, spacing: 0, background: background) { bar }
+                .navigationTitle(title)
+                .toolbarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+/// The large title as the navigation bar would draw it, on the bar's leading margin.
+private struct BarTitle: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.screenTitle)
+            .foregroundStyle(.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+            // It stays on screen, so it stops growing where the navigation bar's title does.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .padding(.horizontal, Tokens.Spacing.large)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
