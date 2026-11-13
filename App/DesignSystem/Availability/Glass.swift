@@ -1,3 +1,4 @@
+import EhCore
 import SwiftUI
 
 // The one place that picks Liquid Glass (iOS 26) or its iOS 18 stand-in. Call sites use these
@@ -36,7 +37,8 @@ extension View {
         modifier(GlassButtonStyle(isProminent: false, tone: tone))
     }
 
-    /// `.buttonStyle(.glassProminent)` in the tint; `.borderedProminent` on iOS 18.
+    /// `.buttonStyle(.glassProminent)` in the tint, its label in the colour that reads on the
+    /// tint (ground on the redesign's bone and ink); `.borderedProminent` on iOS 18.
     func glassProminentButtonStyle() -> some View {
         modifier(GlassButtonStyle(isProminent: true, tone: .regular))
     }
@@ -94,10 +96,16 @@ private struct GlassButtonStyle: ViewModifier {
     let isProminent: Bool
     let tone: GlassTone
 
+    /// Optional so previews without the shell's environment still render.
+    @Environment(SettingsStore.self) private var settings: SettingsStore?
+
     func body(content: Content) -> some View {
         if #available(iOS 26, *) {
             if isProminent {
-                content.buttonStyle(.glassProminent)
+                // The style draws its label white, which vanishes on the bone tint.
+                content
+                    .buttonStyle(.glassProminent)
+                    .foregroundStyle(settings?.accentColor.appTintForeground ?? .white)
             } else if tone == .regular {
                 content.buttonStyle(.glass)
             } else if #available(iOS 26.1, *) {

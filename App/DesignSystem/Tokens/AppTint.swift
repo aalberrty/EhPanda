@@ -12,6 +12,12 @@ extension RGBColor {
         Color(uiColor: appTintUIColor)
     }
 
+    /// Text and symbols on a fill of `appTint`: the ground colour on the redesign's bone and ink
+    /// tint, white on an accent colour, as before.
+    var appTintForeground: Color {
+        AppLook.isRedesigned && isDefaultAccent ? DesignColors.onSelectedFill : .white
+    }
+
     /// `appTint` for UIKit (window tints).
     var appTintUIColor: UIColor {
         guard AppLook.isRedesigned, isDefaultAccent else {
