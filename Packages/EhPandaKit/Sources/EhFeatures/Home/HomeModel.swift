@@ -4,7 +4,7 @@ import EhModels
 import EhNetworking
 import Observation
 
-/// The Home tab root: Popular cards, the Frontpage cover strip and the four Toplists columns.
+/// The Home tab root: the Popular pager, the Frontpage wall and the four Toplists columns.
 ///
 /// Each section loads on its own, concurrently with the others, so one failing never blanks
 /// the rest. The loads run in tasks the model owns: pushing a gallery while they are in flight
@@ -33,10 +33,6 @@ public final class HomeModel {
     public init() {}
 
     // MARK: Derived state
-
-    public var coverColumns: [CoverColumn] {
-        HomeSections.coverColumns(from: frontpage)
-    }
 
     public var isLoadingToplists: Bool {
         toplistsStates.values.contains(.loading)

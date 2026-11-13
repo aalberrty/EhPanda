@@ -1,9 +1,10 @@
+import Dependencies
 import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The Home tab root: Popular cards, the Frontpage cover strip, the Toplists columns and
-/// shortcuts to the other lists.
+/// The Home tab root: the Popular pager, the Frontpage wall and the Toplists columns (E-Home).
+/// Watched and History live in the Library tab; the Popular list opens from the pager.
 struct HomeScreen: View {
     @State private var model = HomeModel()
 
@@ -13,6 +14,7 @@ struct HomeScreen: View {
     var body: some View {
         content
             .animation(.default, value: model.cards.isEmpty)
+            .screenGround()
             .navigationTitle(L10n.Localizable.HomeView.Title.home)
             .toolbar { reloadItem }
             // The model owns the loads, so pushing a gallery does not cancel them.
@@ -62,24 +64,17 @@ private struct HomeSectionsView: View {
     let open: (Gallery) -> Void
     let openList: (GalleryListKind) -> Void
 
-    /// Written here, read only by the carousel, so a scroll starting or ending re-renders the
-    /// carousel and not the whole page.
-    @State private var scrolling = PageScrollState()
-
     var body: some View {
         ScrollView {
-            VStack(spacing: Tokens.Spacing.xxLarge) {
-                HomeCardCarousel(cards: model.cards, pageScrolling: scrolling, open: open)
+            VStack(spacing: 0) {
+                HomePopularPager(galleries: model.cards, open: open, openPopular: { openList(.popular) })
+                    .padding(.top, Tokens.Spacing.small)
                 FrontpageSection(model: model, open: open, openList: openList)
                 ToplistsSection(model: model, open: open, openList: openList)
-                SubSection(title: L10n.Localizable.HomeView.Section.Title.other, showsAll: false) {
-                    HomeShortcuts(open: openList)
-                }
             }
-            .padding(.vertical, Tokens.Spacing.small)
+            .padding(.bottom, Tokens.Spacing.xLarge)
         }
         .scrollIndicators(.hidden)
-        .onScrollPhaseChange { _, phase in scrolling.isScrolling = phase.isScrolling }
     }
 }
 
@@ -89,16 +84,18 @@ private struct FrontpageSection: View {
     let openList: (GalleryListKind) -> Void
 
     var body: some View {
-        let count = model.frontpage.count
+        let galleries = model.frontpage
         let isLoading = model.frontpageState.isLoading
-        // Legacy hid the strip until it had a full column; placeholders cover the first load.
-        if HomeSections.showsCoverStrip(galleryCount: count) || (count == 0 && isLoading) {
-            SubSection(
-                title: L10n.Localizable.HomeView.Section.Title.frontpage, tint: .secondary, isLoading: isLoading,
-                reload: model.reloadFrontpage, showAll: { openList(.frontpage) }
-            ) {
-                HomeCoverStrip(columns: model.coverColumns, showsPlaceholders: count == 0, open: open)
+        // Placeholders cover the first load; a failed first load hides the section, as in legacy.
+        if !galleries.isEmpty || isLoading {
+            VStack(spacing: Tokens.Spacing.xSmall) {
+                HomeSectionHeader(
+                    title: L10n.Localizable.HomeView.Section.Title.frontpage, isLoading: isLoading,
+                    reload: model.reloadFrontpage, showAll: { openList(.frontpage) }
+                )
+                HomeFrontpageWall(galleries: galleries, showsPlaceholders: galleries.isEmpty, open: open)
             }
+            .padding(.top, 14)
         }
     }
 }
@@ -109,24 +106,34 @@ private struct ToplistsSection: View {
     let openList: (GalleryListKind) -> Void
 
     var body: some View {
-        SubSection(
-            title: L10n.Localizable.HomeView.Section.Title.toplists, tint: .secondary,
-            isLoading: model.isLoadingToplists,
-            reload: model.reloadToplists, showAll: { openList(.toplists) }
-        ) {
+        VStack(spacing: 6) {
+            HomeSectionHeader(
+                title: L10n.Localizable.HomeView.Section.Title.toplists, isLoading: model.isLoadingToplists,
+                reload: model.reloadToplists, showAll: { openList(.toplists) }
+            )
             HomeToplists(
                 periods: ToplistsType.allCases.map { ToplistsPeriod(type: $0, galleries: model.toplists(for: $0)) },
                 open: open
             )
         }
+        .padding(.top, 22)
+    }
+}
+
+private struct HomeScreenPreview: View {
+    @Dependency(\.settings) private var settings
+
+    var body: some View {
+        NavigationStack {
+            HomeScreen()
+        }
+        .environment(StackRouter())
+        .environment(AppRouter())
+        .environment(settings)
+        .environment(CoverPaletteStore())
     }
 }
 
 #Preview {
-    NavigationStack {
-        HomeScreen()
-    }
-    .environment(StackRouter())
-    .environment(AppRouter())
-    .environment(CoverPaletteStore())
+    HomeScreenPreview()
 }

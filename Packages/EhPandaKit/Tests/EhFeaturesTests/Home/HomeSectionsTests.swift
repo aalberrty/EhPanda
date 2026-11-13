@@ -50,11 +50,21 @@ import Testing
         #expect(orders.count > 1)
     }
 
-    @Test func carouselStartsOnTheSecondCard() {
+    @Test func pagerStartsOnTheSecondGallery() {
         #expect(HomeSections.initialCardIndex(count: 0) == nil)
         #expect(HomeSections.initialCardIndex(count: 1) == 0)
         #expect(HomeSections.initialCardIndex(count: 2) == 1)
         #expect(HomeSections.initialCardIndex(count: 6) == 1)
+    }
+
+    @Test func pagerKeepsItsPageUntilTheGalleriesChange() {
+        let ids = ["a", "b", "c"]
+
+        #expect(HomeSections.pagerPage(current: nil, oldIDs: ids, ids: ids) == "b")
+        #expect(HomeSections.pagerPage(current: "c", oldIDs: ids, ids: ids) == "c")
+        #expect(HomeSections.pagerPage(current: "c", oldIDs: ids, ids: ["d", "e", "c"]) == "e")
+        #expect(HomeSections.pagerPage(current: "x", oldIDs: ids, ids: ids) == "b")
+        #expect(HomeSections.pagerPage(current: "c", oldIDs: ids, ids: []) == nil)
     }
 
     @Test func compactCardsShortenLongTitles() {
@@ -78,21 +88,33 @@ import Testing
         #expect(frontpage.map(\.gid) == (0..<25).filter { $0 != 3 }.map(String.init))
     }
 
-    @Test func coverColumnsPairGalleriesAndDropAnOddLastOne() {
-        let galleries = (0..<5).map { makeHomeGallery(gid: "\($0)", title: "Title \($0)") }
+    @Test func frontpageWallShowsTwoFullRows() {
+        let galleries = (0..<25).map { makeHomeGallery(gid: "\($0)", title: "Title \($0)") }
 
-        let columns = HomeSections.coverColumns(from: galleries)
+        let compact = HomeSections.frontpageWall(from: galleries, columns: 3)
+        let regular = HomeSections.frontpageWall(from: galleries, columns: 6)
 
-        #expect(columns.map(\.top.gid) == ["0", "2"])
-        #expect(columns.map(\.bottom.gid) == ["1", "3"])
-        #expect(HomeSections.coverColumns(from: Array(galleries.prefix(1))).isEmpty)
-        #expect(HomeSections.coverColumns(from: []).isEmpty)
+        #expect(compact.map(\.gid) == (0..<6).map(String.init))
+        #expect(regular.map(\.gid) == (0..<12).map(String.init))
     }
 
-    @Test func coverStripNeedsAtLeastTwoGalleries() {
-        #expect(!HomeSections.showsCoverStrip(galleryCount: 0))
-        #expect(!HomeSections.showsCoverStrip(galleryCount: 1))
-        #expect(HomeSections.showsCoverStrip(galleryCount: 2))
+    @Test func frontpageWallDropsAPartialLastRowButKeepsAPartialFirstRow() {
+        let galleries = (0..<5).map { makeHomeGallery(gid: "\($0)", title: "Title \($0)") }
+
+        #expect(HomeSections.frontpageWall(from: galleries, columns: 3).map(\.gid) == ["0", "1", "2"])
+        #expect(HomeSections.frontpageWall(from: Array(galleries.prefix(2)), columns: 3).map(\.gid) == ["0", "1"])
+        #expect(HomeSections.frontpageWall(from: Array(galleries.prefix(3)), columns: 3).count == 3)
+        #expect(HomeSections.frontpageWall(from: [], columns: 3).isEmpty)
+        #expect(HomeSections.frontpageWall(from: galleries, columns: 0).isEmpty)
+        #expect(HomeSections.frontpageWall(from: galleries, columns: 3, rows: 0).isEmpty)
+    }
+
+    @Test func shortTitleTrimsButNeverComesOutEmpty() {
+        let bracketed = makeHomeGallery(gid: "1", title: "[Circle (Artist)] Summer Notes | Translated [English]")
+        let onlyBrackets = makeHomeGallery(gid: "2", title: "[Artist] (Event)")
+
+        #expect(HomeSections.shortTitle(of: bracketed) == "Summer Notes")
+        #expect(HomeSections.shortTitle(of: onlyBrackets) == onlyBrackets.title)
     }
 
     // MARK: Toplists
