@@ -2172,6 +2172,8 @@ internal enum L10n {
         internal static let favorites = L10n.tr("Localizable", "tab_item.title.favorites", fallback: "Favorites")
         /// Home
         internal static let home = L10n.tr("Localizable", "tab_item.title.home", fallback: "Home")
+        /// Library
+        internal static let library = L10n.tr("Localizable", "tab_item.title.library", fallback: "Library")
         /// Search
         internal static let search = L10n.tr("Localizable", "tab_item.title.search", fallback: "Search")
         /// Setting

@@ -107,31 +107,49 @@ import Testing
         #expect(model.tabReselectionFeedback == 2)
     }
 
-    @Test func reselectingFavoritesGivesFeedbackWhenItActs() {
+    @Test func reselectingLibraryGivesFeedbackWhenItActs() {
         let harness = LaunchHarness()
         let model = harness.model!
-        model.selectTab(.favorites)
+        model.selectTab(.library)
 
         // At the root and logged out: nothing reloads.
-        model.selectTab(.favorites)
+        model.selectTab(.library)
         #expect(model.tabReselectionFeedback == 0)
 
-        model.router.favorites.push(.galleryList(.popular))
-        model.selectTab(.favorites)
+        model.router.library.push(.galleryList(.popular))
+        model.selectTab(.library)
         #expect(model.tabReselectionFeedback == 1)
-        #expect(model.router.favorites.isAtRoot)
+        #expect(model.router.library.isAtRoot)
     }
 
-    @Test func reselectingFavoritesWhileLoggedInGivesFeedback() {
+    @Test func reselectingLibraryWhileLoggedInGivesFeedback() {
         let model = withDependencies {
             $0.cookieStore = AppFixture.loggedInCookies()
         } operation: {
             AppModel()
         }
-        model.selectTab(.favorites)
+        model.selectTab(.library)
 
-        model.selectTab(.favorites)
+        model.selectTab(.library)
 
+        #expect(model.tabReselectionFeedback == 1)
+    }
+
+    @Test func reselectingLibraryOnHistoryGivesFeedbackOnlyWhenItPops() {
+        let model = withDependencies {
+            $0.cookieStore = AppFixture.loggedInCookies()
+            $0.librarySegmentStore = .inMemory(.history)
+        } operation: {
+            AppModel()
+        }
+        model.selectTab(.library)
+
+        // History has nothing to reload, even logged in.
+        model.selectTab(.library)
+        #expect(model.tabReselectionFeedback == 0)
+
+        model.router.library.push(.galleryList(.popular))
+        model.selectTab(.library)
         #expect(model.tabReselectionFeedback == 1)
     }
 

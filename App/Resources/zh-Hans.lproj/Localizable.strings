@@ -47,6 +47,7 @@
 "tab_item.title.favorites" = "收藏";
 "tab_item.title.search" = "搜索";
 "tab_item.title.setting" = "设置";
+"tab_item.title.library" = "资料库";
 
 // MARK: ToolbarItem
 "toolbar_item.button.filters" = "筛选";

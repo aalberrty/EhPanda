@@ -47,6 +47,7 @@
 "tab_item.title.favorites" = "お気に入り";
 "tab_item.title.search" = "検索";
 "tab_item.title.setting" = "設定";
+"tab_item.title.library" = "ライブラリ";
 
 // MARK: ToolbarItem
 "toolbar_item.button.filters" = "フィルター";

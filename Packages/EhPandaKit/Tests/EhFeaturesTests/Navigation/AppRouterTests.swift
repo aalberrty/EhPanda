@@ -57,7 +57,7 @@ import Testing
         router.select(.home)
 
         #expect(router.rootReselectionCount(for: .home) == 2)
-        #expect(router.rootReselectionCount(for: .favorites) == 0)
+        #expect(router.rootReselectionCount(for: .library) == 0)
     }
 
     @Test func presentingAGalleryStartsWithAnEmptyStack() {

@@ -8,7 +8,7 @@ public final class AppRouter {
     public private(set) var selectedTab: AppTab = .home
 
     public let home = StackRouter()
-    public let favorites = StackRouter()
+    public let library = StackRouter()
     public let search = StackRouter()
     public let settings = StackRouter()
 
@@ -30,7 +30,7 @@ public final class AppRouter {
     public func stack(for tab: AppTab) -> StackRouter {
         switch tab {
         case .home: home
-        case .favorites: favorites
+        case .library: library
         case .search: search
         case .settings: settings
         }
