@@ -4,8 +4,9 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// One row per tag namespace. Tapping a tag searches for it; its context menu offers the tag's
-/// translation detail and, when logged in, votes.
+/// Every tag in one flow on a glass panel, each namespace named once in front of its chips
+/// (E-Detail). Tapping a tag searches for it; its context menu offers the tag's translation
+/// detail and, when logged in, votes.
 struct DetailTagsSection: View {
     let model: GalleryDetailModel
 
@@ -15,29 +16,35 @@ struct DetailTagsSection: View {
 
     var body: some View {
         if !model.tagRows.isEmpty {
-            VStack(alignment: .leading, spacing: Tokens.Spacing.small) {
+            let translates = settings.translatesTags
+            let showsImages = settings.showsImagesInTags
+            FlowLayout(spacing: Self.chipSpacing, lineSpacing: Tokens.Spacing.small + Tokens.Spacing.xxSmall) {
                 ForEach(model.tagRows) { row in
-                    TagRowView(
-                        row: row,
-                        translates: settings.translatesTags,
-                        translations: settings.translatesTags ? translations(of: row) : [:],
-                        showsImages: settings.showsImagesInTags,
-                        isLoggedIn: model.isLoggedIn,
-                        actions: actions
-                    )
-                    .equatable()
+                    ForEach(row.chips) { chip in
+                        TagFlowItem(
+                            namespace: chip.id == row.chips.first?.id ? namespaceName(of: row) : nil,
+                            chip: chip,
+                            translation: translates ? model.translation(for: chip) : nil,
+                            translates: translates,
+                            showsImages: showsImages,
+                            isLoggedIn: model.isLoggedIn,
+                            // The last chip of a namespace keeps the wider gap to the next one.
+                            trailingGap: chip.id == row.chips.last?.id ? Self.namespaceSpacing - Self.chipSpacing : 0,
+                            actions: actions
+                        )
+                        .equatable()
+                    }
                 }
             }
+            .padding(DetailMetrics.panelInset)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .glassPanel()
             .sensoryFeedback(.impact(flexibility: .soft), trigger: searchCount)
         }
     }
 
-    /// This row's translations, looked up synchronously; reading them observes the service.
-    private func translations(of row: DetailTagRow) -> [String: TagTranslationDisplay] {
-        row.chips.reduce(into: [:]) { result, chip in
-            result[chip.translationKey] = model.translation(for: chip)
-        }
+    private func namespaceName(of row: DetailTagRow) -> String {
+        row.tag.namespace?.localizedName ?? row.tag.rawNamespace
     }
 
     private var actions: TagChipActions {
@@ -50,6 +57,9 @@ struct DetailTagsSection: View {
             showDetail: { detail in model.showTagDetail(detail) }
         )
     }
+
+    private static let chipSpacing: CGFloat = 6
+    private static let namespaceSpacing: CGFloat = 14
 }
 
 struct TagChipActions {
@@ -58,53 +68,60 @@ struct TagChipActions {
     let showDetail: (TagDetail) -> Void
 }
 
-private struct TagRowView: View, Equatable {
-    let row: DetailTagRow
+/// One chip of the flow; the first chip of a namespace carries the namespace's name in front,
+/// so the name never ends a line on its own.
+private struct TagFlowItem: View, Equatable {
+    let namespace: String?
+    let chip: DetailTagChip
+    let translation: TagTranslationDisplay?
     let translates: Bool
-    /// Empty when tags are not translated.
-    let translations: [String: TagTranslationDisplay]
     let showsImages: Bool
     let isLoggedIn: Bool
+    let trailingGap: CGFloat
     let actions: TagChipActions
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.row == rhs.row && lhs.translates == rhs.translates && lhs.translations == rhs.translations && lhs.showsImages == rhs.showsImages
-            && lhs.isLoggedIn == rhs.isLoggedIn
+        lhs.namespace == rhs.namespace && lhs.chip == rhs.chip && lhs.translation == rhs.translation
+            && lhs.translates == rhs.translates && lhs.showsImages == rhs.showsImages
+            && lhs.isLoggedIn == rhs.isLoggedIn && lhs.trailingGap == rhs.trailingGap
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: Tokens.Spacing.small) {
-            Text(row.tag.namespace?.localizedName ?? row.tag.rawNamespace)
-                .font(.subheadline.bold())
-                .foregroundStyle(Color(.systemBackground))
-                .padding(TagChip.defaultPadding)
-                .background(Color(.systemGray), in: .rect(cornerRadius: Tokens.Radius.chip, style: .continuous))
-                .accessibilityAddTraits(.isHeader)
-            FlowLayout(spacing: Tokens.Spacing.xSmall) {
-                ForEach(row.chips) { chip in
-                    chipButton(chip)
-                }
+        HStack(spacing: Tokens.Spacing.small - Tokens.Spacing.xxSmall) {
+            if let namespace {
+                // Fixed, so the stack gives the chip all the rest: otherwise a chip with an image
+                // can be offered only half the width and truncate beside a short name.
+                Text(namespace)
+                    .font(.caption)
+                    .foregroundStyle(.textTertiary)
+                    .fixedSize()
+                    .accessibilityAddTraits(.isHeader)
             }
+            chipButton
         }
+        .padding(.trailing, trailingGap)
     }
 
-    private func chipButton(_ chip: DetailTagChip) -> some View {
-        let translation = translations[chip.translationKey]
-        return Button {
+    private var chipButton: some View {
+        Button {
             actions.search(chip.searchKeyword)
         } label: {
             TagChip(
                 chip.content.chipText(translation: translation, showsImages: showsImages),
-                imageURL: showsImages ? translation?.valueImageURL : nil
+                imageURL: showsImages ? translation?.valueImageURL : nil,
+                font: .subheadline,
+                padding: Self.chipPadding,
+                foreground: .textPrimary,
+                background: .chipFill
             )
         }
         .buttonStyle(.plain)
-        .contextMenu { menu(for: chip) }
+        .contextMenu { menu }
     }
 
     /// Legacy offered "Detail" only while translating, for a tag whose translation has a description.
     @ViewBuilder
-    private func menu(for chip: DetailTagChip) -> some View {
+    private var menu: some View {
         if translates, let detail = chip.detail {
             Button(L10n.Localizable.DetailView.ContextMenu.Button.detail, systemImage: "doc.richtext") {
                 actions.showDetail(detail)
@@ -130,4 +147,7 @@ private struct TagRowView: View, Equatable {
             }
         }
     }
+
+    /// E-Detail's 32 pt chips.
+    private static let chipPadding = EdgeInsets(top: 6, leading: 11, bottom: 6, trailing: 11)
 }
