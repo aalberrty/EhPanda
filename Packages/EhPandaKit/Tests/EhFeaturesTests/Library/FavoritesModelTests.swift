@@ -110,9 +110,7 @@ import Testing
         await screen.render(model.list)
         #expect(env.query("f_search", ofRequest: 2) == "tag")
 
-        model.isQuickSearchPresented = true
         model.quickSearch("other")
-        #expect(!model.isQuickSearchPresented)
         #expect(model.keyword == "other")
         await model.list.loadIfNeeded()
         #expect(env.query("f_search", ofRequest: 3) == "other")

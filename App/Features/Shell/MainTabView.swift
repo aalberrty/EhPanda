@@ -27,14 +27,15 @@ struct MainTabView: View {
             Tab(L10n.Localizable.TabItem.Title.home, systemImage: "house", value: AppTab.home) {
                 RoutedStack(router: router.home) { HomeScreen() }
             }
-            Tab(L10n.Localizable.TabItem.Title.favorites, systemImage: "heart", value: AppTab.favorites) {
-                RoutedStack(router: router.favorites) { FavoritesScreen() }
-            }
-            Tab(value: AppTab.search, role: .search) {
-                RoutedStack(router: router.search) { SearchScreen() }
+            Tab(L10n.Localizable.TabItem.Title.library, systemImage: "books.vertical", value: AppTab.library) {
+                RoutedStack(router: router.library) { LibraryScreen() }
             }
             Tab(L10n.Localizable.TabItem.Title.setting, systemImage: "gearshape", value: AppTab.settings) {
                 RoutedStack(router: router.settings) { SettingsScreen() }
+            }
+            // Last, as drawn: iOS 26 sets the search tab apart at the trailing end anyway.
+            Tab(value: AppTab.search, role: .search) {
+                RoutedStack(router: router.search) { SearchScreen() }
             }
         }
         .sheet(item: presentedGallery) { gallery in

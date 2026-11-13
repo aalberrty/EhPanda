@@ -47,6 +47,7 @@
 "tab_item.title.favorites" = "즐겨찾기";
 "tab_item.title.search" = "검색";
 "tab_item.title.setting" = "설정";
+"tab_item.title.library" = "보관함";
 
 // MARK: ToolbarItem
 "toolbar_item.button.filters" = "필터";

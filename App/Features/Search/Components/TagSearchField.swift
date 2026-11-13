@@ -8,14 +8,20 @@ extension View {
     /// Typed text is normalised (runs of spaces collapsed, `：` → `:`). Suggestions appear when the
     /// tags extension and "Shows tags search suggestion" are on and a dictionary is installed.
     /// Choosing one replaces the fragment it matched with the tag's keyword.
-    func tagSearchable(text: Binding<String>, prompt: String, onSubmit: @escaping () -> Void) -> some View {
-        modifier(TagSearchableModifier(text: text, prompt: prompt, onSubmit: onSubmit))
+    ///
+    /// `suggestsTags: false` makes it a plain filter field (no suggestions, no normalising) without
+    /// replacing the modifier, which would rebuild the screen under it (Library's History segment).
+    func tagSearchable(
+        text: Binding<String>, prompt: String, suggestsTags: Bool = true, onSubmit: @escaping () -> Void
+    ) -> some View {
+        modifier(TagSearchableModifier(text: text, prompt: prompt, suggestsTags: suggestsTags, onSubmit: onSubmit))
     }
 }
 
 private struct TagSearchableModifier: ViewModifier {
     @Binding var text: String
     let prompt: String
+    let suggestsTags: Bool
     let onSubmit: () -> Void
 
     @State private var model = TagSuggestionModel()
@@ -25,7 +31,7 @@ private struct TagSearchableModifier: ViewModifier {
         content
             .searchable(text: $text, prompt: prompt)
             .searchSuggestions {
-                if model.isEnabled, !model.suggestions.isEmpty {
+                if suggestsTags, model.isEnabled, !model.suggestions.isEmpty {
                     // Legacy showed the count only on iPhone; iPad's completion menu has no header.
                     if horizontalSizeClass != .regular {
                         Text(L10n.Localizable.Searchable.Title.matchesCount(model.matchCount))
@@ -44,6 +50,7 @@ private struct TagSearchableModifier: ViewModifier {
             }
             .onSubmit(of: .search, onSubmit)
             .onChange(of: text) { _, newValue in
+                guard suggestsTags else { return }
                 let normalized = TagSuggestionModel.normalize(newValue)
                 if normalized != newValue {
                     // Runs this handler again with the normalised text.

@@ -47,6 +47,7 @@
 "tab_item.title.favorites" = "Favoriten";
 "tab_item.title.search" = "Suche";
 "tab_item.title.setting" = "Einstellungen";
+"tab_item.title.library" = "Bibliothek";
 
 // MARK: ToolbarItem
 "toolbar_item.button.filters" = "Filters";

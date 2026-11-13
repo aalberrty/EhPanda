@@ -1,7 +1,7 @@
 import EhModels
 import Observation
 
-/// The Watched screen: the watched-tags list searched on the server by keyword.
+/// The Watched list: the watched-tags list searched on the server by keyword.
 @Observable
 public final class WatchedModel {
     /// The search field's text. Only submitting it reloads the list.
@@ -19,5 +19,12 @@ public final class WatchedModel {
     public func quickSearch(_ word: String) {
         keyword = word
         submitKeyword()
+    }
+
+    /// Re-selecting the Library tab at its root reloads the list, as it does Favorites (only when
+    /// logged in, which the list checks when it loads).
+    public func reloadForTabReselection() {
+        guard !list.needsLogin else { return }
+        list.reload()
     }
 }

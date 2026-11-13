@@ -67,6 +67,8 @@ public final class AppModel {
     @ObservationIgnored @Dependency(\.accountSession) var account
     @ObservationIgnored @Dependency(\.tagTranslationService) var tagTranslations
     @ObservationIgnored @Dependency(\.cookieStore) var cookies
+    /// The Library segment on show: re-selecting the tab reloads only Favorites and Watched.
+    @ObservationIgnored @Dependency(\.librarySegmentStore) var librarySegments
     @ObservationIgnored @Dependency(\.continuousClock) var clock
     @ObservationIgnored @Dependency(\.appLogger) var logger
 
@@ -144,8 +146,8 @@ public final class AppModel {
     // MARK: Tabs
 
     /// Selects a tab through the router and gives the legacy soft haptic on re-selection: always
-    /// for Home and Search; for Favorites when it pops or (logged in) reloads; for Settings when
-    /// it pops.
+    /// for Home and Search; for Library when it pops or, logged in, reloads Favorites or Watched
+    /// (legacy Favorites); for Settings when it pops.
     public func selectTab(_ tab: AppTab) {
         let isReselection = tab == router.selectedTab
         let wasAtRoot = router.stack(for: tab).isAtRoot
@@ -153,7 +155,7 @@ public final class AppModel {
         guard isReselection else { return }
         let givesFeedback = switch tab {
         case .home, .search: true
-        case .favorites: !wasAtRoot || cookies.didLogin
+        case .library: !wasAtRoot || (librarySegments.load() ?? .favorites).requiresLogin && cookies.didLogin
         case .settings: !wasAtRoot
         }
         if givesFeedback {

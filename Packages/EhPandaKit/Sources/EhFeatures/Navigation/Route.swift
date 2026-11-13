@@ -4,12 +4,14 @@ import EhModels
 /// The four tabs of the app.
 nonisolated public enum AppTab: Hashable, Sendable, CaseIterable {
     case home
-    case favorites
+    /// Favorites, Watched and History.
+    case library
     case search
     case settings
 }
 
-/// The gallery lists that can be pushed as their own screen.
+/// The gallery lists that can be pushed as their own screen. Watched and History are also
+/// segments of the Library tab; Home still pushes them as screens of their own.
 nonisolated public enum GalleryListKind: Hashable, Sendable {
     case frontpage
     case popular

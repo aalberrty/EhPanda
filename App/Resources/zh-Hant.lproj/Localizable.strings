@@ -47,6 +47,7 @@
 "tab_item.title.favorites" = "收藏";
 "tab_item.title.search" = "搜尋";
 "tab_item.title.setting" = "設定";
+"tab_item.title.library" = "資料庫";
 
 // MARK: ToolbarItem
 "toolbar_item.button.filters" = "過濾";

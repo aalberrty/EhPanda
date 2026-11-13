@@ -112,7 +112,7 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
   - `AppRouter` owns the selected tab, one `StackRouter` per tab, and the gallery sheet used for
     deep links. Re-selecting a tab pops it to its root, or bumps `rootReselections` when already there.
 - **Entry points.** Each feature owns the entry views the shell references (`HomeScreen`,
-  `FavoritesScreen`, `SearchScreen`, `SearchResultsDestination`, `GalleryListDestination`,
+  `LibraryScreen`, `SearchScreen`, `SearchResultsDestination`, `GalleryListDestination`,
   `GalleryDetailDestination`, `SettingsScreen`, `SettingsDestination`). Keep their names and initializers.
 - **Tests.** Model tests run on the host with `withDependencies`, a `StubTransport` serving fixture
   HTML and an in-memory `AppDatabase` (`EhTestSupport`), not with per-endpoint mocks.
