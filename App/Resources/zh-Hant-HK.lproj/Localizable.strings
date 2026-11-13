@@ -360,6 +360,8 @@
 "reading_view.toolbar_item.button.retry_all_failed_images" = "重新載入失敗圖片";
 "reading_view.toolbar_item.button.reload_all_images" = "重新載入所有圖片";
 "reading_view.toolbar_item.button.reading_setting" = "閱讀設定";
+"reading_view.toolbar_item.button.live_text" = "實況文字";
+"reading_view.title.page_position" = "第 %d 頁，共 %d 頁 · 剩餘 %d 頁";
 // AutoPlayPolicy
 "enum.auto_play_policy.value.off" = "關閉";
 

@@ -2065,8 +2065,16 @@ internal enum L10n {
           internal static let share = L10n.tr("Localizable", "reading_view.context_menu.button.share", fallback: "Share")
         }
       }
+      internal enum Title {
+        /// Page %d of %d · %d left
+        internal static func pagePosition(_ p1: Int, _ p2: Int, _ p3: Int) -> String {
+          return L10n.tr("Localizable", "reading_view.title.page_position", p1, p2, p3, fallback: "Page %d of %d · %d left")
+        }
+      }
       internal enum ToolbarItem {
         internal enum Button {
+          /// Live Text
+          internal static let liveText = L10n.tr("Localizable", "reading_view.toolbar_item.button.live_text", fallback: "Live Text")
           /// Reading setting
           internal static let readingSetting = L10n.tr("Localizable", "reading_view.toolbar_item.button.reading_setting", fallback: "Reading setting")
           /// Reload all images
