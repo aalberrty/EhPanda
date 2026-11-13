@@ -23,6 +23,7 @@ struct PostCommentSheet: View {
                 .focused($isFocused)
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal)
+                .screenGround()
                 .navigationTitle(title)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

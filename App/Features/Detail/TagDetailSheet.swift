@@ -14,7 +14,7 @@ struct TagDetailSheet: View {
                 VStack(alignment: .leading, spacing: Tokens.Spacing.xLarge) {
                     Text(detail.description)
                         .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                     SubSection(title: L10n.Localizable.TagDetailView.Section.Title.images, showsAll: false) {
@@ -26,6 +26,7 @@ struct TagDetailSheet: View {
                 }
                 .padding(.vertical)
             }
+            .screenGround()
             .navigationTitle(detail.title.removingEmojiPresentation)
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -64,7 +65,7 @@ struct TagDetailSheet: View {
                             .font(.callout.bold())
                             .multilineTextAlignment(.leading)
                     }
-                    .tint(.secondary)
+                    .tint(.textSecondary)
                 }
             }
             .padding(.horizontal)

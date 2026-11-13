@@ -16,6 +16,8 @@ struct CommentsScreen: View {
             List(model.comments) { item in
                 CommentRow(item: item)
                     .equatable()
+                    .listRowBackground(Color.clear)
+                    .listRowSeparatorTint(.hairline)
                     .opacity(item.id == model.highlightedCommentID ? model.highlightOpacity : 1)
                     .swipeActions(edge: .leading) {
                         if item.comment.votable {
@@ -46,6 +48,7 @@ struct CommentsScreen: View {
                     }
             }
             .listStyle(.plain)
+            .screenGround()
             .animation(.default, value: model.highlightOpacity)
             .onChange(of: model.scrollTarget) { _, target in
                 guard let target else { return }
@@ -100,6 +103,7 @@ struct CommentRow: View, Equatable {
                 case .text(let text):
                     Text(text)
                         .font(.body)
+                        .foregroundStyle(.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 case .images(let images):
                     CommentImages(images: images)

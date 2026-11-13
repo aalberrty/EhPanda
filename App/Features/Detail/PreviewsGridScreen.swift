@@ -39,6 +39,7 @@ struct PreviewsGridScreen: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
+        .screenGround()
         .navigationTitle(L10n.Localizable.PreviewsView.Title.previews)
         .task { await model.load() }
         .fullScreenCover(item: $model.readerDestination) { destination in
@@ -64,7 +65,7 @@ private struct PreviewGridCell: View, Equatable {
             PreviewThumbnailView(thumbnail: thumbnail, width: width, failed: failed)
             Text(index, format: .number)
                 .font(isRegular ? .callout : .caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityHint(failed ? L10n.Localizable.ErrorView.Button.retry : "")
