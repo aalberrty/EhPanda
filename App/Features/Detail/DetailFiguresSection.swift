@@ -66,7 +66,7 @@ private struct RatingFigure: View {
         Button {
             withAnimation { model.toggleRatingControl() }
         } label: {
-            FigureLabel(systemImage: "star.fill") {
+            FigureLabel(systemImage: "star.fill", symbolStyle: .rating) {
                 Text(rating, format: .number.precision(.fractionLength(1...2)))
             }
         }
@@ -129,12 +129,14 @@ private struct FavoriteFigure: View {
 /// A symbol and a figure, as the bar draws its rating and favourite count.
 private struct FigureLabel<Value: View>: View {
     let systemImage: String
+    var symbolStyle: Color = .textPrimary
     @ViewBuilder let value: Value
 
     var body: some View {
         HStack(spacing: Tokens.Spacing.xSmall + Tokens.Spacing.xxSmall) {
             Image(systemName: systemImage)
                 .imageScale(.medium)
+                .foregroundStyle(symbolStyle)
             value
                 .monospacedDigit()
         }

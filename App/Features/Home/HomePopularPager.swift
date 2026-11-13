@@ -235,7 +235,7 @@ private struct PopularFigures: View {
             HStack(spacing: 3) {
                 Image(systemName: "star.fill")
                     .imageScale(.small)
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(.rating)
                 Text(rating, format: .number.precision(.fractionLength(1)))
             }
         }
