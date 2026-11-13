@@ -10,13 +10,13 @@ struct ToplistsScreen: View {
 
     var body: some View {
         PagedGalleryList(model: model.list)
-            .searchable(text: $model.titleFilter, prompt: L10n.Localizable.Searchable.Prompt.filter)
-            .navigationTitle(
-                [L10n.Localizable.ToplistsView.Title.toplists, model.type.localizedName].joined(separator: " - ")
-            )
-            .toolbarTitleDisplayMode(.inline)
+            .screenGround()
+            .toolbarSearchable(text: $model.titleFilter, prompt: L10n.Localizable.Searchable.Prompt.filter)
+            .navigationTitle(L10n.Localizable.ToplistsView.Title.toplists, subtitle: model.type.localizedName)
             .toolbar {
+                ToolbarSearchItem()
                 ToolbarItemGroup(placement: .primaryAction) {
+                    ListDisplayModeButton()
                     ToolbarPickerMenu(
                         L10n.Localizable.ToplistsView.Title.toplists, systemImage: "dial.low",
                         options: ToplistsType.allCases, selection: model.type,

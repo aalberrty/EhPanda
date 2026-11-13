@@ -2,8 +2,8 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// Frontpage and Popular: a list with the Global filter, a Filters button and a search field
-/// that filters the loaded galleries by title.
+/// Frontpage and Popular: a list with the Global filter, and a toolbar with the search field
+/// that filters the loaded galleries by title, the display mode and Filters.
 struct FilteredListScreen: View {
     let title: String
 
@@ -17,10 +17,13 @@ struct FilteredListScreen: View {
 
     var body: some View {
         PagedGalleryList(model: model)
-            .searchable(text: $model.titleFilter, prompt: L10n.Localizable.Searchable.Prompt.filter)
+            .screenGround()
+            .toolbarSearchable(text: $model.titleFilter, prompt: L10n.Localizable.Searchable.Prompt.filter)
             .navigationTitle(title)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarSearchItem()
+                ToolbarItemGroup(placement: .primaryAction) {
+                    ListDisplayModeButton()
                     FiltersButton { showsFilters = true }
                 }
             }
