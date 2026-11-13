@@ -25,18 +25,29 @@ struct DetailPanelHeader: View {
     var showsAll = false
     var showAll: () -> Void = {}
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.small) {
-            Text(title)
-                .font(.sectionTitle)
-                .foregroundStyle(.textPrimary)
-                .accessibilityAddTraits(.isHeader)
-            if let count {
-                Text(count, format: .number)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.textSecondary)
+        // At accessibility sizes "Show all" goes under the title instead of cutting both short.
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let layout = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Tokens.Spacing.small))
+        layout {
+            HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.small) {
+                Text(title)
+                    .font(.sectionTitle)
+                    .foregroundStyle(.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                if let count {
+                    Text(count, format: .number)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.textSecondary)
+                }
             }
-            Spacer(minLength: Tokens.Spacing.small)
+            if !isStacked {
+                Spacer(minLength: Tokens.Spacing.small)
+            }
             if showsAll {
                 Button(action: showAll) {
                     HStack(spacing: Tokens.Spacing.xxSmall) {
@@ -48,14 +59,14 @@ struct DetailPanelHeader: View {
                     .foregroundStyle(.textSecondary)
                     // A 44 pt target without making the header taller.
                     .padding(.vertical, Tokens.Spacing.medium)
-                    .padding(.leading, Tokens.Spacing.large)
+                    .padding(.leading, isStacked ? 0 : Tokens.Spacing.large)
                     .contentShape(.rect)
                     .padding(.vertical, -Tokens.Spacing.medium)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .lineLimit(1)
+        .lineLimit(isStacked ? nil : 1)
     }
 }
 

@@ -16,6 +16,7 @@ struct SubSection<Content: View>: View {
     private let content: Content
 
     @State private var reloadCount = 0
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String, showsAll: Bool = true, tint: Color? = nil, isLoading: Bool = false,
@@ -32,8 +33,14 @@ struct SubSection<Content: View>: View {
     }
 
     var body: some View {
+        // At accessibility sizes the title and "Show all" broke mid-word side by side, so
+        // "Show all" goes under the title.
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let header = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
         VStack(alignment: .leading, spacing: Tokens.Spacing.small) {
-            HStack(alignment: .firstTextBaseline) {
+            header {
                 Button {
                     reload?()
                     reloadCount += 1
@@ -56,25 +63,30 @@ struct SubSection<Content: View>: View {
                 .accessibilityAddTraits(.isHeader)
                 .sensoryFeedback(.impact(flexibility: .soft), trigger: reloadCount)
 
-                Spacer()
-
-                // The chevron is the "Show all ›" the mockups draw.
-                Button(action: showAll) {
-                    HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.xxSmall) {
-                        Text(L10n.Localizable.SubSection.Button.showAll)
-                        Image(systemName: "chevron.right")
-                            .imageScale(.small)
-                            .fontWeight(.semibold)
-                            .accessibilityHidden(true)
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(tint.map(AnyShapeStyle.init) ?? AnyShapeStyle(.tint))
-                    .contentShape(.rect)
+                if !isStacked {
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                .opacity(showsAll ? 1 : 0)
-                .disabled(!showsAll)
-                .accessibilityHidden(!showsAll)
+
+                // The chevron is the "Show all ›" the mockups draw. Under the title, a hidden
+                // one would only leave an empty line.
+                if showsAll || !isStacked {
+                    Button(action: showAll) {
+                        HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.xxSmall) {
+                            Text(L10n.Localizable.SubSection.Button.showAll)
+                            Image(systemName: "chevron.right")
+                                .imageScale(.small)
+                                .fontWeight(.semibold)
+                                .accessibilityHidden(true)
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(tint.map(AnyShapeStyle.init) ?? AnyShapeStyle(.tint))
+                        .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(showsAll ? 1 : 0)
+                    .disabled(!showsAll)
+                    .accessibilityHidden(!showsAll)
+                }
             }
             .padding(.horizontal)
             content
