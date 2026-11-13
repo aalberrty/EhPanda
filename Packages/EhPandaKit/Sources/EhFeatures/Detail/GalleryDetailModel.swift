@@ -107,6 +107,20 @@ public final class GalleryDetailModel {
         detail?.torrentCount ?? 0
     }
 
+    public var isFavorited: Bool {
+        detail?.isFavorited == true
+    }
+
+    /// Legacy offered "Show all" previews only past the 20 the detail page carries.
+    public var showsAllPreviews: Bool {
+        pageCount > 20
+    }
+
+    /// The search "Similar gallery" opens, once the page has loaded.
+    public var similarGalleryKeyword: String? {
+        detail.map(DetailSearchKeyword.similar(to:))
+    }
+
     /// The translation of a tag, by synchronous lookup in the translation service. Reading it
     /// observes the service, so chips update when the dictionary changes.
     public func translation(for chip: DetailTagChip) -> TagTranslationDisplay? {

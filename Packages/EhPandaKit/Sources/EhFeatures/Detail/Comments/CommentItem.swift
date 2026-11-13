@@ -9,7 +9,9 @@ public nonisolated struct CommentItem: Identifiable, Equatable, Sendable {
     public let author: String
     /// The body as legacy laid it out: one block per run, text runs carrying `link` attributes.
     public let blocks: [CommentBlock]
-    /// The text and link-text runs in one string, for the detail screen's comment cards.
+    /// The text and link-text runs in one string, for the detail screen's comments panel.
+    /// Without blank lines: the panel shows a few lines of each comment, and an empty line
+    /// between paragraphs would take one of them.
     public let summary: String
 
     public var id: String { comment.commentID }
@@ -22,6 +24,9 @@ public nonisolated struct CommentItem: Identifiable, Equatable, Sendable {
             .filter { [.plainText, .linkedText].contains($0.type) }
             .compactMap(\.text)
             .joined(separator: " ")
+            .split(whereSeparator: \.isNewline)
+            .filter { !$0.allSatisfy(\.isWhitespace) }
+            .joined(separator: "\n")
     }
 
     /// Prepares every comment in one pass, off the caller's actor.

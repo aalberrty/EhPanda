@@ -15,6 +15,7 @@ struct GalleryInfosScreen: View {
         List(rows) { row in
             HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.small) {
                 Text(row.title)
+                    .foregroundStyle(.textPrimary)
                     .containerRelativeFrame(.horizontal, alignment: .leading) { width, _ in width / 3 }
                 Spacer(minLength: 0)
                 Button {
@@ -29,7 +30,10 @@ struct GalleryInfosScreen: View {
                 .buttonStyle(.plain)
                 .disabled(row.value == nil)
             }
+            .listRowBackground(Color.raisedGrouped)
+            .listRowSeparatorTint(.hairline)
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.GalleryInfosView.Title.galleryInfos)
         .hud($hud)
         .onChange(of: model.copyCount) { hud = .copiedToClipboard }
@@ -58,7 +62,7 @@ struct GalleryInfosScreen: View {
             InfoRow(Title.visibility, detail.visibility.localizedName),
             InfoRow(Title.language, detail.language.localizedName),
             InfoRow(Title.pageCount, String(detail.pageCount)),
-            InfoRow(Title.fileSize, detail.sizeCount.formatted() + " " + detail.sizeType),
+            InfoRow(Title.fileSize, detail.formattedSize),
             InfoRow(Title.favoritedTimes, String(detail.favoritedCount)),
             InfoRow(Title.favorited, detail.isFavorited ? yes : no),
             InfoRow(Title.ratingCount, String(detail.ratingCount)),

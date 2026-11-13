@@ -2,7 +2,8 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The previews the detail page carries, in a horizontal row. Tapping one opens the reader there.
+/// The previews the detail page carries, larger and in a row on a glass panel. Tapping one
+/// opens the reader there; "Show all" opens every page's preview.
 struct DetailPreviewsSection: View {
     let model: GalleryDetailModel
 
@@ -10,21 +11,27 @@ struct DetailPreviewsSection: View {
 
     var body: some View {
         if !model.previews.isEmpty {
-            SubSection(
-                title: L10n.Localizable.DetailView.Section.Title.previews,
-                showsAll: model.pageCount > 20,
-                showAll: { model.destination = .previews }
-            ) {
+            VStack(alignment: .leading, spacing: Tokens.Spacing.small + Tokens.Spacing.xxSmall) {
+                DetailPanelHeader(
+                    title: L10n.Localizable.DetailView.Section.Title.previews,
+                    showsAll: model.showsAllPreviews,
+                    showAll: { model.destination = .previews }
+                )
+                .padding(.leading, Tokens.Spacing.large)
+                .padding(.trailing, DetailMetrics.panelInset)
                 PreviewsRow(previews: model.previews, width: width) { model.openReader(page: $0) }
                     .equatable()
             }
+            .padding(.top, Tokens.Spacing.medium)
+            .padding(.bottom, DetailMetrics.panelInset)
+            .clipShape(.rect(cornerRadius: Tokens.Radius.panel, style: .continuous))
+            .glassPanel()
         }
     }
 
-    /// Legacy used the middle of the grid's column range.
+    /// The widest a grid column gets: the row shows fewer, larger previews than the grid.
     private var width: CGFloat {
-        let range = Tokens.ImageSize.previewWidths(for: sizeClass)
-        return (range.lowerBound + range.upperBound) / 2
+        Tokens.ImageSize.previewWidths(for: sizeClass).upperBound
     }
 }
 
@@ -54,7 +61,7 @@ private struct PreviewsRow: View, Equatable {
             .frame(height: width / Tokens.Aspect.preview)
         }
         .scrollIndicators(.hidden)
-        .contentMargins(.horizontal, Tokens.Spacing.large, for: .scrollContent)
+        .contentMargins(.horizontal, DetailMetrics.panelInset, for: .scrollContent)
     }
 }
 
@@ -77,7 +84,7 @@ struct PreviewThumbnailView: View, Equatable {
                 .overlay {
                     Image(systemName: "exclamationmark.arrow.triangle.2.circlepath")
                         .font(.title2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.textSecondary)
                 }
         case nil:
             ImagePlaceholder(aspectRatio: Tokens.Aspect.preview, style: .activity)

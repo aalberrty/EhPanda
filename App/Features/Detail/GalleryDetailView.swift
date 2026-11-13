@@ -3,16 +3,20 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The detail screen: one lazy scroll of sections, each reading only the model properties it
-/// draws, plus the toolbar and every screen the detail presents.
+/// The detail screen (E-Detail): the cover as hero, then glass panels over the cover glow, one
+/// lazy scroll of sections each reading only the model properties it draws, plus the toolbar
+/// and every screen the detail presents.
 struct GalleryDetailView: View {
     @Bindable var model: GalleryDetailModel
 
     @Environment(AppRouter.self) private var appRouter: AppRouter?
     @Environment(StackRouter.self) private var stack: StackRouter?
+    @State private var searchCount = 0
 
     var body: some View {
         content
+            // Behind the loading state too, so the glow Home already made shows at once.
+            .background { DetailBackdrop(model: model) }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbar }
             .task { await model.load() }
@@ -58,6 +62,14 @@ struct GalleryDetailView: View {
     private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             ToolbarFeaturesMenu {
+                Button(
+                    L10n.Localizable.DetailView.ActionSection.Button.similarGallery,
+                    systemImage: "photo.on.rectangle.angled"
+                ) {
+                    guard let keyword = model.similarGalleryKeyword else { return }
+                    searchCount += 1
+                    stack?.push(.search(keyword: keyword))
+                }
                 Button(L10n.Localizable.DetailView.ToolbarItem.Button.archives, systemImage: "doc.zipper") {
                     model.showArchives()
                 }
@@ -73,6 +85,7 @@ struct GalleryDetailView: View {
                 }
             }
             .disabled(!model.isMenuEnabled)
+            .sensoryFeedback(.impact(flexibility: .soft), trigger: searchCount)
         }
     }
 
@@ -86,25 +99,47 @@ struct GalleryDetailView: View {
 private struct DetailContent: View {
     let model: GalleryDetailModel
 
+    /// Whether only the cover is under the navigation bar: the bar's soft edge would blur it
+    /// at rest, so the edge shows only once the title and panels can scroll under the bar.
+    @State private var showsCoverUnderBar = true
+
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: Tokens.Spacing.xxLarge) {
-                DetailHeaderSection(model: model)
-                    .padding(.horizontal)
-                DetailDescriptionSection(model: model)
-                DetailActionsSection(model: model)
-                    .padding(.horizontal)
-                DetailTagsSection(model: model)
-                    .padding(.horizontal)
+            LazyVStack(spacing: DetailMetrics.panelSpacing) {
+                DetailHeroSection(model: model)
+                    // The cover rises between the back and More buttons, as drawn.
+                    .risesUnderNavigationBar(by: DetailMetrics.heroRise)
+                DetailFiguresSection(model: model)
+                    .padding(.top, Tokens.Spacing.xSmall)
+                    .padding(.horizontal, DetailMetrics.pageMargin)
                 DetailPreviewsSection(model: model)
+                    .padding(.horizontal, DetailMetrics.pageMargin)
+                DetailTagsSection(model: model)
+                    .padding(.horizontal, DetailMetrics.pageMargin)
                 DetailCommentsSection(model: model)
+                    .padding(.horizontal, DetailMetrics.pageMargin)
             }
             .padding(.bottom, Tokens.Spacing.xLarge)
         }
         .scrollIndicators(.hidden)
-        .background {
-            DetailBackdrop(model: model)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top < Self.coverScrollDistance
+        } action: { _, isCoverOnly in
+            showsCoverUnderBar = isCoverOnly
         }
+        .hidesTopScrollEdgeEffect(showsCoverUnderBar)
+    }
+
+    /// About how far the page scrolls before the title nears the bar.
+    private static let coverScrollDistance: CGFloat = 160
+}
+
+/// The page's backdrop: the cover glow on iOS 26, the blurred cover on iOS 18.
+private struct DetailBackdrop: View {
+    let model: GalleryDetailModel
+
+    var body: some View {
+        CoverGlow(gallery: model.gallery, coverURL: model.gallery.coverURL ?? model.detail?.coverURL, style: .page)
     }
 }
 

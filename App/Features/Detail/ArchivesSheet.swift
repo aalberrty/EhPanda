@@ -14,6 +14,8 @@ struct ArchivesSheet: View {
     var body: some View {
         NavigationStack {
             content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .screenGround()
                 .navigationTitle(L10n.Localizable.ArchivesView.Title.archives)
                 .navigationBarTitleDisplayMode(.inline)
         }
@@ -114,11 +116,11 @@ private struct ArchiveOptionCell: View {
                     .font(.caption.weight(.medium))
                 Text(archive.price)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             .lineLimit(1)
         }
-        .foregroundStyle(archive.isValid ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+        .foregroundStyle(archive.isValid ? AnyShapeStyle(.textPrimary) : AnyShapeStyle(.tertiary))
         .frame(width: width, height: width / 1.5)
         .contentShape(shape)
         .glassSurface(in: shape, isInteractive: archive.isValid)
@@ -142,6 +144,7 @@ private struct ArchiveFunds: View {
                 Label(credits.formatted(), systemImage: "c.circle.fill")
             }
             .font(.headline)
+            .foregroundStyle(.textPrimary)
             .lineLimit(1)
             .contentTransition(.numericText())
             .animation(.default, value: galleryPoints)

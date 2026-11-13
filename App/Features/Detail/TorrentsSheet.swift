@@ -14,6 +14,8 @@ struct TorrentsSheet: View {
     var body: some View {
         NavigationStack {
             content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .screenGround(.grouped)
                 .navigationTitle(L10n.Localizable.TorrentsView.Title.torrents)
                 .navigationBarTitleDisplayMode(.inline)
         }
@@ -42,6 +44,8 @@ struct TorrentsSheet: View {
                         }
                         .tint(.accentColor)
                     }
+                    .listRowBackground(Color.raisedGrouped)
+                    .listRowSeparatorTint(.hairline)
             }
         } else if let error = model.loadingState.failed {
             ErrorStateView(error: error, retry: model.retry)
@@ -65,6 +69,7 @@ private struct TorrentRow: View {
                 figure(torrent.fileSize, systemImage: "doc.circle")
             }
             .font(.subheadline)
+            .foregroundStyle(.textPrimary)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
 
@@ -80,7 +85,7 @@ private struct TorrentRow: View {
                 Text(torrent.formattedDateString)
             }
             .font(.callout)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.textSecondary)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
         }

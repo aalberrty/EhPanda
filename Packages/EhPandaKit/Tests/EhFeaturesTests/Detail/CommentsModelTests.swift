@@ -68,6 +68,18 @@ import Testing
         }
     }
 
+    @Test func summaryDropsBlankLines() {
+        let comment = GalleryComment(
+            votedUp: false, votedDown: false, votable: false, editable: false, score: nil, author: "A",
+            contents: [
+                CommentContent(type: .plainText, text: "\nfirst line\n\n \nsecond line\n"),
+                CommentContent(type: .plainText, text: "\nthird")
+            ],
+            commentID: "1", commentDate: .now
+        )
+        #expect(CommentItem(comment: comment, detector: nil).summary == "first line\nsecond line\nthird")
+    }
+
     // MARK: Composing and voting
 
     @Test func composingNeedsLogin() async throws {
