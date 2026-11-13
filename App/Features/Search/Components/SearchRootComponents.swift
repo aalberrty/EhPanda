@@ -136,7 +136,7 @@ private struct KeywordRow: View {
                     .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(L10n.Localizable.ConfirmationDialog.Button.remove)
+            .accessibilityLabel(L10n.Localizable.SearchView.Button.removeKeyword(keyword.title))
         }
         .frame(maxWidth: .infinity)
     }

@@ -144,6 +144,7 @@
 "search_view.section.title.quick_search" = "빠른 검색";
 "search_view.filter_bar.filters_active" = "필터, %d개 활성";
 "search_view.filter_bar.minimum_rating" = "%d+";
+"search_view.button.remove_keyword" = "%@ 삭제";
 // Searchable
 "searchable.prompt.filter" = "Filter";
 "searchable.title.matches_count" = "Found %d matches.";

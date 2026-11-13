@@ -2065,6 +2065,12 @@ internal enum L10n {
       }
     }
     internal enum SearchView {
+      internal enum Button {
+        /// Remove %@
+        internal static func removeKeyword(_ p1: Any) -> String {
+          return L10n.tr("Localizable", "search_view.button.remove_keyword", String(describing: p1), fallback: "Remove %@")
+        }
+      }
       internal enum FilterBar {
         /// Filters, %d active
         internal static func filtersActive(_ p1: Int) -> String {

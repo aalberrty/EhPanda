@@ -144,6 +144,7 @@
 "search_view.section.title.quick_search" = "クイック検索";
 "search_view.filter_bar.filters_active" = "フィルター、%d 件有効";
 "search_view.filter_bar.minimum_rating" = "%d+";
+"search_view.button.remove_keyword" = "%@を削除";
 // Searchable
 "searchable.prompt.filter" = "フィルター";
 "searchable.title.matches_count" = "%d 件の該当項目";

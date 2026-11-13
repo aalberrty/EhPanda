@@ -144,6 +144,7 @@
 "search_view.section.title.quick_search" = "Quick search";
 "search_view.filter_bar.filters_active" = "Filters, %d active";
 "search_view.filter_bar.minimum_rating" = "%d+";
+"search_view.button.remove_keyword" = "Remove %@";
 // Searchable
 "searchable.prompt.filter" = "Filter";
 "searchable.title.matches_count" = "Found %d matches.";
