@@ -103,7 +103,7 @@ private struct ReaderChrome: ViewModifier {
                 switch destination {
                 case .settings:
                     ReaderSettingsSheet(showsLandscapeSetting: model.showsLandscapeSetting)
-                        .tint(settings.accentColor.color)
+                        .tint(settings.accentColor.appTint)
                 case .share(let file):
                     ActivityView(items: [file])
                         .presentationDetents([.medium, .large])
