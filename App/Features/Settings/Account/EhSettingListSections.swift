@@ -71,7 +71,7 @@ struct FrontPageSection: View, Equatable {
     }
 }
 
-/// Category tiles; a dimmed tile is hidden from the front page (legacy `CategoryView`).
+/// Category tiles; a struck-through tile is hidden from the front page (legacy `CategoryView`).
 private struct CategoryGrid: View {
     let host: GalleryHost
     @Binding var disabled: [Bool]
@@ -95,24 +95,10 @@ private struct CategoryTile: View {
     @Binding var isDisabled: Bool
 
     var body: some View {
-        Button {
+        CategoryToggleTile(category.localizedName, color: category.color(for: host), isOn: !isDisabled) {
             isDisabled.toggle()
-        } label: {
-            Text(category.localizedName)
-                .font(.subheadline.bold())
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .foregroundStyle(.white)
-                .padding(.vertical, Tokens.Spacing.xSmall)
-                .frame(maxWidth: .infinity)
-                .background(
-                    category.color(for: host).opacity(isDisabled ? 0.3 : 1),
-                    in: .rect(cornerRadius: Tokens.Radius.chip, style: .continuous)
-                )
         }
-        .buttonStyle(.plain)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: isDisabled)
-        .accessibilityAddTraits(isDisabled ? [] : .isSelected)
     }
 }
 
@@ -148,8 +134,11 @@ struct FavoritesSection: View, Equatable {
             ForEach(Array(Category.allFavoritesCases.enumerated()), id: \.element) { index, category in
                 if names.wrappedValue.indices.contains(index) {
                     HStack(spacing: Tokens.Spacing.large) {
+                        // The folder's colour as a category mark: the vivid colour in a ring.
                         Circle()
                             .fill(category.color(for: host))
+                            .environment(\.colorScheme, .light)
+                            .overlay { Circle().strokeBorder(DesignColors.categoryRing, lineWidth: 1) }
                             .frame(width: 10, height: 10)
                             .accessibilityHidden(true)
                         TextField(text: names[index]) {

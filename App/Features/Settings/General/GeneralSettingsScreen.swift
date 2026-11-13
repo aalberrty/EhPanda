@@ -12,28 +12,32 @@ struct GeneralSettingsScreen: View {
     var body: some View {
         @Bindable var settings = settings
         Form {
-            Section {
-                languageRow
-                NavigationLink(value: Route.settings(.logs)) {
-                    Text(L10n.Localizable.GeneralSettingView.Button.logs)
+            Group {
+                Section {
+                    languageRow
+                    NavigationLink(value: Route.settings(.logs)) {
+                        Text(L10n.Localizable.GeneralSettingView.Button.logs)
+                    }
+                }
+                TagTranslationSection()
+                Section(L10n.Localizable.GeneralSettingView.Section.Title.navigation) {
+                    Toggle(
+                        L10n.Localizable.GeneralSettingView.Title.redirectsLinksToTheSelectedHost,
+                        isOn: $settings.redirectsLinksToSelectedHost
+                    )
+                    Toggle(
+                        L10n.Localizable.GeneralSettingView.Title.detectsLinksFromClipboard,
+                        isOn: $settings.detectsLinksFromClipboard
+                    )
+                }
+                SecuritySection(isPasscodeSet: model.isPasscodeSet)
+                Section(L10n.Localizable.GeneralSettingView.Section.Title.caches) {
+                    clearCacheRow
                 }
             }
-            TagTranslationSection()
-            Section(L10n.Localizable.GeneralSettingView.Section.Title.navigation) {
-                Toggle(
-                    L10n.Localizable.GeneralSettingView.Title.redirectsLinksToTheSelectedHost,
-                    isOn: $settings.redirectsLinksToSelectedHost
-                )
-                Toggle(
-                    L10n.Localizable.GeneralSettingView.Title.detectsLinksFromClipboard,
-                    isOn: $settings.detectsLinksFromClipboard
-                )
-            }
-            SecuritySection(isPasscodeSet: model.isPasscodeSet)
-            Section(L10n.Localizable.GeneralSettingView.Section.Title.caches) {
-                clearCacheRow
-            }
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.GeneralSettingView.Title.general)
         .task { await model.onAppear() }
     }
@@ -45,7 +49,7 @@ struct GeneralSettingsScreen: View {
             LabeledContent {
                 Text(Self.languageName).foregroundStyle(.tint)
             } label: {
-                Text(L10n.Localizable.GeneralSettingView.Title.language).foregroundStyle(Color.primary)
+                Text(L10n.Localizable.GeneralSettingView.Title.language).foregroundStyle(.textPrimary)
             }
         }
     }
@@ -61,7 +65,7 @@ struct GeneralSettingsScreen: View {
                     Text(Int64(size), format: .byteCount(style: .file)).foregroundStyle(.tint)
                 }
             } label: {
-                Text(L10n.Localizable.GeneralSettingView.Button.clearImageCaches).foregroundStyle(Color.primary)
+                Text(L10n.Localizable.GeneralSettingView.Button.clearImageCaches).foregroundStyle(.textPrimary)
             }
         }
         .disabled(model.isClearingImageCache)

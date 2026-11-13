@@ -12,20 +12,24 @@ struct AccountSettingScreen: View {
 
     var body: some View {
         Form {
-            Section {
-                HostPicker(selection: $model.galleryHost)
-                if model.isLoggedIn {
-                    LoggedInRows(model: model, stack: stack)
-                } else {
-                    Button(L10n.Localizable.AccountSettingView.Button.login) {
-                        stack.push(.settings(.login))
+            Group {
+                Section {
+                    HostPicker(selection: $model.galleryHost)
+                    if model.isLoggedIn {
+                        LoggedInRows(model: model, stack: stack)
+                    } else {
+                        Button(L10n.Localizable.AccountSettingView.Button.login) {
+                            stack.push(.settings(.login))
+                        }
+                        .disclosureIndicator()
                     }
-                    .disclosureIndicator()
                 }
+                CookieSection(model: model, host: .ehentai, cookies: $model.ehCookies)
+                CookieSection(model: model, host: .exhentai, cookies: $model.exCookies)
             }
-            CookieSection(model: model, host: .ehentai, cookies: $model.ehCookies)
-            CookieSection(model: model, host: .exhentai, cookies: $model.exCookies)
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.AccountSettingView.Title.account)
         .sheet(item: $model.destination) { destination in
             switch destination {
@@ -97,6 +101,6 @@ private struct LoggedInRows: View {
                 isOn: $settings.showsNewDawnGreeting
             )
         }
-        .foregroundStyle(.primary)
+        .foregroundStyle(.textPrimary)
     }
 }

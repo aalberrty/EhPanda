@@ -21,7 +21,9 @@ struct AppIconScreen: View {
                     .buttonStyle(.plain)
                 }
             }
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.AppIconView.Title.appIcon)
         .sensoryFeedback(.selection, trigger: settings.appIconType)
         .task { model.syncWithSystem() }

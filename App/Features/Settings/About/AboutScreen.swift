@@ -6,27 +6,31 @@ import SwiftUI
 struct AboutScreen: View {
     var body: some View {
         Form {
-            Section {
-                AboutLinkRows(links: AboutLink.contacts)
-            } header: {
-                // iOS 18 has no large-title subtitle, so the credits head the first section.
-                if #unavailable(iOS 26) {
-                    credits.textCase(nil)
+            Group {
+                Section {
+                    AboutLinkRows(links: AboutLink.contacts)
+                } header: {
+                    // iOS 18 has no large-title subtitle, so the credits head the first section.
+                    if #unavailable(iOS 26) {
+                        credits.textCase(nil)
+                    }
+                }
+                Section(L10n.Localizable.AboutView.Section.Title.specialThanks) {
+                    AboutLinkRows(links: AboutLink.specialThanks)
+                }
+                Section(L10n.Localizable.AboutView.Section.Title.codeLevelContributors) {
+                    AboutLinkRows(links: AboutLink.codeLevelContributors)
+                }
+                Section(L10n.Localizable.AboutView.Section.Title.translationContributors) {
+                    AboutLinkRows(links: AboutLink.translationContributors)
+                }
+                Section(L10n.Localizable.AboutView.Section.Title.acknowledgements) {
+                    AboutLinkRows(links: AboutLink.acknowledgements)
                 }
             }
-            Section(L10n.Localizable.AboutView.Section.Title.specialThanks) {
-                AboutLinkRows(links: AboutLink.specialThanks)
-            }
-            Section(L10n.Localizable.AboutView.Section.Title.codeLevelContributors) {
-                AboutLinkRows(links: AboutLink.codeLevelContributors)
-            }
-            Section(L10n.Localizable.AboutView.Section.Title.translationContributors) {
-                AboutLinkRows(links: AboutLink.translationContributors)
-            }
-            Section(L10n.Localizable.AboutView.Section.Title.acknowledgements) {
-                AboutLinkRows(links: AboutLink.acknowledgements)
-            }
+            .raisedRows()
         }
+        .screenGround(.grouped)
         .navigationTitle(L10n.Localizable.AboutView.Title.ehPanda)
         .toolbar {
             if #available(iOS 26, *) {
@@ -45,7 +49,7 @@ struct AboutScreen: View {
             Text(Self.version)
         }
         .font(.caption2.bold())
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.textSecondary)
         .accessibilityElement(children: .combine)
     }
 
@@ -75,10 +79,10 @@ private struct AboutLinkRows: View {
                     }
                     .contentShape(.rect)
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(.textPrimary)
             } else {
                 // Credits without a profile link are listed as plain text, as in legacy.
-                Text(link.text).fontWeight(.medium)
+                Text(link.text).fontWeight(.medium).foregroundStyle(.textPrimary)
             }
         }
     }
