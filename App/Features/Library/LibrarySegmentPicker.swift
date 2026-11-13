@@ -40,7 +40,12 @@ struct FavoriteFolderChips: View {
                 .padding(.horizontal, Tokens.Spacing.large)
             }
             .scrollIndicators(.hidden)
-            .onChange(of: model.category) { _, category in
+            .onChange(of: model.category, initial: true) { old, category in
+                guard category != old else {
+                    // Appearing (after logging in, say): no animation.
+                    proxy.scrollTo(category, anchor: .center)
+                    return
+                }
                 withAnimation { proxy.scrollTo(category, anchor: .center) }
             }
         }
@@ -55,6 +60,9 @@ struct FavoriteFolderChips: View {
 }
 
 /// A folder chip: a filled capsule in a full-height touch target, inverted when selected.
+///
+/// The selected chip uses the UIKit label and background colours: on the iOS 18 bar material
+/// `.primary` (the style and the colour) turns into a vibrant grey.
 private struct FolderChip: View {
     let title: String
     let isSelected: Bool
@@ -65,10 +73,10 @@ private struct FolderChip: View {
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .lineLimit(1)
-                .foregroundStyle(isSelected ? AnyShapeStyle(.background) : AnyShapeStyle(.primary))
+                .foregroundStyle(isSelected ? AnyShapeStyle(Color(.systemBackground)) : AnyShapeStyle(.primary))
                 .padding(.horizontal, 14)
                 .frame(minHeight: 32)
-                .background(isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(.fill.tertiary), in: .capsule)
+                .background(isSelected ? AnyShapeStyle(Color(.label)) : AnyShapeStyle(.fill.tertiary), in: .capsule)
                 .frame(minHeight: 44)
                 .contentShape(.rect)
         }
