@@ -1,7 +1,6 @@
 import EhCore
 import EhFeatures
 import EhModels
-import Kingfisher
 import SwiftUI
 
 /// Cover, title, uploader, category, favourite control and the READ button.
@@ -25,8 +24,7 @@ struct DetailHeaderSection: View {
                     CategoryLabel(
                         model.gallery.category.localizedName,
                         color: model.gallery.category.color(for: settings.galleryHost),
-                        font: .subheadline,
-                        insets: EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8)
+                        font: .subheadline
                     )
                     Spacer(minLength: 0)
                     FavoriteControl(model: model)
@@ -122,36 +120,11 @@ private struct FavoriteControl: View {
     }
 }
 
-/// The cover, blurred once by the image pipeline, fading into the background behind the header.
-///
-/// The image is decoded at a few dozen pixels and blurred in Kingfisher's processing queue, so
-/// scrolling over it costs nothing more than any static image.
+/// The page's backdrop: the cover glow on iOS 26, the blurred cover on iOS 18.
 struct DetailBackdrop: View {
     let model: GalleryDetailModel
 
-    @Environment(\.colorScheme) private var colorScheme
-
     var body: some View {
-        KFImage(model.gallery.coverURL ?? model.detail?.coverURL)
-            .setProcessor(
-                DownsampleProcessor(pixelSize: CGSize(width: 48, height: 66), mode: .fill)
-                    .append(another: BlurImageProcessor(blurRadius: 6))
-            )
-            .cacheOriginalImage()
-            .cacheMemoryOnly()
-            .cancelOnDisappear(true)
-            .fade(duration: Tokens.Duration.imageFade)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(height: 420)
-            .frame(maxWidth: .infinity)
-            .clipped()
-            .opacity(colorScheme == .dark ? 0.55 : 0.4)
-            .mask {
-                LinearGradient(colors: [.black, .black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom)
-            }
-            .ignoresSafeArea(edges: .top)
-            .accessibilityHidden(true)
-            .allowsHitTesting(false)
+        CoverGlow(gallery: model.gallery, coverURL: model.gallery.coverURL ?? model.detail?.coverURL, style: .page)
     }
 }

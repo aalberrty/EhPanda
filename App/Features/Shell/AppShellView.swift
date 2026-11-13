@@ -16,6 +16,9 @@ struct AppShellView: View {
         return model
     }()
 
+    /// Cover palettes, shared so a screen reuses the palette another one already made.
+    @State private var coverPalettes = CoverPaletteStore()
+
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -38,6 +41,7 @@ struct AppShellView: View {
         .tint(settings.accentColor.appTint)
         .environment(model.router)
         .environment(settings)
+        .environment(coverPalettes)
         .background {
             SceneWindowBridge(
                 colorScheme: settings.preferredColorScheme,

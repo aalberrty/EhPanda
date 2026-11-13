@@ -102,7 +102,7 @@ private struct DetailContent: View {
             .padding(.bottom, Tokens.Spacing.xLarge)
         }
         .scrollIndicators(.hidden)
-        .background(alignment: .top) {
+        .background {
             DetailBackdrop(model: model)
         }
     }

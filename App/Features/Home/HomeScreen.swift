@@ -128,4 +128,5 @@ private struct ToplistsSection: View {
     }
     .environment(StackRouter())
     .environment(AppRouter())
+    .environment(CoverPaletteStore())
 }

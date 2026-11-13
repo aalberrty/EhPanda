@@ -1,3 +1,4 @@
+import EhCore
 import EhFeatures
 import EhModels
 import SwiftUI
@@ -11,7 +12,7 @@ struct HomeCardCarousel: View {
     let open: (Gallery) -> Void
 
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @State private var palettes = CardPaletteStore()
+    @Environment(CoverPaletteStore.self) private var palettes
     @State private var currentID: String?
     /// Whether any of the carousel is inside the page's visible area, and the screen is not
     /// covered by a pushed one. The current card's backdrop only drifts while it can be seen.
@@ -31,14 +32,14 @@ struct HomeCardCarousel: View {
                         HomeCard(
                             gallery: gallery,
                             title: HomeSections.cardTitle(of: gallery, isCompact: sizeClass != .regular),
-                            palette: palettes.palettes[gallery.id],
+                            palette: palettes.palette(for: gallery.id),
                             isAnimated: animatesCurrentCard && gallery.id == currentID
                         )
                     }
                     .buttonStyle(.plain)
                     // The scroll view's content margins are already taken out of the container.
                     .containerRelativeFrame(.horizontal)
-                    .task(id: gallery.id) { await palettes.loadPalette(for: gallery) }
+                    .task(id: gallery.id) { await palettes.load(gallery) }
                 }
             }
             .scrollTargetLayout()
@@ -76,7 +77,7 @@ final class PageScrollState {
 private struct HomeCard: View {
     let gallery: Gallery
     let title: String
-    let palette: CardPalette?
+    let palette: CoverPalette?
     let isAnimated: Bool
 
     @Environment(\.colorScheme) private var colorScheme
@@ -111,4 +112,5 @@ private struct HomeCard: View {
 
 #Preview {
     HomeCardCarousel(cards: [.preview], open: { _ in })
+        .environment(CoverPaletteStore())
 }
