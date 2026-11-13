@@ -101,6 +101,11 @@ public final class SearchRootModel {
         sheet = .quickSearch
     }
 
+    /// With no saved words, the Quick Search section offers to add the first one.
+    public func addQuickSearchWord() {
+        sheet = .newQuickSearchWord
+    }
+
     /// A word was picked in the Quick Search sheet: close it, then search once it is gone.
     public func selectQuickSearchWord(_ content: String) {
         keyword = content
@@ -122,15 +127,16 @@ public final class SearchRootModel {
 
     // MARK: Layout
 
-    /// Splits `items` into keyword columns: one column of at most 10 in compact width, two
-    /// alternating columns of at most 20 in total in regular width (legacy iPhone / iPad).
-    nonisolated public static func columns<Item>(_ items: [Item], isRegularWidth: Bool) -> [[Item]] {
-        guard isRegularWidth else { return [Array(items.prefix(10))] }
-        let limited = items.prefix(20).enumerated()
-        return [
-            limited.filter { $0.offset.isMultiple(of: 2) }.map(\.element),
-            limited.filter { !$0.offset.isMultiple(of: 2) }.map(\.element)
-        ]
+    /// How many keywords a section shows: 10 in compact width, 20 in regular width (legacy
+    /// iPhone / iPad). The Quick Search sheet lists every word.
+    nonisolated public static func keywordLimit(isRegularWidth: Bool) -> Int {
+        isRegularWidth ? 20 : 10
+    }
+
+    /// The keywords a section shows, in rows of two (left to right, then down).
+    nonisolated public static func keywordRows<Item>(_ items: [Item], isRegularWidth: Bool) -> [[Item]] {
+        let limited = Array(items.prefix(keywordLimit(isRegularWidth: isRegularWidth)))
+        return stride(from: 0, to: limited.count, by: 2).map { Array(limited[$0..<min($0 + 2, limited.count)]) }
     }
 }
 
@@ -143,12 +149,24 @@ nonisolated public struct SearchKeyword: Hashable, Sendable {
         self.keyword = keyword
         self.title = title
     }
+
+    /// The title split after a leading namespace such as `language:` or `f:`, which a chip
+    /// draws quieter than the rest. `nil` when the title has no such prefix.
+    public var namespacedTitle: (namespace: String, value: String)? {
+        guard let colon = title.firstIndex(of: ":") else { return nil }
+        let namespace = title[...colon]
+        let value = title[title.index(after: colon)...]
+        guard namespace.count > 1, !value.isEmpty, !namespace.contains(where: \.isWhitespace) else { return nil }
+        return (String(namespace), String(value))
+    }
 }
 
 /// Sheets shown by the search screens.
 nonisolated public enum SearchSheet: Hashable, Identifiable, Sendable {
     case filters
     case quickSearch
+    /// The Quick Search sheet, opened on the form for a new word.
+    case newQuickSearchWord
 
     public var id: Self { self }
 }

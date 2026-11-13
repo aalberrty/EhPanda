@@ -2093,6 +2093,16 @@ internal enum L10n {
       }
     }
     internal enum SearchView {
+      internal enum FilterBar {
+        /// Filters, %d active
+        internal static func filtersActive(_ p1: Int) -> String {
+          return L10n.tr("Localizable", "search_view.filter_bar.filters_active", p1, fallback: "Filters, %d active")
+        }
+        /// %d+
+        internal static func minimumRating(_ p1: Int) -> String {
+          return L10n.tr("Localizable", "search_view.filter_bar.minimum_rating", p1, fallback: "%d+")
+        }
+      }
       internal enum Section {
         internal enum Title {
           /// Quick search

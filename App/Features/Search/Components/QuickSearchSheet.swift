@@ -4,8 +4,10 @@ import SwiftUI
 
 /// Saved search keywords, presented as a sheet (legacy `QuickSearchView`).
 ///
-/// Tapping a word calls `onSelect` with its content; the caller closes the sheet.
+/// Tapping a word calls `onSelect` with its content; the caller closes the sheet. With
+/// `startsAdding` it opens on the form for a new word (the Search tab's empty Quick search).
 struct QuickSearchSheet: View {
+    var startsAdding = false
     let onSelect: (String) -> Void
 
     @State private var model = QuickSearchModel()
@@ -19,7 +21,10 @@ struct QuickSearchSheet: View {
                     QuickSearchWordForm(model: model, editor: editor)
                 }
         }
-        .task { await model.observe() }
+        .task {
+            if startsAdding { model.startAdding() }
+            await model.observe()
+        }
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {

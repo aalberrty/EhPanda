@@ -149,13 +149,37 @@ import Testing
         try await eventually { model.historyKeywords == ["b", "a"] }
     }
 
-    @Test func keywordColumnsFollowTheWidth() {
+    @Test func keywordRowsArePairsUpToTheWidthsLimit() {
         let items = Array(0..<25)
 
-        #expect(SearchRootModel.columns(items, isRegularWidth: false) == [Array(0..<10)])
-        #expect(SearchRootModel.columns(items, isRegularWidth: true) == [
-            Array(stride(from: 0, to: 20, by: 2)), Array(stride(from: 1, to: 20, by: 2))
+        #expect(SearchRootModel.keywordRows(items, isRegularWidth: false) == [
+            [0, 1], [2, 3], [4, 5], [6, 7], [8, 9]
         ])
-        #expect(SearchRootModel.columns([1], isRegularWidth: true) == [[1], []])
+        #expect(SearchRootModel.keywordRows(items, isRegularWidth: true).count == 10)
+        #expect(SearchRootModel.keywordRows(items, isRegularWidth: true).last == [18, 19])
+        #expect(SearchRootModel.keywordRows([1, 2, 3], isRegularWidth: false) == [[1, 2], [3]])
+        #expect(SearchRootModel.keywordRows([Int](), isRegularWidth: false).isEmpty)
+        #expect(SearchRootModel.keywordLimit(isRegularWidth: false) == 10)
+        #expect(SearchRootModel.keywordLimit(isRegularWidth: true) == 20)
+    }
+
+    @Test func keywordTitlesSplitAfterALeadingNamespace() throws {
+        func split(_ title: String) -> [String]? {
+            SearchKeyword(keyword: title, title: title).namespacedTitle.map { [$0.namespace, $0.value] }
+        }
+
+        #expect(split("language:english") == ["language:", "english"])
+        #expect(split("f:glasses$") == ["f:", "glasses$"])
+        #expect(split("artist:\"kumo works$\"") == ["artist:", "\"kumo works$\""])
+        #expect(split("kumo works") == nil)
+        #expect(split(":english") == nil)
+        #expect(split("language:") == nil)
+        #expect(split("full color: art") == nil)
+    }
+
+    @Test func withoutWordsTheSectionOpensTheNewWordForm() {
+        let model = SearchRootModel()
+        model.addQuickSearchWord()
+        #expect(model.sheet == .newQuickSearchWord)
     }
 }

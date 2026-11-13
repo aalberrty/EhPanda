@@ -2,7 +2,11 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// The Search tab's root (legacy `SearchRootView`).
+/// The Search tab's root (E-Search): Quick search words as chips, recent searches in two
+/// columns, recently seen covers, and the search filter as chips above the search field.
+///
+/// On iOS 26 the search tab folds the tab bar and puts the field at the bottom; on iOS 18
+/// the field sits in the navigation bar and the chips stay above the tab bar.
 struct SearchScreen: View {
     @State private var model = SearchRootModel()
     @Environment(AppRouter.self) private var appRouter
@@ -18,26 +22,24 @@ struct SearchScreen: View {
             )
         }
         .scrollIndicators(.hidden)
+        .floatingBar(edge: .bottom) {
+            SearchFilterBar(showFilters: model.showFilters)
+        }
+        // While typing, the keyboard covers the chips instead of lifting them into the search
+        // field, which rises above the keyboard on iOS 26.
+        .ignoresSafeArea(.keyboard)
+        .screenGround()
         .navigationTitle(L10n.Localizable.SearchView.Title.search)
         .tagSearchable(
             text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search,
             onSubmit: { model.submit(on: stack) }
         )
-        .toolbar {
-            ToolbarItem {
-                ToolbarFeaturesMenu {
-                    FiltersButton(action: model.showFilters)
-                    QuickSearchButton(action: model.showQuickSearch)
-                }
-                .symbolRenderingMode(.hierarchical)
-            }
-        }
         .sheet(item: $model.sheet, onDismiss: { model.sheetDismissed(on: stack) }) { sheet in
             switch sheet {
             case .filters:
                 FiltersSheet(range: .search)
-            case .quickSearch:
-                QuickSearchSheet(onSelect: model.selectQuickSearchWord)
+            case .quickSearch, .newQuickSearchWord:
+                QuickSearchSheet(startsAdding: sheet == .newQuickSearchWord, onSelect: model.selectQuickSearchWord)
             }
         }
         .sensoryFeedback(.impact(weight: .light), trigger: model.sheet) { _, new in new != nil }
@@ -51,7 +53,8 @@ struct SearchScreen: View {
     }
 }
 
-/// Quick Search, Recently Searched and Recently Seen, each shown only when it has content.
+/// Quick search (always, so its words stay editable), then Recently searched and Recently
+/// seen when they have content.
 private struct SearchRootSections: View {
     let model: SearchRootModel
     let isRegularWidth: Bool
@@ -59,23 +62,23 @@ private struct SearchRootSections: View {
     let openGallery: (Gallery) -> Void
 
     var body: some View {
-        VStack(spacing: Tokens.Spacing.xLarge) {
+        VStack(alignment: .leading, spacing: Tokens.Spacing.large) {
             let quickSearch = model.quickSearchKeywords
-            if !quickSearch.isEmpty {
-                SubSection(
-                    title: L10n.Localizable.SearchView.Section.Title.quickSearch,
-                    tint: .primary, showAll: model.showQuickSearch
-                ) {
-                    KeywordColumns(
-                        keywords: quickSearch, isRegularWidth: isRegularWidth, search: search, remove: nil
-                    )
-                }
+            SubSection(
+                title: L10n.Localizable.SearchView.Section.Title.quickSearch,
+                showsAll: !quickSearch.isEmpty, tint: .textSecondary, showAll: model.showQuickSearch
+            ) {
+                QuickSearchChips(
+                    keywords: Array(quickSearch.prefix(SearchRootModel.keywordLimit(isRegularWidth: isRegularWidth))),
+                    search: search, addWord: model.addQuickSearchWord
+                )
             }
             let history = model.historySearchKeywords
             if !history.isEmpty {
                 SubSection(title: L10n.Localizable.SearchView.Section.Title.recentlySearched, showsAll: false) {
-                    KeywordColumns(
-                        keywords: history, isRegularWidth: isRegularWidth, search: search,
+                    KeywordRows(
+                        rows: SearchRootModel.keywordRows(history, isRegularWidth: isRegularWidth),
+                        search: search,
                         remove: { keyword in Task { await model.removeHistoryKeyword(keyword) } }
                     )
                 }
@@ -86,7 +89,7 @@ private struct SearchRootSections: View {
                 }
             }
         }
-        .padding(.vertical)
+        .padding(.vertical, Tokens.Spacing.small)
         .animation(.default, value: model.quickSearchWords)
         .animation(.default, value: model.historyKeywords)
         .animation(.default, value: model.recentGalleries)
