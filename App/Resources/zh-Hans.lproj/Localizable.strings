@@ -144,6 +144,8 @@
 "search_view.section.title.recently_searched" = "最近搜索";
 "search_view.section.title.recently_seen" = "最近看过";
 "search_view.section.title.quick_search" = "快速搜索";
+"search_view.filter_bar.filters_active" = "筛选，%d 项已启用";
+"search_view.filter_bar.minimum_rating" = "%d+";
 // Searchable
 "searchable.prompt.filter" = "筛选";
 "searchable.title.matches_count" = "找到 %d 项结果";

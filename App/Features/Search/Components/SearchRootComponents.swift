@@ -2,80 +2,154 @@ import EhFeatures
 import EhModels
 import SwiftUI
 
-/// Keyword rows: one column of 10 in compact width, two alternating columns of 20 in regular
-/// width (legacy `DoubleVerticalKeywordsStack`).
-struct KeywordColumns: View {
+/// Quick-search words as chips that wrap like words; one tap searches the word. With no saved
+/// words a single chip opens the form for the first one.
+struct QuickSearchChips: View {
     let keywords: [SearchKeyword]
-    let isRegularWidth: Bool
     let search: (String) -> Void
-    /// Shows a remove button on each row when given.
-    let remove: ((String) -> Void)?
+    let addWord: () -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: Tokens.Spacing.xxLarge) {
-            let columns = SearchRootModel.columns(keywords, isRegularWidth: isRegularWidth)
-            ForEach(columns.indices, id: \.self) { index in
-                VStack(alignment: .leading, spacing: Tokens.Spacing.small) {
-                    ForEach(columns[index], id: \.self) { keyword in
-                        KeywordRow(keyword: keyword, search: search, remove: remove)
-                        if keyword != columns[index].last {
-                            Divider()
-                        }
-                    }
+        FlowLayout(spacing: Tokens.Spacing.small, lineSpacing: 0) {
+            if keywords.isEmpty {
+                Button(action: addWord) {
+                    Label(L10n.Localizable.QuickSearchView.Title.newWord, systemImage: "plus")
+                        .labelStyle(.titleAndIcon)
+                        .foregroundStyle(.textSecondary)
+                        .modifier(KeywordChipShape(isDashed: true))
                 }
-                .frame(maxWidth: .infinity, alignment: .top)
+                .buttonStyle(.plain)
+            }
+            ForEach(keywords, id: \.self) { keyword in
+                Button { search(keyword.keyword) } label: {
+                    KeywordChipLabel(keyword: keyword)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(keyword.title)
             }
         }
-        .padding()
+        .padding(.horizontal)
+    }
+}
+
+/// A word's title; a leading namespace (`language:`) is drawn quieter than its value.
+private struct KeywordChipLabel: View {
+    let keyword: SearchKeyword
+
+    var body: some View {
+        Group {
+            if let title = keyword.namespacedTitle {
+                Text("\(Text(title.namespace).fontWeight(.medium).foregroundStyle(.textTertiary))\(Text(title.value))")
+            } else {
+                Text(keyword.title)
+            }
+        }
+        .foregroundStyle(.textPrimary)
+        .lineLimit(1)
+        .modifier(KeywordChipShape(isDashed: false))
+    }
+}
+
+/// A 32 pt rounded chip inside a 44 pt tap target.
+private struct KeywordChipShape: ViewModifier {
+    let isDashed: Bool
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Tokens.Radius.chip, style: .continuous)
+        content
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 11)
+            .frame(minHeight: 32)
+            .background {
+                if isDashed {
+                    shape.strokeBorder(.hairline, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                } else {
+                    shape.fill(.chipFill)
+                }
+            }
+            .padding(.vertical, 6)
+            .contentShape(.rect)
+    }
+}
+
+/// Recently searched keywords in two columns, left to right, each with a remove button.
+struct KeywordRows: View {
+    let rows: [[SearchKeyword]]
+    let search: (String) -> Void
+    let remove: (String) -> Void
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 0) {
+            ForEach(rows.indices, id: \.self) { index in
+                GridRow {
+                    ForEach(rows[index], id: \.self) { keyword in
+                        KeywordRow(keyword: keyword, search: search, remove: remove)
+                            .overlay(alignment: .top) {
+                                if index > 0 {
+                                    Rectangle().fill(.hairline).frame(height: 0.5)
+                                }
+                            }
+                    }
+                    if rows[index].count == 1 {
+                        Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                    }
+                }
+            }
+        }
+        .padding(.leading)
+        .padding(.trailing, 6)
     }
 }
 
 private struct KeywordRow: View {
     let keyword: SearchKeyword
     let search: (String) -> Void
-    let remove: ((String) -> Void)?
+    let remove: (String) -> Void
 
     var body: some View {
-        HStack(spacing: Tokens.Spacing.xLarge) {
+        HStack(spacing: 0) {
             Button {
                 search(keyword.keyword)
             } label: {
-                Label {
-                    Text(keyword.title)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } icon: {
+                HStack(spacing: Tokens.Spacing.small) {
                     Image(systemName: "magnifyingglass")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.textTertiary)
+                    Text(keyword.title)
+                        .foregroundStyle(.textPrimary)
+                        .lineLimit(1)
                 }
+                .font(.subheadline)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                 .contentShape(.rect)
             }
-            .tint(.primary)
+            .buttonStyle(.plain)
+            .accessibilityLabel(keyword.title)
 
-            if let remove {
-                Button {
-                    remove(keyword.keyword)
-                } label: {
-                    Image(systemName: "xmark")
-                        .imageScale(.small)
-                        .foregroundStyle(.secondary)
-                        .frame(minWidth: 28, minHeight: 28)
-                        .contentShape(.rect)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(L10n.Localizable.ConfirmationDialog.Button.remove)
+            Button {
+                remove(keyword.keyword)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.textTertiary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(.rect)
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.Localizable.ConfirmationDialog.Button.remove)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
-/// Recently opened galleries in a horizontal row (legacy `GalleryHistoryCell`).
+/// Recently opened galleries as a strip of covers with their titles (E-Search).
 struct RecentGalleries: View {
     let galleries: [Gallery]
     let open: (Gallery) -> Void
 
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(spacing: Tokens.Spacing.large) {
+            LazyHStack(alignment: .top, spacing: Tokens.Spacing.medium) {
                 ForEach(galleries) { gallery in
                     Button { open(gallery) } label: {
                         RecentGalleryCell(gallery: RecentGalleryCell.Content(gallery))
@@ -94,48 +168,32 @@ struct RecentGalleries: View {
 private struct RecentGalleryCell: View, Equatable {
     struct Content: Equatable {
         let title: String
-        let uploader: String?
-        let rating: Float
         let coverURL: URL?
 
         init(_ gallery: Gallery) {
             title = gallery.trimmedTitle
-            uploader = gallery.uploader
-            rating = gallery.rating
             coverURL = gallery.coverURL
         }
     }
 
     let gallery: Content
 
-    // Legacy: three row-cover widths wide and three quarters of a row cover high.
-    private static let coverSize = CGSize(
-        width: Tokens.ImageSize.row.width * 0.75, height: Tokens.ImageSize.row.height * 0.75
-    )
-    private static let width = Tokens.ImageSize.row.width * 3
+    private static let coverSize = CGSize(width: 96, height: 96 / Tokens.Aspect.cover)
 
     var body: some View {
-        HStack(spacing: Tokens.Spacing.xLarge) {
-            RemoteImage(url: gallery.coverURL, size: Self.coverSize, contentMode: .fill, cornerRadius: 2)
-            VStack(alignment: .leading, spacing: Tokens.Spacing.xxSmall) {
-                Text(gallery.title)
-                    .bold()
-                    .lineLimit(2)
-                if let uploader = gallery.uploader {
-                    Text(uploader)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+        VStack(alignment: .leading, spacing: 6) {
+            RemoteImage(url: gallery.coverURL, size: Self.coverSize, contentMode: .fill)
+                .overlay {
+                    RoundedRectangle(cornerRadius: Tokens.Radius.image, style: .continuous)
+                        .strokeBorder(.coverEdge, lineWidth: 1)
                 }
-                Spacer(minLength: 0)
-                RatingStars(rating: Double(gallery.rating))
-            }
-            .font(.caption)
-            .multilineTextAlignment(.leading)
-            Spacer(minLength: 0)
+            Text(gallery.title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.textPrimary)
+                .lineLimit(2, reservesSpace: true)
+                .multilineTextAlignment(.leading)
         }
-        // Grows past the cover height only for large Dynamic Type sizes.
-        .frame(width: Self.width)
-        .frame(minHeight: Self.coverSize.height)
+        .frame(width: Self.coverSize.width)
         .contentShape(.rect)
         .accessibilityElement(children: .combine)
     }

@@ -14,6 +14,7 @@ struct SearchResultsView: View {
 
     var body: some View {
         PagedGalleryList(model: model.list)
+            .screenGround()
             .navigationTitle(model.lastKeyword)
             .tagSearchable(
                 text: $model.keyword, prompt: L10n.Localizable.TabItem.Title.search,
@@ -31,8 +32,8 @@ struct SearchResultsView: View {
                 switch sheet {
                 case .filters:
                     FiltersSheet(range: .search)
-                case .quickSearch:
-                    QuickSearchSheet { word in
+                case .quickSearch, .newQuickSearchWord:
+                    QuickSearchSheet(startsAdding: sheet == .newQuickSearchWord) { word in
                         Task { await model.selectQuickSearchWord(word) }
                     }
                 }
