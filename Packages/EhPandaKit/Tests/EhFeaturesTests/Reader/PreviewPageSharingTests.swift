@@ -66,7 +66,10 @@ import Testing
         model.pagesNeeded([1])
         await readerEventually { model.pageState(at: 1) == .image(site.mpvImage(1)) }
 
-        #expect(Array(site.started.prefix(3)) == ["detail", "mpv", "dispatch:1"])
+        // The reader asks for the pages around the first one at once, so their dispatches start
+        // in any order; what matters is that the viewer comes straight after the detail page.
+        #expect(Array(site.started.prefix(2)) == ["detail", "mpv"])
+        #expect(site.started.contains("dispatch:1"))
         #expect(site.count(of: "links:0") == 0)
     }
 
