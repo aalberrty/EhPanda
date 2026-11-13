@@ -38,6 +38,18 @@ extension ReaderModel {
         }
     }
 
+    /// The pages after the slider's page, for "Page 12 of 64 · 52 left". It follows the slider
+    /// while the strip is up, like the page it counts from.
+    public var sliderPagesLeft: Int {
+        max(pageCount - sliderPage, 0)
+    }
+
+    /// How many thumbnails the preview strip shows: five, the slider's page in the middle, and
+    /// seven on a wide window in landscape, where legacy showed seven too.
+    public nonisolated static func previewStripLength(isRegularWidth: Bool, isLandscape: Bool) -> Int {
+        isRegularWidth && isLandscape ? 7 : 5
+    }
+
     /// The pages of the preview strip, centred on the slider. Pages outside the gallery are
     /// included; the strip keeps their place empty.
     public var previewStripPages: [Int] {

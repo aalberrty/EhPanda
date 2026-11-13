@@ -57,12 +57,39 @@ import Testing
     @Test func stripPagesAreCentredOnTheSlider() async throws {
         let harness = try ReaderModelHarness()
         let model = await harness.startedModel(initialPage: 50)
-        #expect(model.previewStripPages == [49, 50, 51])
+        #expect(model.previewStripPages == [48, 49, 50, 51, 52])
         model.previewStripLength = 7
         #expect(model.previewStripPages == Array(47...53))
         model.setSliderPage(1)
         // Places outside the gallery are kept; the strip leaves them empty.
         #expect(model.previewStripPages == Array(-2...4))
+    }
+
+    @Test func theStripShowsFiveThumbnailsAndSevenOnAWideLandscapeWindow() {
+        #expect(ReaderModel.previewStripLength(isRegularWidth: false, isLandscape: false) == 5)
+        #expect(ReaderModel.previewStripLength(isRegularWidth: false, isLandscape: true) == 5)
+        #expect(ReaderModel.previewStripLength(isRegularWidth: true, isLandscape: false) == 5)
+        #expect(ReaderModel.previewStripLength(isRegularWidth: true, isLandscape: true) == 7)
+    }
+
+    @Test func pagesLeftCountFromTheSliderAndFollowItWhileDragging() async throws {
+        let harness = try ReaderModelHarness()
+        let model = await harness.startedModel(initialPage: 12)
+        #expect(model.pageCount == 100)
+        #expect(model.sliderPagesLeft == 88)
+
+        model.sliderEditingChanged(true)
+        model.setSliderPage(18)
+        #expect(model.sliderPagesLeft == 82)
+        // The reader reporting its page while the slider is held changes nothing.
+        model.currentPageDidChange(13)
+        #expect(model.sliderPagesLeft == 82)
+        model.sliderEditingChanged(false)
+
+        model.currentPageDidChange(100)
+        #expect(model.sliderPagesLeft == 0)
+        model.currentPageDidChange(1)
+        #expect(model.sliderPagesLeft == 99)
     }
 
     @Test func previewsAreFetchedWhenTheStripAppearsOnAFreshGallery() async throws {
