@@ -155,16 +155,20 @@ private struct CategoryFilterChip: View {
     /// The vivid (light appearance) category colour, as `CategoryLabel` draws it.
     @ViewBuilder
     private func dot(_ color: Color) -> some View {
+        // Only the category colour resolves in light appearance; the ring keeps the real one, or
+        // it turns to ink and disappears on the dark chip.
         Group {
             if chip.isIncluded {
                 Circle()
                     .fill(color)
+                    .environment(\.colorScheme, .light)
                     .overlay { Circle().strokeBorder(DesignColors.categoryRing, lineWidth: 1) }
             } else {
-                Circle().strokeBorder(color, lineWidth: 1.5)
+                Circle()
+                    .strokeBorder(color, lineWidth: 1.5)
+                    .environment(\.colorScheme, .light)
             }
         }
-        .environment(\.colorScheme, .light)
         .frame(width: dotSize, height: dotSize)
     }
 }
