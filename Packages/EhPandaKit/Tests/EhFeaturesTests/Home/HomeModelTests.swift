@@ -24,7 +24,7 @@ import Testing
         #expect(!model.cards.isEmpty && model.cards.count <= HomeSections.maximumCards)
         #expect(model.frontpageState == .idle)
         #expect(!model.frontpage.isEmpty && model.frontpage.count <= 25)
-        #expect(!model.coverColumns.isEmpty)
+        #expect(!HomeSections.frontpageWall(from: model.frontpage, columns: 3).isEmpty)
         for type in ToplistsType.allCases {
             #expect(model.toplistsStates[type] == .idle)
             #expect(!model.toplists(for: type).isEmpty)
