@@ -66,7 +66,7 @@ private struct SearchRootSections: View {
             let quickSearch = model.quickSearchKeywords
             SubSection(
                 title: L10n.Localizable.SearchView.Section.Title.quickSearch,
-                showsAll: !quickSearch.isEmpty, tint: .textSecondary, showAll: model.showQuickSearch
+                showsAll: !quickSearch.isEmpty, showAll: model.showQuickSearch
             ) {
                 QuickSearchChips(
                     keywords: Array(quickSearch.prefix(SearchRootModel.keywordLimit(isRegularWidth: isRegularWidth))),

@@ -4,12 +4,11 @@ import SwiftUI
 /// comments (legacy `SubSection`).
 ///
 /// Tapping the title reloads when `reload` is given; a spinner beside it shows `isLoading`.
-/// "Show all ›" sits on the trailing edge, on the title's baseline, in `tint` (the app's tint
-/// when `nil`); it is hidden (but keeps its space) when `showsAll` is false.
+/// "Show all ›" (`ShowAllLabel`) sits on the trailing edge, on the title's baseline; it is
+/// hidden (but keeps its space) when `showsAll` is false.
 struct SubSection<Content: View>: View {
     private let title: String
     private let showsAll: Bool
-    private let tint: Color?
     private let isLoading: Bool
     private let reload: (() -> Void)?
     private let showAll: () -> Void
@@ -19,13 +18,12 @@ struct SubSection<Content: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
-        title: String, showsAll: Bool = true, tint: Color? = nil, isLoading: Bool = false,
+        title: String, showsAll: Bool = true, isLoading: Bool = false,
         reload: (() -> Void)? = nil, showAll: @escaping () -> Void = {},
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.showsAll = showsAll
-        self.tint = tint
         self.isLoading = isLoading
         self.reload = reload
         self.showAll = showAll
@@ -67,20 +65,11 @@ struct SubSection<Content: View>: View {
                     Spacer()
                 }
 
-                // The chevron is the "Show all ›" the mockups draw. Under the title, a hidden
-                // one would only leave an empty line.
+                // Under the title, a hidden "Show all" would only leave an empty line.
                 if showsAll || !isStacked {
                     Button(action: showAll) {
-                        HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.xxSmall) {
-                            Text(L10n.Localizable.SubSection.Button.showAll)
-                            Image(systemName: "chevron.right")
-                                .imageScale(.small)
-                                .fontWeight(.semibold)
-                                .accessibilityHidden(true)
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(tint.map(AnyShapeStyle.init) ?? AnyShapeStyle(.tint))
-                        .contentShape(.rect)
+                        ShowAllLabel()
+                            .contentShape(.rect)
                     }
                     .buttonStyle(.plain)
                     .opacity(showsAll ? 1 : 0)

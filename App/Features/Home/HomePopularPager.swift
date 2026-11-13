@@ -184,7 +184,7 @@ private struct PopularCaption: View {
             Button(action: openPopular) {
                 HStack(spacing: Tokens.Spacing.xxSmall) {
                     Text(L10n.Localizable.Enum.HomeMiscGridType.Title.popular)
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .imageScale(.small)
                         .accessibilityHidden(true)
                 }

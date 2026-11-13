@@ -50,18 +50,12 @@ struct DetailPanelHeader: View {
             }
             if showsAll {
                 Button(action: showAll) {
-                    HStack(spacing: Tokens.Spacing.xxSmall) {
-                        Text(L10n.Localizable.SubSection.Button.showAll)
-                        Image(systemName: "chevron.forward")
-                            .font(.footnote.weight(.semibold))
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.textSecondary)
-                    // A 44 pt target without making the header taller.
-                    .padding(.vertical, Tokens.Spacing.medium)
-                    .padding(.leading, isStacked ? 0 : Tokens.Spacing.large)
-                    .contentShape(.rect)
-                    .padding(.vertical, -Tokens.Spacing.medium)
+                    ShowAllLabel()
+                        // A 44 pt target without making the header taller.
+                        .padding(.vertical, Tokens.Spacing.medium)
+                        .padding(.leading, isStacked ? 0 : Tokens.Spacing.large)
+                        .contentShape(.rect)
+                        .padding(.vertical, -Tokens.Spacing.medium)
                 }
                 .buttonStyle(.plain)
             }

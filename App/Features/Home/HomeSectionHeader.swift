@@ -43,17 +43,9 @@ struct HomeSectionHeader: View {
             }
 
             Button(action: showAll) {
-                HStack(spacing: Tokens.Spacing.xxSmall) {
-                    Text(L10n.Localizable.SubSection.Button.showAll)
-                    Image(systemName: "chevron.right")
-                        .imageScale(.small)
-                        .fontWeight(.semibold)
-                        .accessibilityHidden(true)
-                }
-                .font(.subheadline)
-                .foregroundStyle(.textSecondary)
-                .frame(minHeight: 44)
-                .contentShape(.rect)
+                ShowAllLabel()
+                    .frame(minHeight: 44)
+                    .contentShape(.rect)
             }
             .buttonStyle(.plain)
         }
