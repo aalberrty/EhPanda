@@ -29,30 +29,47 @@ private struct FiguresBar: View {
     let model: GalleryDetailModel
     let detail: GalleryDetail
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        HStack(spacing: 0) {
+        // At accessibility sizes the three figures no longer fit side by side and ran over one
+        // another, so they go one under the other on a rounded panel.
+        let isStacked = dynamicTypeSize.isAccessibilitySize
+        let layout = isStacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(spacing: 0))
+        layout {
             // The figures take what they need; pages, language and size get the rest.
             RatingFigure(model: model, rating: detail.rating)
                 .fixedSize()
                 .frame(minWidth: 88)
-            FigureDivider()
+            FigureDivider(isHorizontal: isStacked)
             FavoriteFigure(model: model, count: detail.favoritedCount)
                 .fixedSize()
                 .frame(minWidth: 100)
-            FigureDivider()
+            FigureDivider(isHorizontal: isStacked)
             InfosFigure(detail: detail) { model.destination = .galleryInfos }
         }
         .padding(.horizontal, Tokens.Spacing.xSmall + Tokens.Spacing.xxSmall)
+        .padding(.vertical, isStacked ? Tokens.Spacing.xSmall : 0)
         .frame(minHeight: 60)
-        .glassSurface(in: .capsule, tone: .panel)
+        .glassSurface(
+            in: isStacked
+                ? AnyShape(.rect(cornerRadius: Tokens.Radius.panel, style: .continuous))
+                : AnyShape(.capsule),
+            tone: .panel
+        )
     }
 }
 
 private struct FigureDivider: View {
+    var isHorizontal = false
+
     var body: some View {
         Rectangle()
             .fill(.hairline)
-            .frame(width: 1, height: 26)
+            .frame(width: isHorizontal ? nil : 1, height: isHorizontal ? 1 : 26)
+            .frame(maxWidth: isHorizontal ? .infinity : nil)
             .accessibilityHidden(true)
     }
 }
