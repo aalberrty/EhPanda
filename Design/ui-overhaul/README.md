@@ -40,7 +40,8 @@ spacing, colours, type) are the intent, not pixel law: use the closest native Sw
 - **Gallery detail:** direction B's layout (cover as hero with Read set into it, previews moved up,
   one tag flow, comments after), on glass panels over the cover glow. No tab bar, as drawn, on the
   detail page and on the screens pushed from it (comments, previews, gallery infos), so it does
-  not come and go between them (decided 2026-11-13); `RouteDestination` hides it per route.
+  not come and go between them (decided 2026-11-13). The bar follows the top screen, so a search
+  opened from a gallery (tag, uploader, similar galleries) shows it again.
 - **Reader:** reading behaves exactly as before: vertical continuous scroll by default and every
   existing reading mode and setting unchanged. **No glow in the reader.** Only the controls change:
   close, a title capsule ("Page 12 of 64 · 52 left") and More at the top; one glass panel at the

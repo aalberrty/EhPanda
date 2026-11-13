@@ -121,9 +121,12 @@ Never import SwiftUI, UIKit or Kingfisher in the package.
     `destination` property on its model.
   - `AppRouter` owns the selected tab, one `StackRouter` per tab, and the gallery sheet used for
     deep links. Re-selecting a tab pops it to its root, or bumps `rootReselections` when already there.
-  - The tab bar is hidden on a gallery's detail screen and every screen pushed from it
-    (`.detail` and `.detailChild`); `RouteDestination` sets that per route with the native
-    toolbar visibility. Every other screen keeps it.
+  - The tab bar follows the top screen of the stack: hidden while it is a gallery's detail
+    screen or a screen pushed from it (`.detail`, `.detailChild`), shown on every other screen,
+    at any depth (a tag search pushed above a gallery shows it, a gallery above that search
+    hides it). `Route.hidesTabBar` and `StackRouter.tabBarVisibility(for:)` decide it;
+    `RouteDestination` applies it with the native toolbar visibility, set only by the top screen
+    because SwiftUI combines the values of every screen in the stack.
 - **Entry points.** Each feature owns the entry views the shell references (`HomeScreen`,
   `LibraryScreen`, `SearchScreen`, `SearchResultsDestination`, `GalleryListDestination`,
   `GalleryDetailDestination`, `SettingsScreen`, `SettingsDestination`). Keep their names and initializers.

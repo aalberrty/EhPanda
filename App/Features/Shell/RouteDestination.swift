@@ -4,13 +4,15 @@ import SwiftUI
 /// Maps a `Route` to the entry view of the feature that owns it.
 struct RouteDestination: View {
     let route: Route
+    @Environment(StackRouter.self) private var stack
 
     var body: some View {
         destination
-            // E-Detail draws the gallery without the tab bar. Its child screens hide it as well,
-            // so it does not come and go while moving between them; the system shows it again
-            // on the screen below when the gallery is popped.
-            .toolbarVisibility(route.showsTabBar ? .automatic : .hidden, for: .tabBar)
+            // The tab bar follows the top screen of the stack. SwiftUI combines the visibility
+            // every screen in a stack states, so only the top screen states one: a gallery below
+            // a search would otherwise keep the bar hidden on the search, and a list below a
+            // gallery stating `.visible` would show it on the gallery.
+            .toolbarVisibility(Visibility(stack.tabBarVisibility(for: route)), for: .tabBar)
     }
 
     @ViewBuilder
@@ -32,12 +34,12 @@ struct RouteDestination: View {
     }
 }
 
-private extension Route {
-    /// A gallery's detail screen and the screens pushed from it hide the tab bar.
-    var showsTabBar: Bool {
-        switch self {
-        case .detail, .detailChild: false
-        case .galleryList, .search, .typedSearch, .settings: true
+private extension Visibility {
+    init(_ visibility: TabBarVisibility) {
+        switch visibility {
+        case .automatic: self = .automatic
+        case .visible: self = .visible
+        case .hidden: self = .hidden
         }
     }
 }
